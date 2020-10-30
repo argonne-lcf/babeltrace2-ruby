@@ -1,0 +1,19 @@
+module Babeltrace2
+
+  BT_LOGGING_LEVEL_TRACE = 1
+  private_constant :BT_LOGGING_LEVEL_TRACE
+  BT_LOGGING_LEVEL_DEBUG = 2
+  private_constant :BT_LOGGING_LEVEL_DEBUG
+  BT_LOGGING_LEVEL_INFO = 3
+  private_constant :BT_LOGGING_LEVEL_INFO
+  BT_LOGGING_LEVEL_WARNING = 4
+  private_constant :BT_LOGGING_LEVEL_WARNING
+  BT_LOGGING_LEVEL_ERROR = 5
+  private_constant :BT_LOGGING_LEVEL_ERROR
+  BT_LOGGING_LEVEL_FATAL = 6
+  private_constant :BT_LOGGING_LEVEL_FATAL
+  BT_LOGGING_LEVEL_NONE = 0xff
+  private_constant :BT_LOGGING_LEVEL_NONE
+  
+end
+
