@@ -1,9 +1,12 @@
 module Babeltrace2
+  BT_COMPONENT_CLASS_TYPE_SOURCE = 1 << 0
+  BT_COMPONENT_CLASS_TYPE_FILTER = 1 << 1
+  BT_COMPONENT_CLASS_TYPE_SINK = 1 << 2
 
   BTComponentClassType = enum :bt_component_class_type,
-    [ :BT_COMPONENT_CLASS_TYPE_SOURCE, 1 << 0,
-      :BT_COMPONENT_CLASS_TYPE_FILTER, 1 << 1,
-      :BT_COMPONENT_CLASS_TYPE_SINK, 1 << 2 ]
+    [ :BT_COMPONENT_CLASS_TYPE_SOURCE, BT_COMPONENT_CLASS_TYPE_SOURCE,
+      :BT_COMPONENT_CLASS_TYPE_FILTER, BT_COMPONENT_CLASS_TYPE_FILTER,
+      :BT_COMPONENT_CLASS_TYPE_SINK, BT_COMPONENT_CLASS_TYPE_SINK ]
 
   attach_function :bt_component_class_get_type,
                   [:bt_component_class_handle],

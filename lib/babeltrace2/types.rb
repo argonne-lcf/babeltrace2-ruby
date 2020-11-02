@@ -155,4 +155,6 @@ module Babeltrace2
 
   BT_TRUE = 1
   BT_FALSE = 0
+
+  @@callbacks = {}
 end

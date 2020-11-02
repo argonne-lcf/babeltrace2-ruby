@@ -253,6 +253,7 @@ module Babeltrace2
           Babeltrace2.bt_value_integer_unsigned_get(@handle)
         end
         alias value get
+        alias to_i value
       end
     end
     IntegerUnsigned = Integer::Unsigned
@@ -307,6 +308,7 @@ module Babeltrace2
           Babeltrace2.bt_value_integer_signed_get(@handle)
         end
         alias value get
+        alias to_i value
       end
     end
     IntegerSigned = Integer::Signed
@@ -359,6 +361,7 @@ module Babeltrace2
         Babeltrace2.bt_value_real_get(@handle)
       end
       alias value get
+      alias to_f value
     end
   end
   BTValueReal = BTValue::Real
@@ -420,6 +423,7 @@ module Babeltrace2
         Babeltrace2.bt_value_string_get(@handle)
       end
       alias value get
+      alias to_s value
     end
   end
   BTValueString = BTValue::String
@@ -579,7 +583,7 @@ module Babeltrace2
       alias size length
 
       def empty?
-        return length == 0
+        length == 0
       end
 
       def each
@@ -595,6 +599,7 @@ module Babeltrace2
       def value
         each.collect(&:value)
       end
+      alias to_a value
     end
   end
   BTValueArray = BTValue::Array
@@ -793,9 +798,18 @@ module Babeltrace2
         value
       end
 
+      def get_size
+        Babeltrace2.bt_value_map_get_size(@handle)
+      end
+      alias size get_size
+
+      def empty?
+        size == 0
+      end
+
       def has_entry(key)
         key = ":#{key}" if key.kind_of?(Symbol)
-        Babeltrace2.bt_value_map_has_entry(key) == BT_FALSE ? false : true
+        Babeltrace2.bt_value_map_has_entry(@handle, key) == BT_FALSE ? false : true
       end
       alias include? has_entry
 
@@ -822,8 +836,24 @@ module Babeltrace2
       end
 
       def value
-        each.collect { |k, v| [k, v.value] }.to_h
+        val = {}
+        each { |k, v| val[k] = v.value }
+        val
       end
+      alias to_h value
+
+      def extend!(other)
+        res = Babeltrace2.bt_value_map_extend(@handle, other)
+        raise res if res != :BT_VALUE_COPY_STATUS_OK
+        self
+      end
+
+      def extend(other)
+        hsh = self.class.new
+        hsh.extend!(self)
+        hsh.extend!(other)
+      end
+
     end
   end
   BTValueMap = BTValue::Map
