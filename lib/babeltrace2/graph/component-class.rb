@@ -35,11 +35,11 @@ module Babeltrace2
     def self.from_handle(handle, retain: true, auto_release: true)
       case Babeltrace2.bt_component_class_get_type(handle)
       when :BT_COMPONENT_CLASS_TYPE_SOURCE
-        Source
+        BTComponentClassSource
       when :BT_COMPONENT_CLASS_TYPE_FILTER
-        Filter
+        BTComponentClassFilter
       when :BT_COMPONENT_CLASS_TYPE_SINK
-        Sink
+        BTComponentClassSink
       else
         raise Error.new("Unknown component class type")
       end.new(handle, retain: retain, auto_release: auto_release)
