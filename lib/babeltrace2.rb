@@ -22,5 +22,6 @@ require_relative 'babeltrace2/util'
 require_relative 'babeltrace2/graph/component-class-dev'
 require_relative 'babeltrace2/graph/self-component-class'
 require_relative 'babeltrace2/graph/graph'
+require_relative 'babeltrace2/graph/message-iterator.rb'
 
 BT2 = Babeltrace2

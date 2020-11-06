@@ -313,6 +313,10 @@ module Babeltrace2
         raise TypeError, "wrong type for port query"
       end
     end
+
+    def create_message_iterator(port)
+      BTMessageIterator.create_from_sink_component(self, port)
+    end
   end
   BTComponentSink = BTComponent::Sink
 
