@@ -15,7 +15,7 @@ module Babeltrace2
       :BT_GRAPH_ADD_COMPONENT_STATUS_MEMORY_ERROR, BT_FUNC_STATUS_MEMORY_ERROR,
       :BT_GRAPH_ADD_COMPONENT_STATUS_ERROR, BT_FUNC_STATUS_ERROR ]
 
-  class BTGraph < BTRefCountedObject
+  class BTGraph < BTSharedObject
     @get_ref = :bt_graph_get_ref
     @put_ref = :bt_graph_put_ref
 

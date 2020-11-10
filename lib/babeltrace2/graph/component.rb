@@ -24,7 +24,7 @@ module Babeltrace2
                   [ :bt_component_handle ],
                   :void
 
-  class BTComponent < BTRefCountedObject
+  class BTComponent < BTSharedObject
     ClassType = BTComponentClassType
     @get_ref = :bt_component_get_ref
     @put_ref = :bt_component_put_ref
@@ -38,7 +38,7 @@ module Babeltrace2
       when :BT_COMPONENT_CLASS_TYPE_SINK
         Sink
       else
-        raise Error.new("Unknown component class type")
+        raise Error.new("unknown component class type")
       end.new(handle, retain: retain, auto_release: auto_release)
     end
 

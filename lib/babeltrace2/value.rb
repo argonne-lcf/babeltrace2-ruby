@@ -48,7 +48,7 @@ module Babeltrace2
                   [:bt_value_handle],
                   :void
 
-  class BTValue < BTRefCountedObject
+  class BTValue < BTSharedObject
     @get_ref = :bt_value_get_ref
     @put_ref = :bt_value_put_ref
 

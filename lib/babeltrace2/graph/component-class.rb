@@ -27,7 +27,7 @@ module Babeltrace2
                   [:bt_component_class_handle],
                   :void
 
-  class BTComponentClass < BTRefCountedObject
+  class BTComponentClass < BTSharedObject
     Type = BTComponentClassType
     @get_ref = :bt_component_class_get_ref
     @put_ref = :bt_component_class_put_ref

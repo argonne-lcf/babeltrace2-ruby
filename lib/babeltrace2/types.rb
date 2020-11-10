@@ -93,7 +93,7 @@ module Babeltrace2
     end
   end
 
-  class BTRefCountedObject < BTObject
+  class BTSharedObject < BTObject
     class Releaser
       def initialize(handle, releaser)
         @handle = handle

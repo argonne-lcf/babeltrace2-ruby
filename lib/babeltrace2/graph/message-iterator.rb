@@ -152,7 +152,7 @@ module Babeltrace2
                   [ :bt_message_iterator_handle ],
                   :void
 
-  class BTMessageIterator < BTRefCountedObject
+  class BTMessageIterator < BTSharedObject
     CreateFromMessageIteratorStatus = BTMessageIteratorCreateFromMessageIteratorStatus
     CreateFromSinkComponentStatus = BTMessageIteratorCreateFromSinkComponentStatus
     NextStatus = BTMessageIteratorNextStatus
@@ -196,7 +196,7 @@ module Babeltrace2
         count = ptr_count.read_uint64
         messages = ptr_messages.read_pointer
         return messages.read_array_of_pointer(count).collect { |h|
-          BTMessages.new(h, retain: false, auto_release: true)
+          BTMessages.from_handle(h, retain: false, auto_release: true)
         }
       when :BT_MESSAGE_ITERATOR_NEXT_STATUS_END
         raise StopIteration

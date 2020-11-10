@@ -32,7 +32,7 @@ module Babeltrace2
                   [:bt_integer_range_set_handle],
                   :uint64
 
-  class BTIntergerRangeSet < BTRefCountedObject
+  class BTIntergerRangeSet < BTSharedObject
     AddRangeStatus = BTIntegerRangeSetAddRangeStatus
 
     def get_range_count

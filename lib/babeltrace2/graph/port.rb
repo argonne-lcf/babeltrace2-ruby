@@ -36,7 +36,7 @@ module Babeltrace2
                   [ :bt_port_handle ],
                   :void
 
-  class BTPort < BTRefCountedObject
+  class BTPort < BTSharedObject
     Type = BTPortType
     @get_ref = :bt_port_get_ref
     @put_ref = :bt_port_put_ref
