@@ -156,5 +156,8 @@ module Babeltrace2
   BT_TRUE = 1
   BT_FALSE = 0
 
-  @@callbacks = {}
+  @@callbacks = Hash::new { |h, k| h[k] = {} }
+  def self._callbacks
+    @@callbacks
+  end
 end
