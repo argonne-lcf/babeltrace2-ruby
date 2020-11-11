@@ -31,5 +31,6 @@ require_relative 'babeltrace2/graph/component-descriptor-set'
 require_relative 'babeltrace2/graph/interrupter'
 require_relative 'babeltrace2/graph/query-executor'
 require_relative 'babeltrace2/graph/private-query-executor'
+require_relative 'babeltrace2/plugin/plugin-loading.rb'
 
 BT2 = Babeltrace2

@@ -69,34 +69,34 @@ module Babeltrace2
     class Unsigned < BTIntergerRangeSet
       @get_ref = :bt_integer_range_set_unsigned_get_ref
       @put_ref = :bt_integer_range_set_unsigned_put_ref
-    end
 
-    def initialize(handle = nil)
-      if handle
-        super(handle, retain: true)
-      else
-        handle = Babeltrace2.bt_integer_range_set_unsigned_create()
-        raise :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR if handle.null?
-        super(handle)
+      def initialize(handle = nil)
+        if handle
+          super(handle, retain: true)
+        else
+          handle = Babeltrace2.bt_integer_range_set_unsigned_create()
+          raise :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR if handle.null?
+          super(handle)
+        end
       end
-    end
 
-    def add_range(*args)
-      lower, upper = *args
-      lower, upper = *[lower.min, lower.max] unless upper
-      res = Babeltrace2.bt_integer_range_set_unsigned_add_range(@handle, lower, upper)
-      raise res if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
-      self
-    end
+      def add_range(*args)
+        lower, upper = *args
+        lower, upper = *[lower.min, lower.max] unless upper
+        res = Babeltrace2.bt_integer_range_set_unsigned_add_range(@handle, lower, upper)
+        raise res if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
+        self
+      end
 
-    def get_range(index)
-      return nil if index >= range_count
-      handle = Babeltrace2.bt_integer_range_set_unsigned_borrow_range_by_index_const(@handle, index)
-      lower = Babeltrace2.bt_integer_range_unsigned_get_lower(handle)
-      upper = Babeltrace2.bt_integer_range_unsigned_get_upper(handle)
-      return lower..upper
+      def get_range(index)
+        return nil if index >= range_count
+        handle = Babeltrace2.bt_integer_range_set_unsigned_borrow_range_by_index_const(@handle, index)
+        lower = Babeltrace2.bt_integer_range_unsigned_get_lower(handle)
+        upper = Babeltrace2.bt_integer_range_unsigned_get_upper(handle)
+        return lower..upper
+      end
+      alias [] get_range
     end
-    alias [] get_range
   end
   BTIntergerRangeSetUnsigned = BTIntergerRangeSet::Unsigned
 
@@ -128,34 +128,34 @@ module Babeltrace2
     class Signed < BTIntergerRangeSet
       @get_ref = :bt_integer_range_set_signed_get_ref
       @put_ref = :bt_integer_range_set_signed_put_ref
-    end
 
-    def initialize(handle = nil)
-      if handle
-        super(handle, retain: true)
-      else
-        handle = Babeltrace2.bt_integer_range_set_signed_create()
-        raise :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR if handle.null?
-        super(handle)
+      def initialize(handle = nil)
+        if handle
+          super(handle, retain: true)
+        else
+          handle = Babeltrace2.bt_integer_range_set_signed_create()
+          raise :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR if handle.null?
+          super(handle)
+        end
       end
-    end
 
-    def add_range(*args)
-      lower, upper = *args
-      lower, upper = *[lower.min, lower.max] unless upper
-      res = Babeltrace2.bt_integer_range_set_signed_add_range(@handle, lower, upper)
-      raise res if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
-      self
-    end
+      def add_range(*args)
+        lower, upper = *args
+        lower, upper = *[lower.min, lower.max] unless upper
+        res = Babeltrace2.bt_integer_range_set_signed_add_range(@handle, lower, upper)
+        raise res if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
+        self
+      end
 
-    def get_range(index)
-      return nil if index >= range_count
-      handle = Babeltrace2.bt_integer_range_set_signed_borrow_range_by_index_const(@handle, index)
-      lower = Babeltrace2.bt_integer_range_signed_get_lower(handle)
-      upper = Babeltrace2.bt_integer_range_signed_get_upper(handle)
-      return lower..upper
+      def get_range(index)
+        return nil if index >= range_count
+        handle = Babeltrace2.bt_integer_range_set_signed_borrow_range_by_index_const(@handle, index)
+        lower = Babeltrace2.bt_integer_range_signed_get_lower(handle)
+        upper = Babeltrace2.bt_integer_range_signed_get_upper(handle)
+        return lower..upper
+      end
+      alias [] get_range
     end
-    alias [] get_range
   end
   BTIntergerRangeSetSigned = BTIntergerRangeSet::Signed
 

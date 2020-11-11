@@ -118,7 +118,7 @@ module Babeltrace2
     alias output_port_count get_output_port_count
 
     def get_output_port_by_index(index)
-      raise RangeError if index >= get_output_port_count
+      return nil if index >= get_output_port_count
       handle = Babeltrace2.bt_component_source_borrow_output_port_by_index_const(@handle, index)
       BTPortOutput.new(handle, retain: true, auto_release: true)
     end
@@ -138,6 +138,14 @@ module Babeltrace2
       else
         raise TypeError, "wrong type for port query"
       end
+    end
+
+    def output_ports
+      output_port_count.times.collect { |index|
+        handle = Babeltrace2.bt_component_source_borrow_output_port_by_index_const(
+                   @handle, index)
+        BTPortOutput.new(handle, retain: true, auto_release: true)
+      }
     end
   end
   BTComponentSource = BTComponent::Source
@@ -159,10 +167,6 @@ module Babeltrace2
                   [ :bt_component_filter_handle,
                     :string ],
                   :bt_port_input_handle
-
-  attach_function :bt_component_filter_borrow_class_const,
-                  [ :bt_component_filter_handle ],
-                  :bt_component_class_filter_handle
 
   attach_function :bt_component_filter_get_output_port_count,
                   [ :bt_component_filter_handle ],
@@ -200,7 +204,7 @@ module Babeltrace2
     alias output_port_count get_output_port_count
 
     def get_output_port_by_index(index)
-      raise RangeError if index >= get_output_port_count
+      return nil if index >= get_output_port_count
       handle = Babeltrace2.bt_component_filter_borrow_output_port_by_index_const(@handle, index)
       BTPortOutput.new(handle, retain: true, auto_release: true)
     end
@@ -222,13 +226,21 @@ module Babeltrace2
       end
     end
 
+    def output_ports
+      output_port_count.times.collect { |index|
+        handle = Babeltrace2.bt_component_filter_borrow_output_port_by_index_const(
+                   @handle, index)
+        BTPortOutput.new(handle, retain: true, auto_release: true)
+      }
+    end
+
     def get_input_port_count
       Babeltrace2.bt_component_filter_get_input_port_count(@handle)
     end
     alias input_port_count get_input_port_count
 
     def get_input_port_by_index(index)
-      raise RangeError if index >= get_input_port_count
+      return nil if index >= get_input_port_count
       handle = Babeltrace2.bt_component_filter_borrow_input_port_by_index_const(@handle, index)
       BTPortInput.new(handle, retain: true, auto_release: true)
     end
@@ -248,6 +260,14 @@ module Babeltrace2
       else
         raise TypeError, "wrong type for port query"
       end
+    end
+
+    def input_ports
+      input_port_count.times.collect { |index|
+        handle = Babeltrace2.bt_component_filter_borrow_input_port_by_index_const(
+                   @handle, index)
+        BTPortInput.new(handle, retain: true, auto_release: true)
+      }
     end
   end
   BTComponentFilter = BTComponent::Filter
@@ -292,7 +312,7 @@ module Babeltrace2
     alias input_port_count get_input_port_count
 
     def get_input_port_by_index(index)
-      raise RangeError if index >= get_input_port_count
+      return nil if index >= get_input_port_count
       handle = Babeltrace2.bt_component_sink_borrow_input_port_by_index_const(@handle, index)
       BTPortInput.new(handle, retain: true, auto_release: true)
     end
@@ -312,6 +332,14 @@ module Babeltrace2
       else
         raise TypeError, "wrong type for port query"
       end
+    end
+
+    def input_ports
+      input_port_count.times.collect { |index|
+        handle = Babeltrace2.bt_component_sink_borrow_input_port_by_index_const(
+                   @handle, index)
+        BTPortInput.new(handle, retain: true, auto_release: true)
+      }
     end
 
     def create_message_iterator(port)

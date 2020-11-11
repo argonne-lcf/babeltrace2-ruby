@@ -320,7 +320,7 @@ module Babeltrace2
   end
 
   def self._wrap_component_class_sink_consume_method(handle, method)
-    method_wrapper = lambda { |self_component|
+    lambda { |self_component|
       method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
     }
   end

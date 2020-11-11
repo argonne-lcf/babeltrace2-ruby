@@ -829,7 +829,7 @@ module Babeltrace2
             block.call(key, val)
             :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK
           }
-          res = Babeltrace2.bt_value_map_foreach_entry(@handle, block_wrapper, nil)
+          Babeltrace2.bt_value_map_foreach_entry(@handle, block_wrapper, nil)
         else
           to_enum(&:each)
         end

@@ -295,13 +295,13 @@ module Babeltrace2
     end
     alias cause_count get_cause_count
 
-    def borrow_cause_by_index(indx)
-      raise Error.new("Invalid Cause index") unless indx < get_cause_count
+    def get_cause_by_index(indx)
+      return nil unless indx < get_cause_count
       ref = Babeltrace2.bt_error_borrow_cause_by_index(@handle, indx)
-      
+      Cause.new(ref)
     end
 
-    def borrow_causes
+    def causes
       get_cause_count.tines.collect { |i|
         ref = Babeltrace2.bt_error_borrow_cause_by_index(@handle, i)
         Cause.new(ref)

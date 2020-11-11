@@ -133,7 +133,7 @@ module Babeltrace2
            :pointer
 
   def self._wrap_message_iterator_class_next_method(method)
-    method_wrapper = lambda { |self_message_iterator, messages, capacity, count|
+    lambda { |self_message_iterator, messages, capacity, count|
       res, mess, cnt = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
                                    capacity)
       if res == :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK

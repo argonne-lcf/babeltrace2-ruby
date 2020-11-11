@@ -148,8 +148,8 @@ module Babeltrace2
   typedef BTUUID.by_ref, :bt_uuid
 
   BTPropertyAvailability = enum :bt_property_availability,
-    [ :BT_PROPERTY_AVAILABILITY_AVAILABLE, 1,
-      :BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE, 0 ]
+    [ :BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE, 0,
+      :BT_PROPERTY_AVAILABILITY_AVAILABLE, 1 ]
 
   typedef :pointer, :bt_message_array_const
 

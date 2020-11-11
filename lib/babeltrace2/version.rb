@@ -43,15 +43,18 @@ module Babeltrace2
   module BTVersion
     class Number
       include Comparable
-      attr_reader :major, :minor, :patch
-      def initialize(major, minor, patch)
+      attr_reader :major, :minor, :patch, :extra
+      def initialize(major, minor, patch, extra = nil)
         @major = major
         @minor = minor
         @patch = patch
+        @extra = extra
       end
 
       def to_s
-        "#{@major}.#{@minor}.#{@patch}"
+        str = "#{@major}.#{@minor}.#{@patch}"
+        str << " (#{extra})" if extra
+        str
       end
 
       def to_a
