@@ -97,6 +97,7 @@ module Babeltrace2
     def query
       ptr = FFI::MemoryPointer::new(:pointer)
       while ((res = Babeltrace2.bt_query_executor_query(@handle, ptr)) == :BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN)
+        raise "interrupted by user" if interrupted?
         sleep BT_SLEEP_TIME
       end
       raise res if res != :BT_QUERY_EXECUTOR_QUERY_STATUS_OK

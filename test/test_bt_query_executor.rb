@@ -49,6 +49,10 @@ class BTQueryExecutorTest < Minitest::Test
     refute(query_executor.interrupted?)
     interrupter.set!
     assert(query_executor.interrupted?)
+    assert_raises "interrupted by user" do query_executor.query end
+    interrupter.reset!
+    refute(query_executor.interrupted?)
+    assert_equal({"weight"=>0.0},  query_executor.query.value)
   end
 
   def test_default_interrupter
@@ -61,6 +65,10 @@ class BTQueryExecutorTest < Minitest::Test
     query_executor.add_interrupter(interrupter)
     refute(query_executor.interrupted?)
     interrupter.set!
+    assert_raises "interrupted by user" do query_executor.query end
     assert(query_executor.interrupted?)
+    interrupter.reset!
+    refute(query_executor.interrupted?)
+    assert_equal({"weight"=>0.0},  query_executor.query.value)
   end
 end
