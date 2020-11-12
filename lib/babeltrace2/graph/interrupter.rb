@@ -41,10 +41,12 @@ module Babeltrace2
     def set
       Babeltrace2.bt_interrupter_set(@handle)
     end
+    alias set! set
 
     def reset
       Babeltrace2.bt_interrupter_reset(@handle)
     end
+    alias reset! reset
 
     def is_set
       Babeltrace2.bt_interrupter_is_set(@handle) == BT_FALSE ? false : true

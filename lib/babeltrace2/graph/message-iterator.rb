@@ -190,6 +190,7 @@ module Babeltrace2
       ptr_messages = FFI::MemoryPointer::new(:pointer)
       ptr_count = FFI::MemoryPointer::new(:uint64)
       while ((res = Babeltrace2.bt_message_iterator_next(@handle, ptr_messages, ptr_count)) == :BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN)
+        sleep(0.1)
       end
       case res
       when :BT_MESSAGE_ITERATOR_NEXT_STATUS_OK
@@ -208,6 +209,7 @@ module Babeltrace2
     def can_seek_beginning
       ptr = FFI::MemoryPointer::new(:bt_bool)
       while ((res = Babeltrace2.bt_message_iterator_can_seek_beginning(@handle, ptr)) == :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_AGAIN)
+        sleep(0.1)
       end
       case res
       when :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_OK
@@ -221,6 +223,7 @@ module Babeltrace2
     def seek_beginning
       raise "invalid operation" unless can_seek_beginning?
       while ((res = Babeltrace2.bt_message_iterator_seek_beginning(@handle)) == :BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_AGAIN)
+        sleep(0.1)
       end
       case res
       when :BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_OK
@@ -233,6 +236,7 @@ module Babeltrace2
     def can_seek_ns_from_origin(ns)
       ptr = FFI::MemoryPointer::new(:bt_bool)
       while ((res = Babeltrace2.bt_message_iterator_can_seek_ns_from_origin(@handle, ns, ptr)) == :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_AGAIN)
+        sleep(0.1)
       end
       case res
       when :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_OK
@@ -246,6 +250,7 @@ module Babeltrace2
     def seek_ns_from_origin(ns)
       raise "invalid operation" unless can_seek_ns_from_origin(ns)
       while ((res = Babeltrace2.bt_message_iterator_seek_ns_from_origin@handle, ns) == :BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_AGAIN)
+        sleep(0.1)
       end
       case res
       when :BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_OK

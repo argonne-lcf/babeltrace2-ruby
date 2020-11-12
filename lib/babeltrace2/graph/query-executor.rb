@@ -94,9 +94,10 @@ module Babeltrace2
       end
     end
 
-    def query_status
+    def query
       ptr = FFI::MemoryPointer::new(:pointer)
       while ((res = Babeltrace2.bt_query_executor_query(@handle, ptr)) == :BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN)
+        sleep BT_SLEEP_TIME
       end
       raise res if res != :BT_QUERY_EXECUTOR_QUERY_STATUS_OK
       BTValue.from_handle(ptr.read_pointer, retain: false)
