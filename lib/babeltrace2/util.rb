@@ -16,7 +16,7 @@ module Babeltrace2
     def self.clock_cycles_to_ns_from_origin(cycles, frequency, offset_seconds, offset_cycles)
       ptr = FFI::MemoryPointer::new(:int64)
       res = Babeltrace2.bt_util_clock_cycles_to_ns_from_origin(cycles, frequency, offset_seconds, offset_cycles, ptr)
-      raise res if res != :BT_UTIL_CLOCK_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_UTIL_CLOCK_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK
       ptr.read_int64
     end
   end

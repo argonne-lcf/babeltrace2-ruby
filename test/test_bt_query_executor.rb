@@ -2,23 +2,22 @@
 require 'minitest/autorun'
 require 'babeltrace2'
 
-TRACE_PATH = File.join(__dir__, "thapi-opencl-session-20201021-112005")
-TRACE_LOCATION = File.join(TRACE_PATH, "ust/uid/1000/64-bit/")
-
 class BTQueryExecutorTest < Minitest::Test
   def setup
+    @trace_path = File.join(__dir__, "thapi-opencl-session-20201021-112005")
+    @trace_location = File.join(@trace_path, "ust/uid/1000/64-bit/")
     @ctf_fs = BT2::BTPlugin.find("ctf").get_source_component_class_by_name("fs")
     @utils_muxer = BT2::BTPlugin.find("utils").get_filter_component_class_by_name("muxer")
   end
 
   def test_query
-    params = BT2::BTValue.from_value( { "input" => TRACE_PATH, "type" => "directory" } )
+    params = BT2::BTValue.from_value({"input" => @trace_path, "type" => "directory"})
     query_executor = BT2::BTQueryExecutor.new(
                        component_class: @ctf_fs,
                        object_name: "babeltrace.support-info",
                        params: params)
     assert_equal({"weight"=>0.0},  query_executor.query.value)
-    params = BT2::BTValue.from_value( { "input" => TRACE_LOCATION, "type" => "directory" } )
+    params = BT2::BTValue.from_value({"input" => @trace_location, "type" => "directory"})
     query_executor = BT2::BTQueryExecutor.new(
                        component_class: @ctf_fs,
                        object_name: "babeltrace.support-info",
@@ -28,7 +27,7 @@ class BTQueryExecutorTest < Minitest::Test
   end
 
   def test_logging_level
-    params = BT2::BTValue.from_value( { "foo" => "bar", "type" => "buzz" } )
+    params = BT2::BTValue.from_value({"foo" => "bar", "type" => "buzz"})
     query_executor = BT2::BTQueryExecutor.new(
       component_class: @ctf_fs,
       object_name: "babeltrace.support-info",
@@ -39,7 +38,7 @@ class BTQueryExecutorTest < Minitest::Test
   end
 
   def test_interrupted
-    params = BT2::BTValue.from_value( { "foo" => "bar", "type" => "buzz" } )
+    params = BT2::BTValue.from_value({"foo" => "bar", "type" => "buzz"})
     query_executor = BT2::BTQueryExecutor.new(
       component_class: @ctf_fs,
       object_name: "babeltrace.support-info",
@@ -56,7 +55,7 @@ class BTQueryExecutorTest < Minitest::Test
   end
 
   def test_default_interrupter
-    params = BT2::BTValue.from_value( { "foo" => "bar", "type" => "buzz" } )
+    params = BT2::BTValue.from_value({"foo" => "bar", "type" => "buzz"})
     query_executor = BT2::BTQueryExecutor.new(
       component_class: @ctf_fs,
       object_name: "babeltrace.support-info",

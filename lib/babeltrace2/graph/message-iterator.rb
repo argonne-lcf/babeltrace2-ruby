@@ -165,7 +165,7 @@ module Babeltrace2
     def self.create_from_message_iterator(self_message_iterator, port)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_message_iterator_create_from_message_iterator(self_message_iterator, port, ptr)
-      raise res if res != :BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK
       BTMessageIterator.new(ptr.read_pointer, retain: true, auto_release: true)
     end
 
@@ -176,7 +176,7 @@ module Babeltrace2
     def self.create_from_sink_component(self_component_sink, port)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_message_iterator_create_from_sink_component(self_component_sink, port, ptr)
-      raise res if res != :BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK
       BTMessageIterator.new(ptr.read_pointer, retain: true, auto_release: true)
     end
 
@@ -190,74 +190,59 @@ module Babeltrace2
       ptr_messages = FFI::MemoryPointer::new(:pointer)
       ptr_count = FFI::MemoryPointer::new(:uint64)
       while ((res = Babeltrace2.bt_message_iterator_next(@handle, ptr_messages, ptr_count)) == :BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN)
-        sleep(0.1)
+        puts "waiting"
+        sleep BT_SLEEP_TIME
       end
       case res
       when :BT_MESSAGE_ITERATOR_NEXT_STATUS_OK
         count = ptr_count.read_uint64
         messages = ptr_messages.read_pointer
         return messages.read_array_of_pointer(count).collect { |h|
-          BTMessages.from_handle(h, retain: false, auto_release: true)
+          BTMessage.from_handle(h, retain: false, auto_release: true)
         }
       when :BT_MESSAGE_ITERATOR_NEXT_STATUS_END
         raise StopIteration
       else
-        raise res
+        raise Babeltrace2.process_error(res)
       end
     end
 
     def can_seek_beginning
       ptr = FFI::MemoryPointer::new(:bt_bool)
       while ((res = Babeltrace2.bt_message_iterator_can_seek_beginning(@handle, ptr)) == :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_AGAIN)
-        sleep(0.1)
+        sleep BT_SLEEP_TIME
       end
-      case res
-      when :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_OK
-        return ptr.read_int == BT_FALSE ? false : true
-      else
-        raise res
-      end
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_OK
+      ptr.read_int == BT_FALSE ? false : true
     end
     alias can_seek_beginning? can_seek_beginning
 
     def seek_beginning
       raise "invalid operation" unless can_seek_beginning?
       while ((res = Babeltrace2.bt_message_iterator_seek_beginning(@handle)) == :BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_AGAIN)
-        sleep(0.1)
+        sleep BT_SLEEP_TIME
       end
-      case res
-      when :BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_OK
-        return self
-      else
-        raise res
-      end
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_OK
+      self
     end
 
     def can_seek_ns_from_origin(ns)
       ptr = FFI::MemoryPointer::new(:bt_bool)
       while ((res = Babeltrace2.bt_message_iterator_can_seek_ns_from_origin(@handle, ns, ptr)) == :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_AGAIN)
-        sleep(0.1)
+        sleep BT_SLEEP_TIME
       end
-      case res
-      when :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_OK
-        return ptr.read_int == BT_FALSE ? false : true
-      else
-        raise res
-      end
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_OK
+      ptr.read_int == BT_FALSE ? false : true
     end
     alias can_seek_ns_from_origin? can_seek_ns_from_origin
 
     def seek_ns_from_origin(ns)
       raise "invalid operation" unless can_seek_ns_from_origin(ns)
       while ((res = Babeltrace2.bt_message_iterator_seek_ns_from_origin@handle, ns) == :BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_AGAIN)
-        sleep(0.1)
+        sleep BT_SLEEP_TIME
       end
-      case res
-      when :BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_OK
-        return self
-      else
-        raise res
-      end
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_OK
+      self
     end
 
     def can_seek_forward

@@ -134,11 +134,12 @@ module Babeltrace2
       when String
         get_output_port_by_name(port)
       when Integer
-        get_output_port_by_name(port)
+        get_output_port_by_index(port)
       else
         raise TypeError, "wrong type for port query"
       end
     end
+    alias output_port get_output_port
 
     def output_ports
       output_port_count.times.collect { |index|
@@ -220,7 +221,7 @@ module Babeltrace2
       when String
         get_output_port_by_name(port)
       when Integer
-        get_output_port_by_name(port)
+        get_output_port_by_index(port)
       else
         raise TypeError, "wrong type for port query"
       end
@@ -233,6 +234,7 @@ module Babeltrace2
         BTPortOutput.new(handle, retain: true, auto_release: true)
       }
     end
+    alias output_port get_output_port
 
     def get_input_port_count
       Babeltrace2.bt_component_filter_get_input_port_count(@handle)
@@ -256,11 +258,12 @@ module Babeltrace2
       when String
         get_input_port_by_name(port)
       when Integer
-        get_input_port_by_name(port)
+        get_input_port_by_index(port)
       else
         raise TypeError, "wrong type for port query"
       end
     end
+    alias input_port get_input_port
 
     def input_ports
       input_port_count.times.collect { |index|
@@ -328,11 +331,12 @@ module Babeltrace2
       when String
         get_input_port_by_name(port)
       when Integer
-        get_input_port_by_name(port)
+        get_input_port_by_index(port)
       else
         raise TypeError, "wrong type for port query"
       end
     end
+    alias input_port get_input_port
 
     def input_ports
       input_port_count.times.collect { |index|

@@ -183,7 +183,7 @@ module Babeltrace2
               fail_on_load_error ? BT_TRUE : BT_FALSE,
               ptr)
       return nil if res == :BT_PLUGIN_FIND_STATUS_NOT_FOUND
-      raise res if res != :BT_PLUGIN_FIND_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_STATUS_OK
       handle = ptr.read_pointer
       BTPlugin.new(handle, retain: false)
     end
@@ -202,9 +202,9 @@ module Babeltrace2
               fail_on_load_error ? BT_TRUE : BT_FALSE,
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_STATUS_NOT_FOUND
-      raise res if res != :BT_PLUGIN_FIND_ALL_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_STATUS_OK
       handle = ptr.read_pointer
-      return BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle).plugins
     end
 
     def self.find_all_from_file(path, fail_on_load_error: true)
@@ -214,9 +214,9 @@ module Babeltrace2
               fail_on_load_error ? BT_TRUE : BT_FALSE,
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_NOT_FOUND
-      raise res if res != :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK
       handle = ptr.read_pointer
-      return BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle).plugins
     end
 
     def self.find_all_from_dir(path, recurse: false, fail_on_load_error: true)
@@ -227,9 +227,9 @@ module Babeltrace2
               fail_on_load_error ? BT_TRUE : BT_FALSE,
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND
-      raise res if res != :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK
       handle = ptr.read_pointer
-      return BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle).plugins
     end
 
     def self.find_all_from_static(recurse: false, fail_on_load_error: true)
@@ -240,9 +240,9 @@ module Babeltrace2
               fail_on_load_error ? BT_TRUE : BT_FALSE,
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_NOT_FOUND
-      raise res if res != :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK
       handle = ptr.read_pointer
-      return BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle).plugins
     end
 
     def get_name

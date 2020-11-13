@@ -33,7 +33,7 @@ module Babeltrace2
         super(handle, retain: retain, auto_release: auto_release)
       else
         handle = Babeltrace2.bt_interrupter_create()
-        raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+        raise NoMemoryError if handle.null?
         super(handle)
       end
     end

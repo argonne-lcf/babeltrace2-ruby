@@ -23,11 +23,14 @@ module Babeltrace2
   def self._wrap_message_iterator_class_can_seek_beginning_method(handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, can_seek_beginning|
-      res, csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
-      if res == :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
+      begin
+        csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
+        :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_ERROR
       end
-      res
     }
     @@callbacks[id][:can_seek_beginning_method] = method_wrapper
     method_wrapper
@@ -56,11 +59,14 @@ module Babeltrace2
   def self._wrap_message_iterator_class_can_seek_ns_from_origin_method(handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, ns_from_origin, can_seek_beginning|
-      res, csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
-      if res == :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
+      begin
+        csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
+        :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR
       end
-      res
     }
     @@callbacks[id][:can_seek_ns_from_origin_method] = method_wrapper
     method_wrapper
@@ -73,7 +79,11 @@ module Babeltrace2
   def self._wrap_message_iterator_class_finalize_method(handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator|
-      method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+      begin
+        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+      rescue => e
+        puts e
+      end
     }
     @@callbacks[id][:finalize_method] = method_wrapper
     method_wrapper
@@ -100,9 +110,15 @@ module Babeltrace2
   def self._wrap_message_iterator_class_initialize_method(handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, configuration, port|
-      method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
-                  BTSelfMessageIteratorConfiguration.new(configuration),
-                  BTSelfComponentPortOutput.new(port))
+      begin
+        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
+                    BTSelfMessageIteratorConfiguration.new(configuration),
+                    BTSelfComponentPortOutput.new(port))
+        :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR
+      end
     }
     @@callbacks[id][:initialize_method] = method_wrapper
     method_wrapper
@@ -134,18 +150,22 @@ module Babeltrace2
 
   def self._wrap_message_iterator_class_next_method(method)
     lambda { |self_message_iterator, messages, capacity, count|
-      res, mess, cnt = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
-                                   capacity)
-      if res == :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK
+      begin
+        mess = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
+                           capacity)
         if mess.size < capacity
           mess.each { |m| bt_message_get_ref(m) }
           messages.write_array_of_pointer(mess.collect(&:to_ptr))
           count.write_uint64(cnt)
+          :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK
         else
-          res = :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR
+          puts "Too many messages for capacity"
+          :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR
         end
+      rescue => e
+        puts e
+        :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR
       end
-      res
     }
   end
 
@@ -171,7 +191,13 @@ module Babeltrace2
   def self._wrap_message_iterator_class_seek_beginning_method(handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator|
-      method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+      begin
+        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+        :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_ERROR
+      end
     }
     @@callbacks[id][:seek_beginning_method] = method_wrapper
     method_wrapper
@@ -200,7 +226,13 @@ module Babeltrace2
   def self._wrap_message_iterator_class_seek_ns_from_origin_method(handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, ns_from_origin|
-      method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
+      begin
+        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
+        :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR
+      end
     }
     @@callbacks[id][:seek_ns_from_origin_method] = method_wrapper
     method_wrapper
@@ -265,7 +297,7 @@ module Babeltrace2
         raise ArgumentError, "invalid value for next_method" unless next_method
         next_method = Babeltrace2._wrap_message_iterator_class_next_method(next_method)
         handle = Babeltrace2.bt_message_iterator_class_create(next_method)
-        raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+        raise NoMemoryError if handle.null?
         Babeltrace2._callbacks[handle.to_i][:next_method] = next_method
         super(handle, retain: false)
       end
@@ -274,7 +306,7 @@ module Babeltrace2
     def set_finalize_method(method)
       method = Babeltrace2._wrap_message_iterator_class_finalize_method(@handle, method)
       res = Babeltrace2.bt_message_iterator_class_set_finalize_method(@handle, method)
-      raise res if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -286,7 +318,7 @@ module Babeltrace2
     def set_initialize_method(method)
       method = Babeltrace2._wrap_message_iterator_class_initialize_method(@handle, method)
       res = Babeltrace2.bt_message_iterator_class_set_initialize_method(@handle, method)
-      raise res if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -300,7 +332,7 @@ module Babeltrace2
       can_seek_method = Babeltrace2._wrap_message_iterator_class_can_seek_beginning_method(can_seek_method)
       res = Babeltrace2.bt_message_iterator_class_set_seek_beginning_methods(
         @handle, seek_method, can_seek_method)
-      raise res if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -314,7 +346,7 @@ module Babeltrace2
       can_seek_method = Babeltrace2._wrap_message_iterator_class_can_seek_ns_from_origin_method(can_seek_method)
       res = Babeltrace2.bt_message_iterator_class_set_seek_ns_from_origin_methods(
         @handle, seek_method, can_seek_method)
-      raise res if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
       self
     end
 

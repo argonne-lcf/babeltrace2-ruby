@@ -89,7 +89,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_query_executor_create_with_method_data(
                    component_class, object_name, BTValue.from_value(params), method_data)
-        raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+        raise NoMemoryError if handle.null?
         super(handle)
       end
     end
@@ -100,19 +100,19 @@ module Babeltrace2
         raise "interrupted by user" if interrupted?
         sleep BT_SLEEP_TIME
       end
-      raise res if res != :BT_QUERY_EXECUTOR_QUERY_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_QUERY_EXECUTOR_QUERY_STATUS_OK
       BTValue.from_handle(ptr.read_pointer, retain: false)
     end
 
     def set_logging_level(logging_level)
       res = Babeltrace2.bt_query_executor_set_logging_level(@handle, logging_level)
-      raise res if res != :BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK
       self
     end
 
     def logging_level=(logging_level)
       res = Babeltrace2.bt_query_executor_set_logging_level(@handle, logging_level)
-      raise res if res != :BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK
       return logging_level
     end
 
@@ -123,7 +123,7 @@ module Babeltrace2
 
     def add_interrupter(interrupter)
       res = Babeltrace2.bt_query_executor_add_interrupter(@handle, interrupter)
-      raise res if res != :BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_OK
       self
     end
 

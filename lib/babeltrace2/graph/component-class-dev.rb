@@ -28,6 +28,20 @@ module Babeltrace2
            [:bt_self_component_sink_handle],
            :bt_component_class_sink_consume_method_status
 
+  def self._wrap_component_class_sink_consume_method(handle, method)
+    lambda { |self_component|
+      begin
+        method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
+        :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK
+      rescue StopIteration
+        :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END
+      rescue => e
+        puts e
+        :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR
+      end
+    }
+  end
+
   callback :bt_component_class_source_finalize_method,
            [:bt_self_component_source_handle],
            :void
@@ -39,6 +53,19 @@ module Babeltrace2
   callback :bt_component_class_sink_finalize_method,
            [:bt_self_component_sink_handle],
            :void
+
+  def self._wrap_component_class_finalize_method(handle, method)
+    id = handle.to_i
+    method_wrapper = lambda { |component_class|
+      begin
+        method.call(BTComponentClass.from_handle(component_class, retain: false, auto_release: false))
+      rescue => e
+        puts e
+      end
+    }
+    @@callbacks[id][:finalize_method] = method_wrapper
+    method_wrapper
+  end
 
   BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
@@ -69,6 +96,25 @@ module Babeltrace2
            [:bt_self_component_class_sink_handle, :bt_value_handle, :pointer, :bt_logging_level, :bt_integer_range_set_unsigned_handle],
            :bt_component_class_get_supported_mip_versions_method_status
 
+  def self._wrap_component_class_get_supported_mip_versions_method(handle, method)
+    id = handle.to_i
+    method_wrapper = lambda { |component_class, params, initialize_method_data, logging_level, supported_versions|
+      begin
+        method.call(BTComponentClass.from_handle(component_class,
+                                                 retain: false, auto_release: false),
+                    BTValue.from_handle(params),
+                    initialize_method_data, logging_level,
+                    BTIntergerRangeSetUnsigned.new(supported_versions))
+        :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR
+      end
+    }
+    @@callbacks[id][:get_supported_mip_versions_method] = method_wrapper
+    method_wrapper
+  end
+
   BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
   BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR = BT_FUNC_STATUS_ERROR
@@ -91,6 +137,21 @@ module Babeltrace2
   callback :bt_component_class_sink_graph_is_configured_method,
            [:bt_self_component_sink_handle],
            :bt_component_class_sink_graph_is_configured_method_status
+
+  def self._wrap_component_class_sink_graph_is_configured_method(handle, method)
+    id = handle.to_i
+    method_wrapper = lambda { |self_component|
+      begin
+        method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
+        :BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR
+      end
+    }
+    @@callbacks[id][:graph_is_configured_method] = method_wrapper
+    method_wrapper
+  end
 
   BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
@@ -121,6 +182,26 @@ module Babeltrace2
              :bt_self_component_sink_configuration_handle,
              :bt_value_handle, :pointer],
            :bt_component_class_initialize_method_status
+
+  def self._wrap_component_class_initialize_method(component_klass, component_configuration_klass, handle, method)
+    id = handle.to_i
+    method_wrapper = lambda { |self_component, configuration, params, initialize_method_data|
+      begin
+        method.call(component_class.new(self_component,
+                                        retain: false, auto_release: false),
+                    component_configuration_class.new(configuration),
+                    BTValue.from_handle(params),
+                    initialize_method_data)
+        :BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR
+      end
+    }
+    @@callbacks[id][:initialize_method] = method_wrapper
+    method_wrapper
+  end
+
   BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
   BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_ERROR = BT_FUNC_STATUS_ERROR
@@ -143,11 +224,44 @@ module Babeltrace2
              :bt_port_input_handle ],
            :bt_component_class_port_connected_method_status
 
+  def self._wrap_component_class_port_connected_method(
+             self_component_class, self_component_port_class, port_class,
+             category, handle, method)
+    id = handle.to_i
+    method_wrapper = lambda { |self_component, self_port, other_port|
+      begin
+        method.call(self_component_class.new(self_component,
+                                             retain: false, auto_release: false),
+                    self_component_port_class.new(self_port,
+                                                  retain: false, auto_release: false),
+                    port_class.new(other_port))
+        :BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK
+      rescue => e
+        puts e
+        :BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_ERROR
+      end
+    }
+    @@callbacks[id][category] = method_wrapper
+    method_wrapper
+  end
+
+  def self._wrap_component_class_source_output_port_connected_method(handle, method)
+    _wrap_component_class_port_connected_method(
+      BTSelfComponentSource, BTSelfComponentPortOutput, BTPortInput,
+      :output_port_connected_method, handle, method)
+  end
+
   callback :bt_component_class_filter_input_port_connected_method,
            [ :bt_self_component_filter_handle,
              :bt_self_component_port_input_handle,
              :bt_port_output_handle ],
            :bt_component_class_port_connected_method_status
+
+  def self._wrap_component_class_filter_input_port_connected_method(handle, method)
+    _wrap_component_class_port_connected_method(
+      BTSelfComponentFilter, BTSelfComponentPortInput, BTPortOutput,
+      :input_port_connected_method, handle, method)
+  end
 
   callback :bt_component_class_filter_output_port_connected_method,
            [ :bt_self_component_filter_handle,
@@ -155,11 +269,23 @@ module Babeltrace2
              :bt_port_input_handle ],
            :bt_component_class_port_connected_method_status
 
+  def self._wrap_component_class_filter_output_port_connected_method(handle, method)
+    _wrap_component_class_port_connected_method(
+      BTSelfComponentFilter, BTSelfComponentPortOutput, BTPortInput,
+      :output_port_connected_method, handle, method)
+  end
+
   callback :bt_component_class_sink_input_port_connected_method,
            [ :bt_self_component_sink_handle,
              :bt_self_component_port_input_handle,
              :bt_port_output_handle ],
            :bt_component_class_port_connected_method_status
+
+  def self._wrap_component_class_sink_input_port_connected_method(handle, method)
+    _wrap_component_class_port_connected_method(
+      BTSelfComponentSink, BTSelfComponentPortInput, BTPortOutput,
+      :input_port_connected_method, handle, method)
+  end
 
   BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT = BT_FUNC_STATUS_UNKNOWN_OBJECT
@@ -181,6 +307,31 @@ module Babeltrace2
 
   class BTComponentClass
     QueryMethodStatus = BTComponentClassQueryMethodStatus
+  end
+
+  def self._wrap_component_class_query_method(component_class, handle, method)
+    id = handle.to_i
+    method_wrapper = lambda { |self_component_class, query_executor, object_name, params, method_data, result|
+      begin
+        rvalue = method.call(component_class.new(self_component_class,
+                                                 retain: false, auto_release: false),
+                              BTPrivateQueryExecutor.new(query_executor),
+                              object_name, BTValue.from_handle(params), method_data)
+        if rvalue
+          rvalue = BTValue.from_value(rvalue)
+          bt_value_get_ref(rvalue.handle)
+          result.write_pointer(rvalue.handle)
+          :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK
+        else
+          :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT
+        end
+      rescue => e
+        puts e
+        :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR
+      end      
+    }
+    @@callbacks[id][:query_method] = method_wrapper
+    method_wrapper
   end
 
   callback :bt_component_class_source_query_method,
@@ -215,7 +366,7 @@ module Babeltrace2
         raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
         handle = Babeltrace2.bt_component_class_source_create(
           name, message_iterator_class)
-        raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+        raise NoMemoryError if handle.null?
         super(handle, retain: false)
       end
     end
@@ -235,7 +386,7 @@ module Babeltrace2
         raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
         handle = Babeltrace2.bt_component_class_filter_create(
           name, message_iterator_class)
-        raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+        raise NoMemoryError if handle.null?
         super(handle, retain: false)
       end
     end
@@ -256,7 +407,7 @@ module Babeltrace2
         consume_method = Babeltrace2._wrap_component_class_sink_consume_method(consume_method)
         handle = Babeltrace2.bt_component_class_sink_create(
           name, consume_method)
-        raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+        raise NoMemoryError if handle.null?
         Babeltrace2._callbacks[handle.to_i][:consume_method] = consume_method
         super(handle, retain: false)
       end
@@ -281,7 +432,7 @@ module Babeltrace2
     def set_description(description)
       raise ArgumentError, "description is nil" unless description
       res = Babeltrace2.bt_component_class_set_description(@handle, description)
-      raise res if res != :BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_OK
       self
     end
 
@@ -309,7 +460,7 @@ module Babeltrace2
     def set_help(help_text)
       raise ArgumentError, "help_text is nil" unless help_text
       res = Babeltrace2.bt_component_class_set_help(@handle, help_text)
-      raise res if res != :BT_COMPONENT_CLASS_SET_HELP_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_HELP_STATUS_OK
       self
     end
 
@@ -317,111 +468,6 @@ module Babeltrace2
       set_help(help_text)
       help_text
     end
-  end
-
-  def self._wrap_component_class_sink_consume_method(handle, method)
-    lambda { |self_component|
-      method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
-    }
-  end
-
-  def self._wrap_component_class_finalize_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |component_class|
-      method.call(BTComponentClass.from_handle(component_class, retain: false, auto_release: false))
-    }
-    @@callbacks[id][:finalize_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_get_supported_mip_versions_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |component_class, params, initialize_method_data, logging_level, supported_versions|
-      method.call(BTComponentClass.from_handle(component_class, retain: false, auto_release: false),
-                  BTValue.from_handle(params),
-                  initialize_method_data, logging_level,
-                  BTIntergerRangeSetUnsigned.new(supported_versions))
-    }
-    @@callbacks[id][:get_supported_mip_versions_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_sink_graph_is_configured_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component|
-      method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
-    }
-    @@callbacks[id][:graph_is_configured_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_initialize_method(component_klass, component_configuration_klass, handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component, configuration, params, initialize_method_data|
-      method.call(component_class.new(self_component, retain: false, auto_release: false),
-                        component_configuration_class.new(configuration),
-                        BTValue.from_handle(params),
-                        initialize_method_data)
-    }
-    @@callbacks[id][:initialize_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_source_output_port_connected_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component, self_port, other_port|
-      method.call(BTSelfComponentSource.new(self_component, retain: false, auto_release: false),
-                  BTSelfComponentPortOutput.new(self_port, retain: false, auto_release: false),
-                  BTPortInput.new(other_port))
-    }
-    @@callbacks[id][:output_port_connected_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_filter_input_port_connected_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component, self_port, other_port|
-      method.call(BTSelfComponentFilter.new(self_component, retain: false, auto_release: false),
-                  BTSelfComponentPortInput.new(self_port, retain: false, auto_release: false),
-                  BTPortOutput.new(other_port, retain: false, auto_release: false))
-    }
-    @@callbacks[id][:input_port_connected_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_filter_output_port_connected_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component, self_port, other_port|
-      method.call(BTSelfComponentFilter.new(self_component, retain: false, auto_release: false),
-                  BTSelfComponentPortOutput.new(self_port, retain: false, auto_release: false),
-                  BTPortInput.new(other_port, retain: false, auto_release: false))
-    }
-    @@callbacks[id][:output_port_connected_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_sink_input_port_connected_method(handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component, self_port, other_port|
-      method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false),
-                  BTSelfComponentPortInput.new(self_port, retain: false, auto_release: false),
-                  BTPortOutput.new(other_port, retain: false, auto_release: false))
-    }
-    @@callbacks[id][:input_port_connected_method] = method_wrapper
-    method_wrapper
-  end
-
-  def self._wrap_component_class_query_method(component_class, handle, method)
-    id = handle.to_i
-    method_wrapper = lambda { |self_component_class, query_executor, object_name, params, method_data, result|
-      res, rvalue = method.call(component_class.new(self_component_class, retain: false, auto_release: false),
-                                BTPrivateQueryExecutor.new(query_executor),
-                                object_name, BTValue.from_handle(params), method_data)
-      result.write_pointer(rvalue.handle)
-      res
-    }
-    @@callbacks[id][:query_method] = method_wrapper
-    method_wrapper
   end
 
   BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
@@ -440,7 +486,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_finalize_method(@handle, method)
       end
       res = _set_finalize_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -458,7 +504,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_get_supported_mip_versions_method(@handle, method)
       end
       res = _set_get_supported_mip_versions_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -476,7 +522,7 @@ module Babeltrace2
         method = _wrap_initialize_method(method)
       end
       res = _set_initialize_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -494,7 +540,7 @@ module Babeltrace2
         method = _wrap_query_method(method)
       end
       res = _set_query_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -557,7 +603,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_source_output_port_connected_method(@handle, method)
       end
       res = Babeltrace2.bt_component_class_source_set_output_port_connected_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -635,7 +681,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_filter_input_port_connected_method(@handle, method)
       end
       res = Babeltrace2.bt_component_class_filter_set_input_port_connected_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -653,7 +699,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_filter_output_port_connected_method(@handle, method)
       end
       res = Babeltrace2.bt_component_class_filter_set_output_port_connected_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -722,7 +768,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_sink_graph_is_configured_method(@handle, method)
       end
       res = Babeltrace2.bt_component_class_sink_set_graph_is_configured_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 
@@ -750,7 +796,7 @@ module Babeltrace2
         method = Babeltrace2._wrap_component_class_sink_input_port_connected_method(@handle, method)
       end
       res = Babeltrace2.bt_component_class_sink_set_input_port_connected_method(method)
-      raise res if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
 

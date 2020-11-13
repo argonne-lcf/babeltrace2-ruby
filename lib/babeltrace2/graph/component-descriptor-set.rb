@@ -46,7 +46,7 @@ module Babeltrace2
           super(handle, retain: retain, auto_release: auto_release)
         else
           handle = Babeltrace2.bt_component_descriptor_set_create()
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle, retain: false)
         end
       end
@@ -55,7 +55,7 @@ module Babeltrace2
         params = BTValue.from_value(params)
         raise "invalid value" unless params.kind_of?(BTValueMap)
         res = Babeltrace2.bt_component_descriptor_set_add_descriptor_with_initialize_method_data(@handle, component_class, params, initialize_method_data)
-        raise res if res != :BT_COMPONENT_DESCRIPTOR_SET_ADD_DESCRIPTOR_STATUS_OK
+        raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_DESCRIPTOR_SET_ADD_DESCRIPTOR_STATUS_OK
         self
       end
 
@@ -63,7 +63,7 @@ module Babeltrace2
         ptr = FFI::MemoryPointer.new(:uint64)
         res = Babeltrace2.bt_get_greatest_operative_mip_version(
                 @handle, logging_level, ptr)
-        raise res if res != :BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_OK
+        raise Babeltrace2.process_error(res) if res != :BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_OK
         ptr.read_uint64
       end
       alias greatest_operative_mip_version get_greatest_operative_mip_version

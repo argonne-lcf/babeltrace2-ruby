@@ -75,7 +75,7 @@ module Babeltrace2
           super(handle, retain: true)
         else
           handle = Babeltrace2.bt_integer_range_set_unsigned_create()
-          raise :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -84,7 +84,7 @@ module Babeltrace2
         lower, upper = *args
         lower, upper = *[lower.min, lower.max] unless upper
         res = Babeltrace2.bt_integer_range_set_unsigned_add_range(@handle, lower, upper)
-        raise res if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
+        raise Babeltrace2.process_error(res) if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
         self
       end
 
@@ -134,7 +134,7 @@ module Babeltrace2
           super(handle, retain: true)
         else
           handle = Babeltrace2.bt_integer_range_set_signed_create()
-          raise :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -143,7 +143,7 @@ module Babeltrace2
         lower, upper = *args
         lower, upper = *[lower.min, lower.max] unless upper
         res = Babeltrace2.bt_integer_range_set_signed_add_range(@handle, lower, upper)
-        raise res if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
+        raise Babeltrace2.process_error(res) if res != :BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK
         self
       end
 

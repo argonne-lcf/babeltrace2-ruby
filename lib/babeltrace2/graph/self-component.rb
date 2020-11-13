@@ -83,12 +83,12 @@ module Babeltrace2
     def add_output_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_source_add_output_port(@handle, name, user_data, ptr)
-      raise res if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortOutput.new(ptr.read_pointer, retain: true, auto_release: true)
     end
 
     def get_output_port_by_index(index)
-      raise RangeError if index >= get_output_port_count
+      return nil if index >= get_output_port_count
       handle = Babeltrace2.bt_self_component_source_borrow_output_port_by_index(@handle, index)
       BTSelfComponentPortOutput.new(handle, retain: true, auto_release: true)
     end
@@ -139,19 +139,19 @@ module Babeltrace2
     def add_output_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_filter_add_output_port(@handle, name, user_data, ptr)
-      raise res if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortOutput.new(ptr.read_pointer, retain: true, auto_release: true)
     end
 
     def add_input_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_filter_add_input_port(@handle, name, user_data, ptr)
-      raise res if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortInput.new(ptr.read_pointer, retain: true, auto_release: true)
     end
 
     def get_output_port_by_index(index)
-      raise RangeError if index >= get_output_port_count
+      return nil if index >= get_output_port_count
       handle = Babeltrace2.bt_self_component_filter_borrow_output_port_by_index(@handle, index)
       BTSelfComponentPortOutput.new(handle, retain: true, auto_release: true)
     end
@@ -163,7 +163,7 @@ module Babeltrace2
     end
 
     def get_input_port_by_index(index)
-      raise RangeError if index >= get_input_port_count
+      return nil if index >= get_input_port_count
       handle = Babeltrace2.bt_self_component_filter_borrow_input_port_by_index(@handle, index)
       BTSelfComponentPortInput.new(handle, retain: true, auto_release: true)
     end
@@ -202,12 +202,12 @@ module Babeltrace2
     def add_input_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_sink_add_input_port(@handle, name, user_data, ptr)
-      raise res if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortInput.new(ptr.read_pointer, retain: true, auto_release: true)
     end
 
     def get_input_port_by_index(index)
-      raise RangeError if index >= get_input_port_count
+      return nil if index >= get_input_port_count
       handle = Babeltrace2.bt_self_component_sink_borrow_input_port_by_index(@handle, index)
       BTSelfComponentPortInput.new(handle, retain: true, auto_release: true)
     end

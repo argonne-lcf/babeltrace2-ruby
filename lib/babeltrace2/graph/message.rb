@@ -114,7 +114,7 @@ module Babeltrace2
         else
           handle = Babeltrace2.bt_message_stream_beginning_create(
                      self_message_iterator, stream)
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -186,7 +186,7 @@ module Babeltrace2
         else
           handle = Babeltrace2.bt_message_stream_end_create(
                      self_message_iterator, stream)
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -287,7 +287,7 @@ module Babeltrace2
                   self_message_iterator, event_class, stream)
               end
             end
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -353,7 +353,7 @@ module Babeltrace2
               Babeltrace2.bt_message_packet_beginning_create(
                 self_message_iterator, packet)
             end
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -419,7 +419,7 @@ module Babeltrace2
               Babeltrace2.bt_message_packet_end_create(
                 self_message_iterator, packet)
             end
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -500,7 +500,7 @@ module Babeltrace2
               Babeltrace2.bt_message_discarded_events_create(
                 self_message_iterator, stream)
             end
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -605,7 +605,7 @@ module Babeltrace2
               Babeltrace2.bt_message_discarded_packets_create(
                 self_message_iterator, stream)
             end
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end
@@ -675,7 +675,7 @@ module Babeltrace2
         else
           handle = Babeltrace2.bt_message_message_iterator_inactivity_create(
             self_message_iterator, clock_class, clock_snapshot_value)
-          raise :BT_FUNC_STATUS_MEMORY_ERROR if handle.null?
+          raise NoMemoryError if handle.null?
           super(handle)
         end
       end

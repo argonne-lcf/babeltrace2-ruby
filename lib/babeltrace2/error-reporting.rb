@@ -239,7 +239,7 @@ module Babeltrace2
         line_number = loc.lineno unless line_number
         res = Babeltrace2.bt_current_thread_error_append_cause_from_component(
           self_component, file_name, line_number, message_format, *args)
-        raise res if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
+        raise res.to_s if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
         self
       end
 
@@ -250,7 +250,7 @@ module Babeltrace2
         line_number = loc.lineno unless line_number
         res = Babeltrace2.bt_current_thread_error_append_cause_from_message_iterator(
           self_message_iterator, file_name, line_number, message_format, *args)
-        raise res if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
+        raise res.to_s if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
         self
       end
 
@@ -261,7 +261,7 @@ module Babeltrace2
         line_number = loc.lineno unless line_number
         res = Babeltrace2.bt_current_thread_error_append_cause_from_component_class(
           self_component_class, file_name, line_number, message_format, *args)
-        raise res if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
+        raise res.to_s if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
         self
       end
 
@@ -272,7 +272,7 @@ module Babeltrace2
         line_number = loc.lineno unless line_number
         res = Babeltrace2.bt_current_thread_error_append_cause_from_unknown(
           module_name, file_name, line_number, message_format, *args)
-        raise res if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
+        raise res.to_s if res != :BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_STATUS_OK
         self
       end
     end
@@ -302,7 +302,7 @@ module Babeltrace2
     end
 
     def causes
-      get_cause_count.tines.collect { |i|
+      get_cause_count.times.collect { |i|
         ref = Babeltrace2.bt_error_borrow_cause_by_index(@handle, i)
         Cause.new(ref)
       }
@@ -314,5 +314,21 @@ module Babeltrace2
       @handle = nil
     end
 
+    def to_s
+      str = ""
+      causes.each { |c|
+        str << c.actor_type.to_s << ": "
+        str << c.message
+        str << "\n"
+      }
+      str
+    end
+  end
+
+  def self.process_error(code)
+    err = BTCurrentThread.take_error
+    str = err.to_s
+    err.release
+    Error.new(str)
   end
 end

@@ -74,7 +74,7 @@ module Babeltrace2
   typedef :pointer, :bt_value_handle
 
   typedef :int, :bt_bool
-  typedef :uint64, :bt_listner_id
+  typedef :uint64, :bt_listener_id
   typedef :pointer, :bt_object
 
   class Error < StandardError
