@@ -43,6 +43,112 @@ class BTGraphTest < Minitest::Test
     assert_instance_of(BT2::BTConnection, c)
   end
 
+  def test_run
+    assert_equal(@expected_output, `ruby #{File.join(__dir__,"run_graph.rb")}`)
+  end
+
+  def test_add_simple_sink
+    init_done = false
+    fini_done = false
+    event_count = 0
+    init = lambda { |iterator, _|
+      init_done = true
+    }
+    consume = lambda { |iterator, _|
+      mess = iterator.next_messages
+      mess.each { |m|
+        event_count += 1 if m.type == :BT_MESSAGE_TYPE_EVENT
+      }
+    }
+    fini = lambda { |_|
+      fini_done = true
+    }
+
+    graph = BT2::BTGraph.new
+    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp2 = graph.add(@utils_muxer, "mux")
+    comp3 = graph.add_simple_sink("print", consume, initialize_func: init, finalize_func: fini)
+    ops = comp1.output_ports
+    ops.each_with_index { |op, i|
+      ip = comp2.input_port(i)
+      graph.connect_ports(op, ip)
+    }
+
+    op = comp2.output_port(0)
+    ip = comp3.input_port(0)
+    graph.connect_ports(op, ip)
+    graph.run
+    assert_equal(@expected_output.lines.count, event_count)
+    assert(init_done)
+    graph = nil
+    comp1 = nil
+    comp2 = nil
+    comp3 = nil
+    ops = op = ip = nil
+    GC.start
+    assert(fini_done)
+  end
+
+  def test_run_once
+    event_count = 0
+    consume = lambda { |iterator, _|
+      mess = iterator.next_messages
+      mess.each { |m|
+        event_count += 1 if m.type == :BT_MESSAGE_TYPE_EVENT
+      }
+    }
+    graph = BT2::BTGraph.new
+    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp2 = graph.add(@utils_muxer, "mux")
+    comp3 = graph.add_simple_sink("print", consume)
+    ops = comp1.output_ports
+    ops.each_with_index { |op, i|
+      ip = comp2.input_port(i)
+      graph.connect_ports(op, ip)
+    }
+
+    op = comp2.output_port(0)
+    ip = comp3.input_port(0)
+    graph.connect_ports(op, ip)
+    loop do
+      graph.run_once
+    end
+    assert_equal(@expected_output.lines.count, event_count)
+  end
+
+  def test_port_added_listener
+    in_port = 0
+    out_port = 0
+    list = lambda { |comp, port, _|
+      if port.type == :BT_PORT_TYPE_INPUT
+        in_port += 1
+      else
+        out_port += 1
+      end
+    }
+
+    graph = BT2::BTGraph.new
+    graph.add_source_component_output_port_added_listener(list)
+    graph.add_filter_component_input_port_added_listener(list)
+    graph.add_filter_component_output_port_added_listener(list)
+    graph.add_sink_component_input_port_added_listener(list)
+    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp2 = graph.add_component(@utils_muxer, "mux")
+    comp3 = graph.add_component(@text_pretty, "pretty")
+    ops = comp1.output_ports
+    cnt = ops.size
+    ops.each_with_index { |op, i|
+      ip = comp2.input_port(i)
+      graph.connect_ports(op, ip)
+    }
+
+    op = comp2.output_port(0)
+    ip = comp3.input_port(0)
+    graph.connect_ports(op, ip)
+    assert_equal(cnt + 1, out_port)
+    assert_equal(cnt + 2, in_port)
+  end
+
   def get_graph
     graph = BT2::BTGraph.new
     comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
@@ -60,32 +166,9 @@ class BTGraphTest < Minitest::Test
     graph
   end
 
-  def test_run
-    assert_equal(@expected_output, `ruby #{File.join(__dir__,"run_graph.rb")}`)
-  end
-
-  def test_add_simple_sink
-    graph = BT2::BTGraph.new
-    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
-    comp2 = graph.add(@utils_muxer, "mux")
-    event_count = 0
-    consume = lambda { |iterator, _|
-      mess = iterator.next_messages
-      mess.each { |m|
-        event_count += 1 if m.type == :BT_MESSAGE_TYPE_EVENT
-      }
-    }
-    comp3 = graph.add_simple_sink("print", consume)
-    ops = comp1.output_ports
-    ops.each_with_index { |op, i|
-      ip = comp2.input_port(i)
-      graph.connect_ports(op, ip)
-    }
-
-    op = comp2.output_port(0)
-    ip = comp3.input_port(0)
-    graph.connect_ports(op, ip)
-    graph.run
-    assert_equal(@expected_output.lines.count, event_count)
+  def test_interrupter
+    graph = get_graph
+    int = graph.default_interrupter
+    assert_instance_of(BT2::BTInterrupter, int)
   end
 end

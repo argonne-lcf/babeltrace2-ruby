@@ -171,12 +171,15 @@ module Babeltrace2
                   :bt_graph_run_status
 
   BT_GRAPH_RUN_ONCE_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_GRAPH_RUN_ONCE_STATUS_END = BT_FUNC_STATUS_END
   BT_GRAPH_RUN_ONCE_STATUS_AGAIN = BT_FUNC_STATUS_AGAIN
   BT_GRAPH_RUN_ONCE_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
   BT_GRAPH_RUN_ONCE_STATUS_ERROR = BT_FUNC_STATUS_ERROR
   BTGraphRunOnceStatus = enum :bt_graph_run_once_status,
     [ :BT_GRAPH_RUN_ONCE_STATUS_OK,
        BT_GRAPH_RUN_ONCE_STATUS_OK,
+      :BT_GRAPH_RUN_ONCE_STATUS_END,
+       BT_GRAPH_RUN_ONCE_STATUS_END,
       :BT_GRAPH_RUN_ONCE_STATUS_AGAIN,
        BT_GRAPH_RUN_ONCE_STATUS_AGAIN,
       :BT_GRAPH_RUN_ONCE_STATUS_MEMORY_ERROR,
@@ -450,8 +453,14 @@ module Babeltrace2
       while ((res = Babeltrace2.bt_graph_run_once(@handle)) == :BT_GRAPH_RUN_ONCE_STATUS_AGAIN)
         sleep BT_SLEEP_TIME
       end
-      raise Babeltrace2.process_error(res) if res != :BT_GRAPH_RUN_ONCE_STATUS_OK
-      self
+      case res
+      when :BT_GRAPH_RUN_ONCE_STATUS_OK
+        self
+      when :BT_GRAPH_RUN_ONCE_STATUS_END
+        raise StopIteration
+      else
+        raise Babeltrace2.process_error(res)
+      end
     end
 
     def add_interrupter(interrupter)
