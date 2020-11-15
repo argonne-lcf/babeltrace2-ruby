@@ -30,11 +30,14 @@ module Babeltrace2
     def self.from_handle(handle, retain: true, auto_release: true)
       case Babeltrace2.bt_component_get_class_type(handle)
       when :BT_COMPONENT_CLASS_TYPE_SOURCE
-        BTComponent::Source::Self
+        handle = BTSelfComponentSourceHandle.new(handle)
+        BTSelfComponentSource
       when :BT_COMPONENT_CLASS_TYPE_FILTER
-        BTComponent::Filter::Self
+        handle = BTSelfComponentFilterHandle.new(handle)
+        BTSelfComponentFilter
       when :BT_COMPONENT_CLASS_TYPE_SINK
-        BTComponent::Sink::Self
+        handle = BTSelfComponentSinkHandle.new(handle)
+        BTSelfComponentSink
       else
         raise Error.new("Unknown component class type")
       end.new(handle, retain: retain, auto_release: auto_release)
@@ -84,7 +87,8 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_source_add_output_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
-      BTSelfComponentPortOutput.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTSelfComponentPortOutput.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
+                                    retain: true, auto_release: true)
     end
 
     def get_output_port_by_index(index)
@@ -140,14 +144,16 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_filter_add_output_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
-      BTSelfComponentPortOutput.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTSelfComponentPortOutput.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
+                                    retain: true, auto_release: true)
     end
 
     def add_input_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_filter_add_input_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
-      BTSelfComponentPortInput.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTSelfComponentPortInput.new(BTSelfComponentPortInputHandle.new(ptr.read_pointer),
+                                   retain: true, auto_release: true)
     end
 
     def get_output_port_by_index(index)
@@ -203,7 +209,8 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_sink_add_input_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
-      BTSelfComponentPortInput.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTSelfComponentPortInput.new(BTSelfComponentPortInputHandle.new(ptr.read_pointer),
+                                   retain: true, auto_release: true)
     end
 
     def get_input_port_by_index(index)

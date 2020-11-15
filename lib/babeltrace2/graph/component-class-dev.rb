@@ -366,8 +366,8 @@ module Babeltrace2
         raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
         handle = Babeltrace2.bt_component_class_source_create(
           name, message_iterator_class)
-        raise NoMemoryError if handle.null?
-        super(handle, retain: false)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
       end
     end
   end
@@ -386,8 +386,8 @@ module Babeltrace2
         raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
         handle = Babeltrace2.bt_component_class_filter_create(
           name, message_iterator_class)
-        raise NoMemoryError if handle.null?
-        super(handle, retain: false)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
       end
     end
   end
@@ -407,9 +407,9 @@ module Babeltrace2
         consume_method = Babeltrace2._wrap_component_class_sink_consume_method(consume_method)
         handle = Babeltrace2.bt_component_class_sink_create(
           name, consume_method)
-        raise NoMemoryError if handle.null?
+        raise Babeltrace2.process_error if handle.null?
         Babeltrace2._callbacks[handle.to_i][:consume_method] = consume_method
-        super(handle, retain: false)
+        super(handle)
       end
     end
   end

@@ -297,9 +297,9 @@ module Babeltrace2
         raise ArgumentError, "invalid value for next_method" unless next_method
         next_method = Babeltrace2._wrap_message_iterator_class_next_method(next_method)
         handle = Babeltrace2.bt_message_iterator_class_create(next_method)
-        raise NoMemoryError if handle.null?
+        raise Babeltrace2.process_error if handle.null?
         Babeltrace2._callbacks[handle.to_i][:next_method] = next_method
-        super(handle, retain: false)
+        super(handle)
       end
     end
 

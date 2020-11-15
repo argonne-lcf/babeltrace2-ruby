@@ -329,12 +329,13 @@ module Babeltrace2
     @get_ref = :bt_graph_get_ref
     @put_ref = :bt_graph_put_ref
 
-    def initialize(handle = nil, mip_version: 0)
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   mip_version: 0)
       if handle
-        super(handle, retain: true)
+        super(handle, retain: retain, auto_release: auto_release)
       else
         handle = Babeltrace2.bt_graph_create(mip_version)
-        raise NoMemoryError if handle.null?
+        raise Babeltrace2.process_error if handle.null?
         super(handle)
       end
     end
@@ -353,7 +354,7 @@ module Babeltrace2
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      BTComponentSource.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTComponentSource.new(BTComponentSourceHandle.new(ptr.read_pointer), retain: true, auto_release: true)
     end
     alias add_source add_source_component
 
@@ -371,7 +372,7 @@ module Babeltrace2
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      BTComponentFilter.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTComponentFilter.new(BTComponentFilterHandle.new(ptr.read_pointer), retain: true, auto_release: true)
     end
     alias add_filter add_filter_component
 
@@ -389,7 +390,7 @@ module Babeltrace2
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      BTComponentSink.new(ptr.read_pointer, retain: true, auto_release: true)
+      BTComponentSink.new(BTComponentSinkHandle.new(ptr.read_pointer), retain: true, auto_release: true)
     end
     alias add_sink add_sink_component
 
@@ -423,7 +424,7 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_graph_add_simple_sink_component(@handle, name, initialize_func, consume_func, finalize_func, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      handle = ptr.read_pointer
+      handle = BTComponentSinkHandle.new(ptr.read_pointer)
       id = handle.to_i
       Babeltrace2._callbacks[id][:initialize_func] = initialize_func
       Babeltrace2._callbacks[id][:consume_func] = consume_func
@@ -438,7 +439,7 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_graph_connect_ports(@handle, upstream_port, downstream_port, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_CONNECT_PORTS_STATUS_OK
-      BTConnection.new(ptr.read_pointer, retain: true)
+      BTConnection.new(BTConnectionHandle.new(ptr.read_pointer), retain: true)
     end
 
     def run

@@ -130,7 +130,7 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_value_copy(@handle, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_VALUE_COPY_STATUS_OK
-      BTValue.from_handle(ptr.read_pointer, retain: false)
+      BTValue.from_handle(BTValueHandle.new(ptr.read_pointer), retain: false)
     end
 
     def is_equal(other)
@@ -183,7 +183,7 @@ module Babeltrace2
             else
               Babeltrace2.bt_value_bool_create_init(value ? BT_TRUE : BT_FALSE)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -234,7 +234,7 @@ module Babeltrace2
               else
                 Babeltrace2.bt_value_integer_unsigned_create_init(value)
               end
-            raise NoMemoryError if handle.null?
+            raise Babeltrace2.process_error if handle.null?
             super(handle)
           end
         end
@@ -289,7 +289,7 @@ module Babeltrace2
               else
                 Babeltrace2.bt_value_integer_signed_create_init(value)
               end
-            raise NoMemoryError if handle.null?
+            raise Babeltrace2.process_error if handle.null?
             super(handle)
           end
         end
@@ -342,7 +342,7 @@ module Babeltrace2
             else
               Babeltrace2.bt_value_real_create_init(value)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -400,7 +400,7 @@ module Babeltrace2
             else
               Babeltrace2.bt_value_string_create_init(value)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -504,7 +504,7 @@ module Babeltrace2
           super(handle, retain: retain, auto_release: auto_release)
         else
           handle = Babeltrace2.bt_value_array_create()
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -533,14 +533,16 @@ module Babeltrace2
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_array_append_empty_array_element(@handle, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
-            arr = BTValueArray.new(ptr.read_pointer, retain: false, auto_release: false)
+            arr = BTValueArray.new(BTValueHandle.new(ptr.read_pointer),
+                                   retain: false, auto_release: false)
             value.each { |v| arr.append_element(v) }
             :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
           when ::Hash
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_array_append_empty_map_element(@handle, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
-            map = BTValueMap.new(ptr.read_pointer, retain: false, auto_release: false)
+            map = BTValueMap.new(BTValueHandle.new(ptr.read_pointer),
+                                 retain: false, auto_release: false)
             value.each { |k, v| map.insert_entry(k, v) }
             :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
           else
@@ -746,7 +748,7 @@ module Babeltrace2
           super(handle, retain: retain, auto_release: auto_release)
         else
           handle = Babeltrace2.bt_value_map_create()
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -776,14 +778,16 @@ module Babeltrace2
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_map_insert_empty_array_entry(@handle, key, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
-            arr = BTValueArray.new(ptr.read_pointer, retain: false, auto_release: false)
+            arr = BTValueArray.new(BTValueHandle.new(ptr.read_pointer),
+                                   retain: false, auto_release: false)
             value.each { |v| arr.append_element(v) }
             :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
           when ::Hash
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_map_insert_empty_map_entry(@handle, key, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
-            map = BTValueMap.new(ptr.read_pointer, retain: false, auto_release: false)
+            map = BTValueMap.new(BTValueHandle.new(ptr.read_pointer),
+                                 retain: false, auto_release: false)
             value.each { |k, v| map.insert_entry(k, v) }
             :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
           else
@@ -831,7 +835,7 @@ module Babeltrace2
           }
           Babeltrace2.bt_value_map_foreach_entry(@handle, block_wrapper, nil)
         else
-          to_enum(&:each)
+          to_enum(:each)
         end
       end
 

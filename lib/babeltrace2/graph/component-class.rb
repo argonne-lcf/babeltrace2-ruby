@@ -4,9 +4,12 @@ module Babeltrace2
   BT_COMPONENT_CLASS_TYPE_SINK = 1 << 2
 
   BTComponentClassType = enum :bt_component_class_type,
-    [ :BT_COMPONENT_CLASS_TYPE_SOURCE, BT_COMPONENT_CLASS_TYPE_SOURCE,
-      :BT_COMPONENT_CLASS_TYPE_FILTER, BT_COMPONENT_CLASS_TYPE_FILTER,
-      :BT_COMPONENT_CLASS_TYPE_SINK, BT_COMPONENT_CLASS_TYPE_SINK ]
+    [ :BT_COMPONENT_CLASS_TYPE_SOURCE,
+       BT_COMPONENT_CLASS_TYPE_SOURCE,
+      :BT_COMPONENT_CLASS_TYPE_FILTER,
+       BT_COMPONENT_CLASS_TYPE_FILTER,
+      :BT_COMPONENT_CLASS_TYPE_SINK,
+       BT_COMPONENT_CLASS_TYPE_SINK ]
 
   attach_function :bt_component_class_get_type,
                   [:bt_component_class_handle],
@@ -35,10 +38,13 @@ module Babeltrace2
     def self.from_handle(handle, retain: true, auto_release: true)
       case Babeltrace2.bt_component_class_get_type(handle)
       when :BT_COMPONENT_CLASS_TYPE_SOURCE
+        handle = BTComponentClassSourceHandle.new(handle)
         BTComponentClassSource
       when :BT_COMPONENT_CLASS_TYPE_FILTER
+        handle = BTComponentClassFilterHandle.new(handle)
         BTComponentClassFilter
       when :BT_COMPONENT_CLASS_TYPE_SINK
+        handle = BTComponentClassSinkHandle.new(handle)
         BTComponentClassSink
       else
         raise Error.new("Unknown component class type")

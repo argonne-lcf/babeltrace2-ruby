@@ -184,7 +184,7 @@ module Babeltrace2
               ptr)
       return nil if res == :BT_PLUGIN_FIND_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_STATUS_OK
-      handle = ptr.read_pointer
+      handle = BTPluginHandle.new(ptr.read_pointer)
       BTPlugin.new(handle, retain: false)
     end
 
@@ -203,7 +203,7 @@ module Babeltrace2
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_STATUS_OK
-      handle = ptr.read_pointer
+      handle = BTPluginSetHandle.new(ptr.read_pointer)
       BTPluginSet.new(handle).plugins
     end
 
@@ -215,7 +215,7 @@ module Babeltrace2
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK
-      handle = ptr.read_pointer
+      handle = BTPluginSetHandle.new(ptr.read_pointer)
       BTPluginSet.new(handle).plugins
     end
 
@@ -228,7 +228,7 @@ module Babeltrace2
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK
-      handle = ptr.read_pointer
+      handle = BTPluginSetHandle.new(ptr.read_pointer)
       BTPluginSet.new(handle).plugins
     end
 
@@ -241,7 +241,7 @@ module Babeltrace2
               ptr)
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK
-      handle = ptr.read_pointer
+      handle = BTPluginSetHandle.new(ptr.read_pointer)
       BTPluginSet.new(handle).plugins
     end
 

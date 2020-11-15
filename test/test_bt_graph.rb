@@ -149,11 +149,18 @@ class BTGraphTest < Minitest::Test
     assert_equal(cnt + 2, in_port)
   end
 
-  def get_graph
+  def test_interrupter
+    event_count = 0
+    consume = lambda { |iterator, _|
+      mess = iterator.next_messages
+      mess.each { |m|
+        event_count += 1 if m.type == :BT_MESSAGE_TYPE_EVENT
+      }
+    }
     graph = BT2::BTGraph.new
-    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
-    comp2 = graph.add_component(@utils_muxer, "mux")
-    comp3 = graph.add_component(@text_pretty, "pretty")
+    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp2 = graph.add(@utils_muxer, "mux")
+    comp3 = graph.add_simple_sink("print", consume)
     ops = comp1.output_ports
     ops.each_with_index { |op, i|
       ip = comp2.input_port(i)
@@ -163,12 +170,12 @@ class BTGraphTest < Minitest::Test
     op = comp2.output_port(0)
     ip = comp3.input_port(0)
     graph.connect_ports(op, ip)
-    graph
-  end
-
-  def test_interrupter
-    graph = get_graph
     int = graph.default_interrupter
     assert_instance_of(BT2::BTInterrupter, int)
+    int.set!
+    thr = Thread.new { sleep 0.5; int.reset! }
+    graph.run
+    thr.join
+    assert_equal(@expected_output.lines.count, event_count)
   end
 end

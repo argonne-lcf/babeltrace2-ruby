@@ -46,8 +46,8 @@ module Babeltrace2
           super(handle, retain: retain, auto_release: auto_release)
         else
           handle = Babeltrace2.bt_component_descriptor_set_create()
-          raise NoMemoryError if handle.null?
-          super(handle, retain: false)
+          raise Babeltrace2.process_error if handle.null?
+          super(handle)
         end
       end
 

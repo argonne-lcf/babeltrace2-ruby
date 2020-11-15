@@ -114,7 +114,7 @@ module Babeltrace2
         else
           handle = Babeltrace2.bt_message_stream_beginning_create(
                      self_message_iterator, stream)
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -139,7 +139,7 @@ module Babeltrace2
         ptr = FFI::MemoryPointer.new(:pointer)
         res = Babeltrace2.bt_message_stream_beginning_borrow_default_clock_snapshot_const(@handle, ptr)
         return nil if res == :BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN
-        BTClockSnapshot.new(ptr.read_pointer)
+        BTClockSnapshot.new(BTClockSnapshotHandle.new(ptr.read_pointer))
       end
       alias default_clock_snapshot get_default_clock_snapshot
 
@@ -186,7 +186,7 @@ module Babeltrace2
         else
           handle = Babeltrace2.bt_message_stream_end_create(
                      self_message_iterator, stream)
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -287,7 +287,7 @@ module Babeltrace2
                   self_message_iterator, event_class, stream)
               end
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -353,7 +353,7 @@ module Babeltrace2
               Babeltrace2.bt_message_packet_beginning_create(
                 self_message_iterator, packet)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -419,7 +419,7 @@ module Babeltrace2
               Babeltrace2.bt_message_packet_end_create(
                 self_message_iterator, packet)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -500,7 +500,7 @@ module Babeltrace2
               Babeltrace2.bt_message_discarded_events_create(
                 self_message_iterator, stream)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -605,7 +605,7 @@ module Babeltrace2
               Babeltrace2.bt_message_discarded_packets_create(
                 self_message_iterator, stream)
             end
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end
@@ -675,7 +675,7 @@ module Babeltrace2
         else
           handle = Babeltrace2.bt_message_message_iterator_inactivity_create(
             self_message_iterator, clock_class, clock_snapshot_value)
-          raise NoMemoryError if handle.null?
+          raise Babeltrace2.process_error if handle.null?
           super(handle)
         end
       end

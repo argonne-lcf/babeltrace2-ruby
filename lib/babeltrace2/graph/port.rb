@@ -44,9 +44,11 @@ module Babeltrace2
     def self.from_handle(handle, retain: true, auto_release: true)
       case Babeltrace2.bt_port_get_type(handle)
       when :BT_PORT_TYPE_INPUT
-        Input
+        handle = BTPortInputHandle.new(handle)
+        BTPortInput
       when :BT_PORT_TYPE_OUTPUT
-        Output
+        handle = BTPortOuputHandle.new(handle)
+        BTPortOutput
       else
         raise Error.new("Unknown port type")
       end.new(handle, retain: retain, auto_release: auto_release)

@@ -31,6 +31,11 @@ require_relative 'babeltrace2/graph/component-descriptor-set'
 require_relative 'babeltrace2/graph/interrupter'
 require_relative 'babeltrace2/graph/query-executor'
 require_relative 'babeltrace2/graph/private-query-executor'
-require_relative 'babeltrace2/plugin/plugin-loading.rb'
+require_relative 'babeltrace2/plugin/plugin-loading'
+require_relative 'babeltrace2/trace-ir/clock-class'
+require_relative 'babeltrace2/trace-ir/clock-snapshot'
+require_relative 'babeltrace2/trace-ir/event'
+require_relative 'babeltrace2/trace-ir/event-class'
+require_relative 'babeltrace2/trace-ir/field-class'
 
 BT2 = Babeltrace2

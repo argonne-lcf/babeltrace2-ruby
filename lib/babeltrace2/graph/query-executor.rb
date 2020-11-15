@@ -89,7 +89,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_query_executor_create_with_method_data(
                    component_class, object_name, BTValue.from_value(params), method_data)
-        raise NoMemoryError if handle.null?
+        raise Babeltrace2.process_error if handle.null?
         super(handle)
       end
     end
@@ -101,7 +101,7 @@ module Babeltrace2
         sleep BT_SLEEP_TIME
       end
       raise Babeltrace2.process_error(res) if res != :BT_QUERY_EXECUTOR_QUERY_STATUS_OK
-      BTValue.from_handle(ptr.read_pointer, retain: false)
+      BTValue.from_handle(BTValueHandle.new(ptr.read_pointer), retain: false)
     end
 
     def set_logging_level(logging_level)

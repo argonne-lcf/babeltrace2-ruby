@@ -1,77 +1,317 @@
 module Babeltrace2
 
-  typedef :pointer, :bt_clock_class_handle
-  typedef :pointer, :bt_clock_snapshot_handle
-  typedef :pointer, :bt_component_handle
-  typedef :pointer, :bt_component_class_handle
-  typedef :pointer, :bt_component_class_filter_handle
-  typedef :pointer, :bt_component_class_sink_handle
-  typedef :pointer, :bt_component_class_source_handle
-  typedef :pointer, :bt_component_descriptor_set_handle
-  typedef :pointer, :bt_component_filter_handle
-  typedef :pointer, :bt_component_sink_handle
-  typedef :pointer, :bt_component_source_handle
-  typedef :pointer, :bt_connection_handle
-  typedef :pointer, :bt_error_handle
-  typedef :pointer, :bt_error_cause_handle
-  typedef :pointer, :bt_event_handle
-  typedef :pointer, :bt_event_class_handle
-  typedef :pointer, :bt_event_header_field_handle
-  typedef :pointer, :bt_field_handle
-  typedef :pointer, :bt_field_class_handle
-  typedef :pointer, :bt_field_class_enumeration_mapping_handle
-  typedef :pointer, :bt_field_class_enumeration_signed_mapping_handle
-  typedef :pointer, :bt_field_class_enumeration_unsigned_mapping_handle
-  typedef :pointer, :bt_field_class_structure_member_handle
-  typedef :pointer, :bt_field_class_variant_option_handle
-  typedef :pointer, :bt_field_class_variant_with_selector_field_integer_signed_option_handle
-  typedef :pointer, :bt_field_class_variant_with_selector_field_integer_unsigned_option_handle
-  typedef :pointer, :bt_field_path_handle
-  typedef :pointer, :bt_field_path_item_handle
-  typedef :pointer, :bt_graph_handle
-  typedef :pointer, :bt_integer_range_set_handle
-  typedef :pointer, :bt_integer_range_set_signed_handle
-  typedef :pointer, :bt_integer_range_set_unsigned_handle
-  typedef :pointer, :bt_integer_range_signed_handle
-  typedef :pointer, :bt_integer_range_unsigned_handle
-  typedef :pointer, :bt_interrupter_handle
-  typedef :pointer, :bt_message_handle
-  typedef :pointer, :bt_message_iterator_handle
-  typedef :pointer, :bt_message_iterator_class_handle
-  typedef :pointer, :bt_object_handle
-  typedef :pointer, :bt_packet_handle
-  typedef :pointer, :bt_plugin_handle
-  typedef :pointer, :bt_plugin_set_handle
-  typedef :pointer, :bt_plugin_so_shared_lib_handle_handle
-  typedef :pointer, :bt_port_handle
-  typedef :pointer, :bt_port_input_handle
-  typedef :pointer, :bt_port_output_handle
-  typedef :pointer, :bt_port_output_message_iterator_handle
-  typedef :pointer, :bt_private_query_executor_handle
-  typedef :pointer, :bt_query_executor_handle
-  typedef :pointer, :bt_self_component_handle
-  typedef :pointer, :bt_self_component_class_handle
-  typedef :pointer, :bt_self_component_class_filter_handle
-  typedef :pointer, :bt_self_component_class_sink_handle
-  typedef :pointer, :bt_self_component_class_source_handle
-  typedef :pointer, :bt_self_component_filter_handle
-  typedef :pointer, :bt_self_component_filter_configuration_handle
-  typedef :pointer, :bt_self_component_port_handle
-  typedef :pointer, :bt_self_component_port_input_handle
-  typedef :pointer, :bt_message_iterator_handle
-  typedef :pointer, :bt_self_component_port_output_handle
-  typedef :pointer, :bt_self_component_sink_handle
-  typedef :pointer, :bt_self_component_sink_configuration_handle
-  typedef :pointer, :bt_self_component_source_handle
-  typedef :pointer, :bt_self_component_source_configuration_handle
-  typedef :pointer, :bt_self_message_iterator_handle
-  typedef :pointer, :bt_self_message_iterator_configuration_handle
-  typedef :pointer, :bt_self_plugin_handle
-  typedef :pointer, :bt_stream_handle
-  typedef :pointer, :bt_stream_class_handle
-  typedef :pointer, :bt_trace_handle
-  typedef :pointer, :bt_trace_class_handle
-  typedef :pointer, :bt_value_handle
+  class BTHandle < FFI::Pointer
+    extend FFI::DataConverter
+    class << self
+      def native_type
+        FFI::Type::POINTER
+      end
+
+      def from_native(value, context)
+        new(value) #value.null? ? nil : new(value)
+      end
+
+      def to_native(value, context)
+        unless value.nil?
+          p = value.to_ptr
+          raise "invalid type #{p.class}, expected #{self}" unless p.kind_of?(self)
+          p
+        else
+          nil
+        end
+      end
+    end
+  end
+
+  class BTClockClassHandle < BTHandle; end
+  typedef BTClockClassHandle, :bt_clock_class_handle
+
+  class BTClockSnapshotHandle < BTHandle; end
+  typedef BTClockSnapshotHandle, :bt_clock_snapshot_handle
+
+  class BTComponentClassHandle < BTHandle; end
+  typedef BTComponentClassHandle, :bt_component_class_handle
+
+  class BTComponentClassFilterHandle < BTComponentClassHandle; end
+  typedef BTComponentClassFilterHandle, :bt_component_class_filter_handle
+
+  class BTComponentClassSinkHandle < BTComponentClassHandle; end
+  typedef BTComponentClassSinkHandle, :bt_component_class_sink_handle
+
+  class BTComponentClassSourceHandle < BTComponentClassHandle; end
+  typedef BTComponentClassSourceHandle, :bt_component_class_source_handle
+
+  class BTComponentDescriptorSetHandle < BTHandle; end
+  typedef BTComponentDescriptorSetHandle, :bt_component_descriptor_set_handle
+
+  class BTComponentHandle < BTHandle; end
+  typedef BTComponentHandle, :bt_component_handle
+
+  class BTComponentFilterHandle < BTComponentHandle; end
+  typedef BTComponentFilterHandle, :bt_component_filter_handle
+
+  class BTComponentSinkHandle < BTComponentHandle; end
+  typedef BTComponentSinkHandle, :bt_component_sink_handle
+
+  class BTComponentSourceHandle < BTComponentHandle; end
+  typedef BTComponentSourceHandle, :bt_component_source_handle
+
+  class BTConnectionHandle < BTHandle; end
+  typedef BTConnectionHandle, :bt_connection_handle
+
+  class BTErrorHandle < BTHandle; end
+  typedef BTErrorHandle, :bt_error_handle
+
+  class BTErrorCauseHandle < BTHandle; end
+  typedef BTErrorCauseHandle, :bt_error_cause_handle
+
+  class BTEventHandle < BTHandle; end
+  typedef BTEventHandle, :bt_event_handle
+
+  class BTEventClassHandle < BTHandle; end
+  typedef BTEventClassHandle, :bt_event_class_handle
+
+  class BTEventHeaderFieldHandle < BTHandle; end
+  typedef BTEventHeaderFieldHandle, :bt_event_header_field_handle
+
+  class BTFieldHandle < BTHandle; end
+  typedef BTFieldHandle, :bt_field_handle
+
+  class BTFieldClassHandle < BTHandle; end
+  typedef BTFieldClassHandle, :bt_field_class_handle
+
+  class BTFieldClassEnumerationMappingHandle < BTHandle; end
+  typedef BTFieldClassEnumerationMappingHandle,
+          :bt_field_class_enumeration_mapping_handle
+
+  class BTFieldClassEnumerationSignedMappingHandle <
+        BTFieldClassEnumerationMappingHandle; end
+  typedef BTFieldClassEnumerationSignedMappingHandle,
+          :bt_field_class_enumeration_signed_mapping_handle
+
+  class BTFieldClassEnumerationUnsignedMappingHandle <
+        BTFieldClassEnumerationMappingHandle; end
+  typedef BTFieldClassEnumerationUnsignedMappingHandle,
+          :bt_field_class_enumeration_unsigned_mapping_handle
+
+  class BTFieldClassStructureMember < BTHandle; end
+  typedef BTFieldClassStructureMember, :bt_field_class_structure_member_handle
+
+  class BTFieldClassVariantOptionHandle < BTHandle; end
+  typedef BTFieldClassVariantOptionHandle, :bt_field_class_variant_option_handle
+
+  class BTFieldClassVariantWithSelectorFieldIntegerSignedOptionHandle <
+        BTFieldClassVariantOptionHandle; end
+  typedef BTFieldClassVariantWithSelectorFieldIntegerSignedOptionHandle,
+          :bt_field_class_variant_with_selector_field_integer_signed_option_handle
+
+  class BTFieldClassVariantWithSelectorFieldIntegerUnsignedOptionHandle <
+        BTFieldClassVariantOptionHandle; end
+  typedef BTFieldClassVariantWithSelectorFieldIntegerUnsignedOptionHandle,
+          :bt_field_class_variant_with_selector_field_integer_unsigned_option_handle
+
+  class BTFieldPathHandle < BTHandle; end
+  typedef BTFieldPathHandle, :bt_field_path_handle
+
+  class BTFieldPathItemHandle < BTHandle; end
+  typedef BTFieldPathItemHandle, :bt_field_path_item_handle
+
+  class BTGraphHandle < BTHandle; end
+  typedef BTGraphHandle, :bt_graph_handle
+
+  class BTIntegerRangeSetHandle < BTHandle; end
+  typedef BTIntegerRangeSetHandle, :bt_integer_range_set_handle
+
+  class BTIntegerRangeSetSignedHandle < BTIntegerRangeSetHandle; end
+  typedef BTIntegerRangeSetSignedHandle, :bt_integer_range_set_signed_handle
+
+  class BTIntegerRangeSetUnsignedHandle < BTIntegerRangeSetHandle; end
+  typedef BTIntegerRangeSetSignedHandle, :bt_integer_range_set_unsigned_handle
+
+  class BTIntegerRangeSignedHandle < BTHandle; end
+  typedef BTIntegerRangeSignedHandle, :bt_integer_range_signed_handle
+
+  class BTIntegerRangeUnsignedHandle < BTHandle; end
+  typedef BTIntegerRangeUnsignedHandle, :bt_integer_range_unsigned_handle
+
+  class BTInterrupterHandle < BTHandle; end
+  typedef BTInterrupterHandle, :bt_interrupter_handle
+
+  class BTMessageHandle < BTHandle; end
+  typedef BTMessageHandle, :bt_message_handle
+
+  class BTMessageIteratorHandle < BTHandle; end
+  typedef BTMessageIteratorHandle, :bt_message_iterator_handle
+
+  class BTMessageIteratorClassHandle < BTHandle; end
+  typedef BTMessageIteratorClassHandle, :bt_message_iterator_class_handle
+
+  class BTObjectHandle < BTHandle; end
+  typedef BTObjectHandle, :bt_object_handle
+
+  class BTPacketHandle < BTHandle; end
+  typedef BTPacketHandle, :bt_packet_handle
+
+  class BTPortHandle < BTHandle; end
+  typedef BTPortHandle, :bt_port_handle
+
+  class BTPortInputHandle < BTPortHandle; end
+  typedef BTPortInputHandle, :bt_port_input_handle
+
+  class BTPortOutputHandle < BTPortHandle; end
+  typedef BTPortOutputHandle, :bt_port_output_handle
+
+  class BTPortOutputMessageIteratorHandle < BTMessageIteratorHandle; end
+  typedef BTPortOutputMessageIteratorHandle, :bt_port_output_message_iterator_handle
+
+  class BTQueryExecutorHandle < BTHandle; end
+  typedef BTQueryExecutorHandle, :bt_query_executor_handle
+
+  class BTPrivateQueryExecutorHandle < BTQueryExecutorHandle; end
+  typedef BTPrivateQueryExecutorHandle, :bt_private_query_executor_handle
+
+  module BTSelfComponentHandle; end
+  class BTSelfComponentHandleCls < BTComponentHandle
+    include BTSelfComponentHandle
+    class << self
+      def to_native(value, context)
+        unless value.nil?
+          p = value.to_ptr
+          raise "invalid type #{p.class}, expected #{BTSelfComponentHandle}" unless p.kind_of?(BTSelfComponentHandle)
+          p
+        else
+          nil
+        end
+      end
+    end
+  end
+  typedef BTSelfComponentHandleCls, :bt_self_component_handle
+
+  class BTSelfComponentFilterHandle < BTComponentFilterHandle
+    include BTSelfComponentHandle
+  end
+  typedef BTSelfComponentFilterHandle, :bt_self_component_filter_handle
+
+  class BTSelfComponentFilterConfigurationHandle < BTHandle; end
+  typedef BTSelfComponentFilterConfigurationHandle,
+          :bt_self_component_filter_configuration_handle
+
+  class BTSelfComponentSinkHandle < BTComponentSinkHandle
+    include BTSelfComponentHandle
+  end
+  typedef BTSelfComponentSinkHandle, :bt_self_component_sink_handle
+
+  class BTSelfComponentSinkConfigurationHandle < BTHandle; end
+  typedef BTSelfComponentSinkConfigurationHandle,
+          :bt_self_component_sink_configuration_handle
+
+  class BTSelfComponentSourceHandle < BTComponentSourceHandle
+    include BTSelfComponentHandle
+  end
+  typedef BTSelfComponentSourceHandle, :bt_self_component_source_handle
+
+  class BTSelfComponentSourceConfigurationHandle < BTHandle; end
+  typedef BTSelfComponentSourceConfigurationHandle,
+          :bt_self_component_source_configuration_handle
+
+  module BTSelfComponentClassHandle; end
+  class BTSelfComponentClassHandleCls < BTComponentClassHandle
+    include BTSelfComponentClassHandle
+    class << self
+      def to_native(value, context)
+        unless value.nil?
+          p = value.to_ptr
+          raise "invalid type #{p.class}, expected #{BTSelfComponentClassHandle}" unless p.kind_of?(BTSelfComponentClassHandle)
+          p
+        else
+          nil
+        end
+      end
+    end
+  end
+  typedef BTSelfComponentClassHandleCls,
+          :bt_self_component_class_handle
+
+  class BTSelfComponentClassFilterHandle < BTComponentClassFilterHandle
+    include BTSelfComponentClassHandle
+  end
+  typedef BTSelfComponentClassFilterHandle,
+          :bt_self_component_class_filter_handle
+
+  class BTSelfComponentClassSinkHandle < BTComponentClassSinkHandle
+    include BTSelfComponentClassHandle
+  end
+  typedef BTSelfComponentClassSinkHandle,
+          :bt_self_component_class_sink_handle
+
+  class BTSelfComponentClassSourceHandle < BTComponentClassSourceHandle
+    include BTSelfComponentClassHandle
+  end
+  typedef BTSelfComponentClassSourceHandle,
+          :bt_self_component_class_source_handle
+
+  module BTSelfComponentPortHandle; end
+  class BTSelfComponentPortHandleCls < BTPortHandle
+    include BTSelfComponentPortHandle
+    class << self
+      def to_native(value, context)
+        unless value.nil?
+          p = value.to_ptr
+          raise "invalid type #{p.class}, expected #{BTSelfComponentPortHandle}" unless p.kind_of?(BTSelfComponentPortHandle)
+          p
+        else
+          nil
+        end
+      end
+    end
+  end
+  typedef BTSelfComponentPortHandleCls, :bt_self_component_port_handle
+
+  class BTSelfComponentPortInputHandle < BTPortInputHandle
+    include BTSelfComponentPortHandle
+  end
+  typedef BTSelfComponentPortInputHandle, :bt_self_component_port_input_handle
+
+  class BTSelfComponentPortOutputHandle < BTPortOutputHandle
+    include BTSelfComponentPortHandle
+  end
+  typedef BTSelfComponentPortOutputHandle, :bt_self_component_port_output_handle
+
+  class BTMessageIteratorHandle < BTHandle; end
+  typedef BTMessageIteratorHandle, :bt_message_iterator_handle
+
+  class BTSelfMessageIteratorHandle < BTMessageIteratorHandle; end
+  typedef BTSelfMessageIteratorHandle, :bt_self_message_iterator_handle
+
+  class BTSelfMessageIteratorConfigurationHandle < BTHandle; end
+  typedef BTSelfMessageIteratorConfigurationHandle, :bt_self_message_iterator_configuration_handle
+
+  class BTPluginHandle < BTHandle; end
+  typedef BTPluginHandle, :bt_plugin_handle
+
+  class BTPluginSetHandle < BTHandle; end
+  typedef BTPluginSetHandle, :bt_plugin_set_handle
+
+  class BTPluginSoSharedLibHandleHandle < BTHandle; end
+  typedef BTPluginSoSharedLibHandleHandle, :bt_plugin_so_shared_lib_handle_handle
+
+  class BTSelfPluginHandle < BTPluginHandle; end
+  typedef BTSelfPluginHandle, :bt_self_plugin_handle
+
+  class BTStreamHandle < BTHandle; end
+  typedef BTStreamHandle, :bt_stream_handle
+
+  class BTStreamClassHandle < BTHandle; end
+  typedef BTStreamClassHandle, :bt_stream_class_handle
+
+  class BTTraceHandle < BTHandle; end
+  typedef BTTraceHandle, :bt_trace_handle
+
+  class BTTraceClassHandle < BTHandle; end
+  typedef BTTraceClassHandle, :bt_trace_class_handle
+
+  class BTValueHandle < BTHandle; end
+  typedef BTValueHandle, :bt_value_handle
 
   typedef :int, :bt_bool
   typedef :uint64, :bt_listener_id
