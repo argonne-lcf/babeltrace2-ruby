@@ -135,16 +135,16 @@ module Babeltrace2
                   :bt_field_class_handle
 
   attach_function :bt_event_class_set_user_attributes,
-                  [ :bt_event_class_handle, :bt_value_handle ],
+                  [ :bt_event_class_handle, :bt_value_map_handle ],
                   :void
 
   attach_function :bt_event_class_borrow_user_attributes,
                   [ :bt_event_class_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   attach_function :bt_event_class_borrow_user_attributes_const,
                   [ :bt_event_class_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   attach_function :bt_event_class_get_ref,
                   [ :bt_event_class_handle ],
@@ -290,7 +290,7 @@ module Babeltrace2
 
     def get_user_attributes
       handle = Babeltrace2.bt_event_class_get_user_attributes(@handle)
-      BTValue.from_handle(handle)
+      BTValueMap.new(handle)
     end
     alias user_attributes get_user_attributes
   end

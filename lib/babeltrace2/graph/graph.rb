@@ -18,42 +18,42 @@ module Babeltrace2
   attach_function :bt_graph_add_source_component,
                   [ :bt_graph_handle,
                     :bt_component_class_source_handle,
-                    :string, :bt_value_handle, :bt_logging_level,
+                    :string, :bt_value_map_handle, :bt_logging_level,
                     :pointer ],
                   :bt_graph_add_component_status
 
   attach_function :bt_graph_add_source_component_with_initialize_method_data,
                   [ :bt_graph_handle,
                     :bt_component_class_source_handle,
-                    :string, :bt_value_handle, :pointer,
+                    :string, :bt_value_map_handle, :pointer,
                     :bt_logging_level, :pointer ],
                   :bt_graph_add_component_status
 
   attach_function :bt_graph_add_filter_component,
                   [ :bt_graph_handle,
                     :bt_component_class_filter_handle,
-                    :string, :bt_value_handle, :bt_logging_level,
+                    :string, :bt_value_map_handle, :bt_logging_level,
                     :pointer ],
                   :bt_graph_add_component_status
 
   attach_function :bt_graph_add_filter_component_with_initialize_method_data,
                   [ :bt_graph_handle,
                     :bt_component_class_filter_handle,
-                    :string, :bt_value_handle, :pointer,
+                    :string, :bt_value_map_handle, :pointer,
                     :bt_logging_level, :pointer ],
                   :bt_graph_add_component_status
 
   attach_function :bt_graph_add_sink_component,
                   [ :bt_graph_handle,
                     :bt_component_class_sink_handle,
-                    :string, :bt_value_handle, :bt_logging_level,
+                    :string, :bt_value_map_handle, :bt_logging_level,
                     :pointer ],
                   :bt_graph_add_component_status
 
   attach_function :bt_graph_add_sink_component_with_initialize_method_data,
                   [ :bt_graph_handle,
                     :bt_component_class_sink_handle,
-                    :string, :bt_value_handle, :pointer,
+                    :string, :bt_value_map_handle, :pointer,
                     :bt_logging_level, :pointer ],
                   :bt_graph_add_component_status
 

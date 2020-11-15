@@ -115,16 +115,16 @@ module Babeltrace2
                   :bt_field_class_type
 
   attach_function :bt_field_class_set_user_attributes,
-                  [ :bt_field_class_handle, :bt_value_handle ],
+                  [ :bt_field_class_handle, :bt_value_map_handle ],
                   :void
 
   attach_function :bt_field_class_borrow_user_attributes,
                   [ :bt_field_class_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   attach_function :bt_field_class_borrow_user_attributes_const,
                   [ :bt_field_class_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   attach_function :bt_field_class_get_ref,
                   [ :bt_field_class_handle ],
@@ -138,34 +138,13 @@ module Babeltrace2
     @get_ref = :bt_field_class_get_ref
     @put_ref = :bt_field_class_put_ref
 
-    def from_handle(handle, retain: true, auto_release: true)
-      case Babeltrace2.bt_field_class_get_type(handle)
-      when :BT_FIELD_CLASS_TYPE_BOOL
-        BTFieldClassBool
-      when :BT_FIELD_CLASS_TYPE_BIT_ARRAY
-        BTFieldClassBitArray
-      when :BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER
-        BTFieldClassIntegerUnsigned
-      when :BT_FIELD_CLASS_TYPE_SIGNED_INTEGER
-        BTFieldClassIntegerSigned
-      when :BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL
-        BTFieldClassRealSinglePrecision
-      when :BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL
-        BTFieldClassRealDoublePrecision
-      when :BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION
-        BTFieldClassEnumerationUnsigned
-      when :BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION
-        BTFieldClassEnumerationSigned
-      when :BT_FIELD_CLASS_TYPE_STRING
-        BTFieldClassString
-      when :BT_FIELD_CLASS_TYPE_STATIC_ARRAY
-        BTFieldClassArrayStatic
-      when :BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD,
-           :BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD
-        BTFieldClassArrayDynamic
-      else
-        raise "unsupported field type"
-      end.new(handle, retain: retain, auto_release: auto_release)
+    TYPE_MAP = {}
+
+    def self.from_handle(handle, retain: true, auto_release: true)
+      clss = TYPE_MAP[Babeltrace2.bt_field_class_get_type(handle)]
+      raise "unsupported field class type" unless clss
+      handle = clss[0].new(handle)
+      clss[1].new(handle, retain: retain, auto_release: auto_release)
     end
 
     def get_type
@@ -190,14 +169,14 @@ module Babeltrace2
     end
 
     def get_user_attributes
-      BTValue.from_handle(Babeltrace2.bt_field_class_borrow_user_attributes(@handle))
+      BTValueMap.new(Babeltrace2.bt_field_class_borrow_user_attributes(@handle))
     end
     alias user_attributes get_user_attributes
   end
 
   attach_function :bt_field_class_bool_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_bool_handle
 
   class BTFieldClass::Bool < BTFieldClass
     def initialize(handle, retain: true, auto_release: true,
@@ -212,13 +191,16 @@ module Babeltrace2
     end
   end
   BTFieldClassBool = BTFieldClass::Bool
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_BOOL] = [
+    BTFieldClassBoolHandle,
+    BTFieldClassBool ]
 
   attach_function :bt_field_class_bit_array_create,
                   [ :bt_trace_class_handle, :uint64 ],
-                  :bt_field_class_handle
+                  :bt_field_class_bit_array_handle
 
   attach_function :bt_field_class_bit_array_get_length,
-                  [ :bt_trace_class_handle ],
+                  [ :bt_field_class_bit_array_handle ],
                   :uint64
 
   class BTFieldClass::BitArray < BTFieldClass
@@ -239,13 +221,16 @@ module Babeltrace2
     alias length get_length
   end
   BTFieldClassBitArray = BTFieldClass::BitArray
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_BIT_ARRAY] = [
+    BTFieldClassBitArrayHandle,
+    BTFieldClassBitArray ]
 
   attach_function :bt_field_class_integer_set_field_value_range,
-                  [ :bt_field_class_handle, :uint64 ],
+                  [ :bt_field_class_integer_handle, :uint64 ],
                   :void
 
   attach_function :bt_field_class_integer_get_field_value_range,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_integer_handle ],
                   :uint64
 
   BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY = 2
@@ -264,12 +249,12 @@ module Babeltrace2
        BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL ]
 
   attach_function :bt_field_class_integer_set_preferred_display_base,
-                  [ :bt_field_class_handle,
+                  [ :bt_field_class_integer_handle,
                     :bt_field_class_integer_preferred_display_base ],
                   :void
 
   attach_function :bt_field_class_integer_get_preferred_display_base,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_integer_handle ],
                   :bt_field_class_integer_preferred_display_base
 
   class BTFieldClass::Integer < BTFieldClass
@@ -309,7 +294,7 @@ module Babeltrace2
 
   attach_function :bt_field_class_integer_unsigned_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_integer_unsigned_handle
 
   class BTFieldClass::Integer::Unsigned < BTFieldClassInteger
     def initialize(handle, retain: true, auto_release: true,
@@ -325,10 +310,13 @@ module Babeltrace2
   end
   BTFieldClass::IntegerUnsigned = BTFieldClass::Integer::Unsigned
   BTFieldClassIntegerUnsigned = BTFieldClass::Integer::Unsigned
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER] = [
+    BTFieldClassIntegerUnsignedHandle,
+    BTFieldClassIntegerUnsigned ]
 
   attach_function :bt_field_class_integer_signed_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_integer_signed_handle
 
   class BTFieldClass::Integer::Signed < BTFieldClassInteger
     def initialize(handle, retain: true, auto_release: true,
@@ -344,6 +332,9 @@ module Babeltrace2
   end
   BTFieldClass::IntegerSigned = BTFieldClass::Integer::Signed
   BTFieldClassIntegerSigned = BTFieldClass::Integer::Signed
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_SIGNED_INTEGER] = [
+    BTFieldClassIntegerSignedHandle,
+    BTFieldClassIntegerUnsigned ]
 
   class BTFieldClass::Real < BTFieldClass
   end
@@ -351,7 +342,7 @@ module Babeltrace2
 
   attach_function :bt_field_class_real_single_precision_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_real_single_precision_handle
 
   class BTFieldClass::Real::SinglePrecision < BTFieldClassReal
     def initialize(handle, retain: true, auto_release: true,
@@ -367,10 +358,13 @@ module Babeltrace2
   end
   BTFieldClass::RealSinglePrecision = BTFieldClass::Real::SinglePrecision
   BTFieldClassRealSinglePrecision = BTFieldClass::Real::SinglePrecision
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL] = [
+        BTFieldClassRealSinglePrecisionHandle,
+        BTFieldClassRealSinglePrecision ]
 
   attach_function :bt_field_class_real_double_precision_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_real_double_precision_handle
 
   class BTFieldClass::Real::DoublePrecision < BTFieldClassReal
     def initialize(handle, retain: true, auto_release: true,
@@ -386,6 +380,9 @@ module Babeltrace2
   end
   BTFieldClass::RealDoublePrecision = BTFieldClass::Real::DoublePrecision
   BTFieldClassRealDoublePrecision = BTFieldClass::Real::DoublePrecision
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL] = [
+    BTFieldClassRealDoublePrecisionHandle,
+    BTFieldClassRealDoublePrecision ]
 
   BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_OK = BT_FUNC_STATUS_OK
   BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
@@ -406,7 +403,7 @@ module Babeltrace2
        BT_FIELD_CLASS_ENUMERATION_ADD_MAPPING_STATUS_MEMORY_ERROR ]
 
   attach_function :bt_field_class_enumeration_get_mapping_count,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_enumeration_handle ],
                   :uint64
 
   attach_function :bt_field_class_enumeration_mapping_get_label,
@@ -436,23 +433,24 @@ module Babeltrace2
 
   attach_function :bt_field_class_enumeration_unsigned_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_enumeration_unsigned_handle
 
   attach_function :bt_field_class_enumeration_unsigned_add_mapping,
-                  [ :bt_field_class_handle, :string,
+                  [ :bt_field_class_enumeration_unsigned_handle, :string,
                     :bt_integer_range_set_unsigned_handle ],
                   :bt_field_class_enumeration_add_mapping_status
 
   attach_function :bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const,
-                  [ :bt_field_class_handle, :uint64 ],
+                  [ :bt_field_class_enumeration_unsigned_handle, :uint64 ],
                   :bt_field_class_enumeration_unsigned_mapping_handle
 
   attach_function :bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const,
-                  [ :bt_field_class_handle, :string ],
+                  [ :bt_field_class_enumeration_unsigned_handle, :string ],
                   :bt_field_class_enumeration_unsigned_mapping_handle
 
   attach_function :bt_field_class_enumeration_unsigned_get_mapping_labels_for_value,
-                  [ :bt_field_class_handle, :uint64, :pointer, :pointer ],
+                  [ :bt_field_class_enumeration_unsigned_handle,
+                    :uint64, :pointer, :pointer ],
                   :bt_field_class_enumeration_get_mapping_labels_for_value_status
 
   attach_function :bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const,
@@ -516,26 +514,30 @@ module Babeltrace2
   end
   BTFieldClassEnumerationUnsigned = BTFieldClass::Enumeration::Unsigned
   BTFieldClassEnumerationUnsignedMapping = BTFieldClass::Enumeration::Unsigned::Mapping
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION] = [
+    BTFieldClassEnumerationUnsignedHandle,
+    BTFieldClassEnumerationUnsigned ]
 
   attach_function :bt_field_class_enumeration_signed_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_enumeration_signed_handle
 
   attach_function :bt_field_class_enumeration_signed_add_mapping,
-                  [ :bt_field_class_handle, :string,
+                  [ :bt_field_class_enumeration_signed_handle, :string,
                     :bt_integer_range_set_signed_handle ],
                   :bt_field_class_enumeration_add_mapping_status
 
   attach_function :bt_field_class_enumeration_signed_borrow_mapping_by_index_const,
-                  [ :bt_field_class_handle, :uint64 ],
+                  [ :bt_field_class_enumeration_signed_handle, :uint64 ],
                   :bt_field_class_enumeration_signed_mapping_handle
 
   attach_function :bt_field_class_enumeration_signed_borrow_mapping_by_label_const,
-                  [ :bt_field_class_handle, :string ],
+                  [ :bt_field_class_enumeration_signed_handle, :string ],
                   :bt_field_class_enumeration_signed_mapping_handle
 
   attach_function :bt_field_class_enumeration_signed_get_mapping_labels_for_value,
-                  [ :bt_field_class_handle, :uint64, :pointer, :pointer ],
+                  [ :bt_field_class_enumeration_signed_handle,
+                    :uint64, :pointer, :pointer ],
                   :bt_field_class_enumeration_get_mapping_labels_for_value_status
 
   attach_function :bt_field_class_enumeration_signed_mapping_borrow_ranges_const,
@@ -599,10 +601,13 @@ module Babeltrace2
   end
   BTFieldClassEnumerationSigned = BTFieldClass::Enumeration::Signed
   BTFieldClassEnumerationSignedMapping = BTFieldClass::Enumeration::Signed::Mapping
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION] = [
+    BTFieldClassEnumerationSignedHandle,
+    BTFieldClassEnumerationSigned ]
 
   attach_function :bt_field_class_string_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_string_handle
 
   class BTFieldClass::String < BTFieldClass
     def initialize(handle, retain: true, auto_release: true,
@@ -617,14 +622,16 @@ module Babeltrace2
     end
   end
   BTFieldClassString = BTFieldClass::String
-
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STRING] = [
+    BTFieldClassStringHandle,
+    BTFieldClassString ]
 
   attach_function :bt_field_class_array_borrow_element_field_class,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_array_handle ],
                   :bt_field_class_handle
  
   attach_function :bt_field_class_array_borrow_element_field_class_const,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_array_handle ],
                   :bt_field_class_handle
 
   class BTFieldClass::Array < BTFieldClass
@@ -638,10 +645,10 @@ module Babeltrace2
 
   attach_function :bt_field_class_array_static_create,
                   [ :bt_trace_class_handle, :bt_field_class_handle, :uint64 ],
-                  :bt_field_class_handle
+                  :bt_field_class_array_static_handle
 
   attach_function :bt_field_class_array_static_get_length,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_array_static_handle ],
                   :uint64
 
   class BTFieldClass::Array::Static < BTFieldClass::Array
@@ -664,14 +671,17 @@ module Babeltrace2
     alias size get_length
   end
   BTFieldClassArrayStatic = BTFieldClass::Array::Static
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_ARRAY] = [
+        BTFieldClassArrayStaticHandle,
+        BTFieldClassArrayStatic ]
 
   attach_function :bt_field_class_array_dynamic_create,
                   [ :bt_trace_class_handle, :bt_field_class_handle,
-                    :bt_field_class_handle ],
-                  :bt_field_class_handle
+                    :bt_field_class_integer_unsigned_handle ],
+                  :bt_field_class_array_dynamic_handle
 
   attach_function :bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_array_dynamic_handle ],
                   :bt_field_path_handle
 
   class BTFieldClass::Array::Dynamic < BTFieldClass::Array
@@ -691,15 +701,21 @@ module Babeltrace2
       return nil unless type?(:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD)
       handle = Babeltrace2.bt_field_class_array_dynamic_with_length_field_borrow_length_field_path(@handle)
       return nil if handle.null?
-      BTFieldPath.new(handle)
+      BTFieldPath.new(handle, retain: true)
     end
     alias length_field_path get_length_field_path
   end
   BTFieldClassArrayDynamic = BTFieldClass::Array::Dynamic
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD] = [
+    BTFieldClassArrayDynamicHandle,
+    BTFieldClassArrayDynamic ]
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD] = [
+    BTFieldClassArrayDynamicHandle,
+    BTFieldClassArrayDynamic ]
 
   attach_function :bt_field_class_structure_create,
                   [ :bt_trace_class_handle ],
-                  :bt_field_class_handle
+                  :bt_field_class_structure_handle
 
   BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK = BT_FUNC_STATUS_OK
   BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
@@ -711,27 +727,27 @@ module Babeltrace2
        BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_MEMORY_ERROR ]
 
   attach_function :bt_field_class_structure_append_member,
-                  [ :bt_field_class_handle, :string, :bt_field_class_handle ],
+                  [ :bt_field_class_structure_handle, :string, :bt_field_class_handle ],
                   :bt_field_class_structure_append_member_status
 
   attach_function :bt_field_class_structure_get_member_count,
-                  [ :bt_field_class_handle ],
+                  [ :bt_field_class_structure_handle ],
                   :uint64
 
   attach_function :bt_field_class_structure_borrow_member_by_index,
-                  [ :bt_field_class_handle, :uint64],
+                  [ :bt_field_class_structure_handle, :uint64],
                   :bt_field_class_structure_member_handle
 
   attach_function :bt_field_class_structure_borrow_member_by_index_const,
-                  [ :bt_field_class_handle, :uint64],
+                  [ :bt_field_class_structure_handle, :uint64],
                   :bt_field_class_structure_member_handle
 
   attach_function :bt_field_class_structure_borrow_member_by_name,
-                  [ :bt_field_class_handle, :string ],
+                  [ :bt_field_class_structure_handle, :string ],
                   :bt_field_class_structure_member_handle
 
   attach_function :bt_field_class_structure_borrow_member_by_name_const,
-                  [ :bt_field_class_handle, :string ],
+                  [ :bt_field_class_structure_handle, :string ],
                   :bt_field_class_structure_member_handle
 
   attach_function :bt_field_class_structure_member_get_name,
@@ -747,16 +763,16 @@ module Babeltrace2
                   :bt_field_class_handle
 
   attach_function :bt_field_class_structure_member_set_user_attributes,
-                  [ :bt_field_class_structure_member_handle, :bt_value_handle ],
+                  [ :bt_field_class_structure_member_handle, :bt_value_map_handle ],
                   :void
 
   attach_function :bt_field_class_structure_member_borrow_user_attributes,
                   [ :bt_field_class_structure_member_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   attach_function :bt_field_class_structure_member_borrow_user_attributes_const,
                   [ :bt_field_class_structure_member_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   class BTFieldClass::Structure < BTFieldClass
     class Member < BTObject
@@ -783,7 +799,7 @@ module Babeltrace2
       end
 
       def get_user_attributes
-        BTValue.from_handle(Babeltrace2.bt_field_class_structure_member_borrow_user_attributes(@handle))
+        BTValueMap.new(Babeltrace2.bt_field_class_structure_member_borrow_user_attributes(@handle))
       end
       alias user_attributes get_user_attributes
     end
@@ -801,7 +817,8 @@ module Babeltrace2
 
     def append_member(name, member_field_class)
       name = ":#{name}" if name.kind_of?(Symbol)
-      res = Babeltrace2.bt_field_class_structure_append_member(@handle, name, member_field_class)
+      res = Babeltrace2.bt_field_class_structure_append_member(
+              @handle, name, member_field_class)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK
       self
     end
@@ -838,4 +855,470 @@ module Babeltrace2
   end
   BTFieldClassStructure = BTFieldClass::Structure
   BTFieldClassStructureMember = BTFieldClass::Structure::Member
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STRUCTURE] = [
+    BTFieldClassStructureHandle,
+    BTFieldClassStructure ]
+
+  attach_function :bt_field_class_option_borrow_field_class,
+                  [ :bt_field_class_option_handle ],
+                  :bt_field_class_handle
+
+  attach_function :bt_field_class_option_borrow_field_class_const,
+                  [ :bt_field_class_option_handle ],
+                  :bt_field_class_handle
+
+  class BTFieldClass::Option < BTFieldClass
+    def get_field_class
+      BTFieldClass.from_handle(
+        Babeltrace2.bt_field_class_option_borrow_field_class(@handle))
+    end
+    alias field_class get_field_class
+  end
+  BTFieldClassOption = BTFieldClass::Option
+
+  attach_function :bt_field_class_option_without_selector_create,
+                  [ :bt_trace_class_handle, :bt_field_class_handle ],
+                  :bt_field_class_option_without_selector_field_handle
+
+  class BTFieldClass::Option::WithoutSelectorField < BTFieldClass::Option
+    def initialize(handle, retain: true, auto_release: true,
+                   trace_class: nil, optional_field_class: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle = Babeltrace2.bt_field_class_option_without_selector_create(
+                   trace_class, optional_field_class)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
+      end
+    end
+  end
+  BTFieldClassOptionWithoutSelectorField = BTFieldClass::Option::WithoutSelectorField
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD] = [
+        BTFieldClassOptionWithoutSelectorFieldHandle,
+        BTFieldClassOptionWithoutSelectorField ]
+
+  attach_function :bt_field_class_option_with_selector_field_borrow_selector_field_path_const,
+                  [ :bt_field_class_option_with_selector_field_handle ],
+                  :bt_field_path_handle
+
+  class BTFieldClass::Option::WithSelectorField < BTFieldClass::Option
+    def get_selector_field_path
+      handle = Babeltrace2.bt_field_class_option_with_selector_field_borrow_selector_field_path_const(@handle)
+      return nil if handle.null?
+      BTFieldPath.new(handle, retain: true)
+    end
+  end
+  BTFieldClassOptionWithSelectorField = BTFieldClass::Option::WithSelectorField
+
+  attach_function :bt_field_class_option_with_selector_field_bool_create,
+                  [ :bt_trace_class_handle, :bt_field_class_handle,
+                    :bt_field_class_bool_handle ],
+                  :bt_field_class_option_with_selector_field_bool_handle
+
+  attach_function :bt_field_class_option_with_selector_field_bool_set_selector_is_reversed,
+                  [ :bt_field_class_option_with_selector_field_bool_handle,
+                    :bt_bool ],
+                  :void
+
+  attach_function :bt_field_class_option_with_selector_field_bool_selector_is_reversed,
+                  [ :bt_field_class_option_with_selector_field_bool_handle ],
+                  :bt_bool
+
+  class BTFieldClass::Option::WithSelectorField::Bool < BTFieldClass::Option::WithSelectorField
+    def initialize(handle, retain: true, auto_release: true,
+                   trace_class: nil, optional_field_class: nil, selector_field_class: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle = Babeltrace2.bt_field_class_option_with_selector_field_bool_create(
+                   trace_class, optional_field_class, selector_field_class)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
+      end
+    end
+
+    def set_selector_is_reversed(selector_is_reversed)
+      Babeltrace2.bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
+        @handle, selector_is_reversed)
+      self
+    end
+
+    def selector_is_reversed=(selector_is_reversed)
+      set_selector_is_reversed(selector_is_reversed)
+      selector_is_reversed
+    end
+
+    def selector_is_reversed
+      Babeltrace2.bt_field_class_option_with_selector_field_bool_selector_is_reversed(
+        @handle) == BT_FALSE ? false : true
+    end
+    alias selector_is_reversed? selector_is_reversed
+  end
+  BTFieldClassOptionWithSelectorFieldBool = BTFieldClass::Option::WithSelectorField::Bool
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD] = [
+        BTFieldClassOptionWithSelectorFieldBoolHandle,
+        BTFieldClassOptionWithSelectorFieldBool ]
+
+  attach_function :bt_field_class_option_with_selector_field_integer_unsigned_create,
+                  [ :bt_trace_class_handle, :bt_field_class_handle,
+                    :bt_field_class_integer_unsigned_handle,
+                    :bt_integer_range_set_unsigned_handle ],
+                  :bt_field_class_option_with_selector_field_integer_unsigned_handle
+
+  attach_function :bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const,
+                  [ :bt_field_class_option_with_selector_field_integer_unsigned_handle ],
+                  :bt_integer_range_set_unsigned_handle
+
+  class BTFieldClass::Option::WithSelectorField::IntegerUnsigned < BTFieldClass::Option::WithSelectorField
+    def initialize(handle, retain: true, auto_release: true,
+                   trace_class: nil, optional_field_class: nil, selector_field_class: nil,
+                   ranges: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        ranges = BTIntegerRangeSetUnsigned.from_value(ranges)
+        handle = Babeltrace2.bt_field_class_option_with_selector_field_integer_unsigned_create(
+                   trace_class, optional_field_class, selector_field_class, ranges)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
+      end
+    end
+
+    def get_selector_ranges
+      BTIntegerRangeSetUnsigned.new(
+        Babeltrace2.bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(@hanlde))
+    end
+    alias selector_ranges get_selector_ranges
+  end
+  BTFieldClassOptionWithSelectorFieldIntegerUnsigned = BTFieldClass::Option::WithSelectorField::IntegerUnsigned
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = [
+    BTFieldClassOptionWithSelectorFieldIntegerUnsignedHandle,
+    BTFieldClassOptionWithSelectorFieldIntegerUnsigned ]
+
+  attach_function :bt_field_class_option_with_selector_field_integer_signed_create,
+                  [ :bt_trace_class_handle, :bt_field_class_handle,
+                    :bt_field_class_integer_signed_handle,
+                    :bt_integer_range_set_signed_handle ],
+                  :bt_field_class_option_with_selector_field_integer_signed_handle
+
+  attach_function :bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const,
+                  [ :bt_field_class_option_with_selector_field_integer_signed_handle ],
+                  :bt_integer_range_set_signed_handle
+
+  class BTFieldClass::Option::WithSelectorField::IntegerSigned < BTFieldClass::Option::WithSelectorField
+    def initialize(handle, retain: true, auto_release: true,
+                   trace_class: nil, optional_field_class: nil, selector_field_class: nil,
+                   ranges: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        ranges = BTIntegerRangeSetSigned.from_value(ranges)
+        handle = Babeltrace2.bt_field_class_option_with_selector_field_integer_signed_create(
+                   trace_class, optional_field_class, selector_field_class, ranges)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
+      end
+    end
+
+    def get_selector_ranges
+      BTIntegerRangeSetSigned.new(
+        Babeltrace2.bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(@hanlde))
+    end
+    alias selector_ranges get_selector_ranges
+  end
+  BTFieldClassOptionWithSelectorFieldIntegerSigned = BTFieldClass::Option::WithSelectorField::IntegerSigned
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD] = [
+   BTFieldClassOptionWithSelectorFieldIntegerSignedHandle,
+   BTFieldClassOptionWithSelectorFieldIntegerSigned ]
+
+  attach_function :bt_field_class_variant_create,
+                  [ :bt_trace_class_handle, :bt_field_class_integer_handle ],
+                  :bt_field_class_variant_handle
+
+  attach_function :bt_field_class_variant_get_option_count,
+                  [ :bt_field_class_variant_handle ],
+                  :uint64
+
+  attach_function :bt_field_class_variant_borrow_option_by_index,
+                  [ :bt_field_class_variant_handle, :uint64 ],
+                  :bt_field_class_variant_option_handle
+
+  attach_function :bt_field_class_variant_borrow_option_by_index_const,
+                  [ :bt_field_class_variant_handle, :uint64 ],
+                  :bt_field_class_variant_option_handle
+
+  attach_function :bt_field_class_variant_borrow_option_by_name,
+                  [ :bt_field_class_variant_handle, :string ],
+                  :bt_field_class_variant_option_handle
+
+  attach_function :bt_field_class_variant_borrow_option_by_name_const,
+                  [ :bt_field_class_variant_handle, :string ],
+                  :bt_field_class_variant_option_handle
+
+  attach_function :bt_field_class_variant_option_get_name,
+                  [ :bt_field_class_variant_option_handle ],
+                  :string
+
+  attach_function :bt_field_class_variant_option_borrow_field_class,
+                  [ :bt_field_class_variant_option_handle ],
+                  :bt_field_class_handle
+
+  attach_function :bt_field_class_variant_option_borrow_field_class_const,
+                  [ :bt_field_class_variant_option_handle ],
+                  :bt_field_class_handle
+
+  attach_function :bt_field_class_variant_option_set_user_attributes,
+                  [ :bt_field_class_variant_option_handle,
+                    :bt_value_map_handle ],
+                  :void
+
+  attach_function :bt_field_class_variant_option_borrow_user_attributes,
+                  [ :bt_field_class_variant_option_handle ],
+                  :bt_value_map_handle
+
+  attach_function :bt_field_class_variant_option_borrow_user_attributes_const,
+                  [ :bt_field_class_variant_option_handle ],
+                  :bt_value_map_handle
+
+  class BTFieldClass::Variant < BTFieldClass
+    class Option < BTObject
+      def get_name
+        Babeltrace2.bt_field_class_variant_option_get_name(@handle)
+      end
+      alias name get_name
+
+      def get_field_class
+        BTFieldClass.from_handle(
+          Babeltrace2.bt_field_class_variant_option_borrow_field_class(@handle))
+      end
+
+      def set_user_attributes(user_attributes)
+        Babeltrace2.bt_field_class_variant_option_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+        self
+      end
+
+      def user_attributes=(user_attributes)
+        set_user_attributes(user_attributes)
+        user_attributes
+      end
+
+      def get_user_attributes
+        BTValueMap.new(
+          Babeltrace2.bt_field_class_variant_option_borrow_user_attributes_const(@handle))
+      end
+      alias user_attributes get_user_attributes
+    end
+  end
+  BTFieldClassVariantOption = BTFieldClass::Variant::Option
+
+  BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
+  BTFieldClassVariantWithoutSelectorAppendOptionStatus =
+    enum :bt_field_class_variant_without_selector_append_option_status,
+    [ :BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK,
+       BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK,
+      :BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR,
+       BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR ]
+
+  attach_function :bt_field_class_variant_without_selector_append_option,
+                  [ :bt_field_class_variant_handle, :string,
+                    :bt_field_class_handle ],
+                  :bt_field_class_variant_without_selector_append_option_status
+
+  BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
+  BTFieldClassVariantWithSelectorAppendOptionStatus = 
+    enum :bt_field_class_variant_with_selector_field_integer_append_option_status,
+    [ :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK,
+       BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK,
+      :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR,
+       BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR ]
+
+  attach_function :bt_field_class_variant_with_selector_field_borrow_selector_field_path_const,
+                  [ :bt_field_class_variant_handle ],
+                  :bt_field_path_handle
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_unsigned_append_option,
+                  [ :bt_field_class_variant_handle, :string,
+                    :bt_field_class_handle, :bt_integer_range_set_unsigned_handle ],
+                  :bt_field_class_variant_with_selector_field_integer_append_option_status
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const,
+                  [ :bt_field_class_variant_handle, :uint64 ],
+                  :bt_field_class_variant_with_selector_field_integer_unsigned_option_handle
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const,
+                  [ :bt_field_class_variant_handle, :string ],
+                  :bt_field_class_variant_with_selector_field_integer_unsigned_option_handle
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const,
+                  [ :bt_field_class_variant_with_selector_field_integer_unsigned_option_handle ],
+                  :bt_integer_range_set_unsigned_handle
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_signed_append_option,
+                  [ :bt_field_class_variant_handle, :string,
+                    :bt_field_class_handle, :bt_integer_range_set_signed_handle ],
+                  :bt_field_class_variant_with_selector_field_integer_append_option_status
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const,
+                  [ :bt_field_class_variant_handle, :uint64 ],
+                  :bt_field_class_variant_with_selector_field_integer_signed_option_handle
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_const,
+                  [ :bt_field_class_variant_handle, :string ],
+                  :bt_field_class_variant_with_selector_field_integer_signed_option_handle
+
+  attach_function :bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const,
+                  [ :bt_field_class_variant_with_selector_field_integer_signed_option_handle ],
+                  :bt_integer_range_set_signed_handle
+
+  class BTFieldClass::Variant
+    module WithoutSelectorField
+      AppendOptionStatus = BTFieldClassVariantWithoutSelectorAppendOptionStatus
+      def append_option(name, option_field_class)
+        name = ":#{name}" if name.kind_of?(Symbol)
+        res = Babeltrace2.bt_field_class_variant_without_selector_append_option(
+                @handle, name, option_field_class)
+        raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
+        self
+      end
+    end
+    module WithSelectorField
+      AppendOptionStatus = BTFieldClassVariantWithSelectorAppendOptionStatus
+      def get_selector_field_path
+        handle = Babeltrace2.bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(@handle)
+        return nil if handle.null?
+        BTFieldPath.new(handle, retain: true)
+      end
+      module IntegerUnsigned
+        class Option < BTFieldClassVariantOption
+         def get_ranges
+            BTIntegerRangeSetUnsigned.new(
+              Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(@handle))
+         end
+         alias ranges get_ranges
+        end
+        include WithSelectorField
+        def append_option(name, option_field_class, ranges)
+          ranges = BTIntegerRangeSetUnsigned.from_value(ranges)
+          res = Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
+                     name, option_field_class, ranges)
+          raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
+          self
+        end
+
+        def get_option_by_index(index)
+          return nil if index >= get_option_count
+          BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption.new(
+            Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(@handle, index))
+        end
+
+        def get_option_by_name(name)
+          handle = Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const(@handle, name)
+          return nil if handle.null?
+          BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption.new(handle)
+        end
+      end
+      module IntegerSigned
+        class Option < BTFieldClassVariantOption
+         def get_ranges
+            BTIntegerRangeSetSigned.new(
+              Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(@handle))
+         end
+         alias ranges get_ranges
+        end
+        include WithSelectorField
+        def append_option(name, option_field_class, ranges)
+          ranges = BTIntegerRangeSetSigned.from_value(ranges)
+          res = Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_append_option(
+                     name, option_field_class, ranges)
+          raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
+          self
+        end
+
+        def get_option_by_index(index)
+          return nil if index >= get_option_count
+          BTFieldClassVariantWithSelectorFieldIntegerSignedOption.new(
+            Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(@handle, index))
+        end
+
+        def get_option_by_name(name)
+          handle = Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_const(@handle, name)
+          return nil if handle.null?
+          BTFieldClassVariantWithSelectorFieldIntegerSignedOption.new(handle)
+        end
+      end
+    end
+    def initialize(handle, retain: true, auto_release: true,
+                   trace_class: nil, selector_field_class: nil)
+      if handle
+        case Babeltrace2.bt_field_class_get_type(handle)
+        when :BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD
+          self.extend(BTFieldClass::Variant::WithoutSelectorField)
+        when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD
+          self.extend(BTFieldClass::Variant::WithSelectorField::UnsignedInteger)
+        when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD
+          self.extend(BTFieldClass::Variant::WithSelectorField::SignedInteger)
+        else
+          raise "unsupported variant type"
+        end
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle =
+          Babeltrace2.bt_field_class_variant_create(trace_class, selector_field_class)
+        raise Babeltrace2.process_error if handle.null?
+        case Babeltrace2.bt_field_class_get_type(handle)
+        when :BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD
+          self.extend(BTFieldClass::Variant::WithoutSelectorField)
+        when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD
+          self.extend(BTFieldClass::Variant::WithSelectorField::UnsignedInteger)
+        when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD
+          self.extend(BTFieldClass::Variant::WithSelectorField::SignedInteger)
+        else
+          raise "unsupported variant type"
+        end
+        super(handle)
+      end
+    end
+
+    def get_option_count
+      Babeltrace2.bt_field_class_variant_get_option_count(@handle)
+    end
+    alias option_count get_option_count
+
+    def get_option_by_index(index)
+      return nil if index >= get_option_count
+      BTFieldClassVariantOption.new(
+        Babeltrace2.bt_field_class_variant_borrow_option_by_index(@handle, index))
+    end
+
+    def get_option_by_name(name)
+      handle = Babeltrace2.bt_field_class_variant_borrow_option_by_name(@handle, name)
+      return nil if handle.null?
+      BTFieldClassVariantOption.new(handle)
+    end
+
+    def get_option(option)
+      case option
+      when String
+        get_option_by_name(option)
+      when Integer
+        get_option_by_index(option)
+      else
+        raise TypeError, "wrong type for option query"
+      end
+    end
+    alias [] get_option
+
+  end
+  BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption = BTFieldClass::Variant::WithSelectorField::IntegerUnsigned::Option
+  BTFieldClassVariantWithSelectorFieldIntegerSignedOption = BTFieldClass::Variant::WithSelectorField::IntegerSigned::Option
+  BTFieldClassVariant = BTFieldClass::Variant
+  vcls = [ 
+    BTFieldClassVariantHandle,
+    BTFieldClassVariant ]
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD] = vcls
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = vcls
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD] = vcls
 end

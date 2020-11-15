@@ -126,7 +126,7 @@ module Babeltrace2
   typedef BTIntegerRangeSetSignedHandle, :bt_integer_range_set_signed_handle
 
   class BTIntegerRangeSetUnsignedHandle < BTIntegerRangeSetHandle; end
-  typedef BTIntegerRangeSetSignedHandle, :bt_integer_range_set_unsigned_handle
+  typedef BTIntegerRangeSetUnsignedHandle, :bt_integer_range_set_unsigned_handle
 
   class BTIntegerRangeSignedHandle < BTHandle; end
   typedef BTIntegerRangeSignedHandle, :bt_integer_range_signed_handle
@@ -312,6 +312,88 @@ module Babeltrace2
 
   class BTValueHandle < BTHandle; end
   typedef BTValueHandle, :bt_value_handle
+
+  # Additional types for type checking
+  class BTValueMapHandle < BTValueHandle; end
+  typedef BTValueMapHandle, :bt_value_map_handle
+
+  class BTFieldClassBoolHandle < BTFieldClassHandle; end
+  typedef BTFieldClassBoolHandle, :bt_field_class_bool_handle
+
+  class BTFieldClassBitArrayHandle < BTFieldClassHandle; end
+  typedef BTFieldClassBitArrayHandle, :bt_field_class_bit_array_handle
+
+  class BTFieldClassIntegerHandle < BTFieldClassHandle; end
+  typedef BTFieldClassIntegerHandle, :bt_field_class_integer_handle
+
+  class BTFieldClassIntegerUnsignedHandle < BTFieldClassIntegerHandle; end
+  typedef BTFieldClassIntegerUnsignedHandle, :bt_field_class_integer_unsigned_handle
+
+  class BTFieldClassIntegerSignedHandle < BTFieldClassIntegerHandle; end
+  typedef BTFieldClassIntegerSignedHandle, :bt_field_class_integer_signed_handle
+
+  class BTFieldClassRealSinglePrecisionHandle < BTFieldClassHandle; end
+  typedef BTFieldClassRealSinglePrecisionHandle,
+         :bt_field_class_real_single_precision_handle
+
+  class BTFieldClassRealDoublePrecisionHandle < BTFieldClassHandle; end
+  typedef BTFieldClassRealDoublePrecisionHandle,
+          :bt_field_class_real_double_precision_handle
+
+  class BTFieldClassEnumerationHandle < BTFieldClassHandle; end
+  typedef BTFieldClassEnumerationHandle, :bt_field_class_enumeration_handle
+
+  class BTFieldClassEnumerationUnsignedHandle < BTFieldClassEnumerationHandle; end
+  typedef BTFieldClassEnumerationUnsignedHandle,
+          :bt_field_class_enumeration_unsigned_handle
+
+  class BTFieldClassEnumerationSignedHandle < BTFieldClassEnumerationHandle; end
+  typedef BTFieldClassEnumerationSignedHandle,
+          :bt_field_class_enumeration_signed_handle
+
+  class BTFieldClassStringHandle < BTFieldClassHandle; end
+  typedef BTFieldClassStringHandle, :bt_field_class_string_handle
+
+  class BTFieldClassArrayHandle < BTFieldClassHandle; end
+  typedef BTFieldClassArrayHandle, :bt_field_class_array_handle
+
+  class BTFieldClassArrayStaticHandle < BTFieldClassArrayHandle; end
+  typedef BTFieldClassArrayStaticHandle, :bt_field_class_array_static_handle
+
+  class BTFieldClassArrayDynamicHandle < BTFieldClassArrayHandle; end
+  typedef BTFieldClassArrayDynamicHandle, :bt_field_class_array_dynamic_handle
+
+  class BTFieldClassStructureHandle < BTFieldClassHandle; end
+  typedef BTFieldClassStructureHandle, :bt_field_class_structure_handle
+
+  class BTFieldClassOptionHandle < BTFieldClassHandle; end
+  typedef BTFieldClassOptionHandle, :bt_field_class_option_handle
+
+  class BTFieldClassOptionWithoutSelectorFieldHandle < BTFieldClassOptionHandle; end
+  typedef BTFieldClassOptionWithoutSelectorFieldHandle,
+          :bt_field_class_option_without_selector_field_handle
+
+  class BTFieldClassOptionWithSelectorFieldHandle < BTFieldClassOptionHandle; end
+  typedef BTFieldClassOptionWithSelectorFieldHandle,
+          :bt_field_class_option_with_selector_field_handle
+
+  class BTFieldClassOptionWithSelectorFieldBoolHandle <
+        BTFieldClassOptionWithSelectorFieldHandle; end
+  typedef BTFieldClassOptionWithSelectorFieldBoolHandle,
+          :bt_field_class_option_with_selector_field_bool_handle
+
+  class BTFieldClassOptionWithSelectorFieldIntegerUnsignedHandle <
+        BTFieldClassOptionWithSelectorFieldHandle; end
+  typedef BTFieldClassOptionWithSelectorFieldIntegerUnsignedHandle,
+          :bt_field_class_option_with_selector_field_integer_unsigned_handle
+
+  class BTFieldClassOptionWithSelectorFieldIntegerSignedHandle <
+        BTFieldClassOptionWithSelectorFieldHandle; end
+  typedef BTFieldClassOptionWithSelectorFieldIntegerSignedHandle,
+          :bt_field_class_option_with_selector_field_integer_signed_handle
+
+  class BTFieldClassVariantHandle < BTFieldClassHandle; end
+  typedef BTFieldClassVariantHandle, :bt_field_class_variant_handle
 
   typedef :int, :bt_bool
   typedef :uint64, :bt_listener_id

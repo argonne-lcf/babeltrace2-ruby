@@ -79,6 +79,7 @@ module Babeltrace2
       when :BT_VALUE_TYPE_ARRAY
         BTValueArray
       when :BT_VALUE_TYPE_MAP
+        handle = BTValueMapHandle.new(handle)
         BTValueMap
       else
         raise TypeError, "invalid type #{Babeltrace2.bt_value_get_type(handle)}"
@@ -97,22 +98,22 @@ module Babeltrace2
         Bool.new(value: true)
       when ::Integer
         if value > (1<<63) - 1
-          IntegerUnsigned.new(value: value)
+          BTValueIntegerUnsigned.new(value: value)
         else
-          IntegerSigned.new(value: value)
+          BTValueIntegerSigned.new(value: value)
         end
       when ::Float
-        Real.new(value: value)
+        BTValueReal.new(value: value)
       when ::String
-        String.new(value: value)
+        BTValueString.new(value: value)
       when ::Array
-        arr = Array.new
+        arr = BTValueArray.new
         value.each { |v|
           arr.push(v)
         }
         arr
       when ::Hash
-        map = Map.new
+        map = BTValueMap.new
         value.each { |k, v|
           map.insert_entry(k, v)
         }
@@ -541,7 +542,7 @@ module Babeltrace2
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_array_append_empty_map_element(@handle, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
-            map = BTValueMap.new(BTValueHandle.new(ptr.read_pointer),
+            map = BTValueMap.new(BTValueMapHandle.new(ptr.read_pointer),
                                  retain: false, auto_release: false)
             value.each { |k, v| map.insert_entry(k, v) }
             :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
@@ -608,7 +609,7 @@ module Babeltrace2
 
   attach_function :bt_value_map_create,
                   [],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK = BT_FUNC_STATUS_OK
   BT_VALUE_MAP_INSERT_ENTRY_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
@@ -617,43 +618,43 @@ module Babeltrace2
       :BT_VALUE_MAP_INSERT_ENTRY_STATUS_MEMORY_ERROR, BT_VALUE_MAP_INSERT_ENTRY_STATUS_MEMORY_ERROR ]
 
   attach_function :bt_value_map_insert_entry,
-                  [:bt_value_handle, :string, :bt_value_handle],
+                  [:bt_value_map_handle, :string, :bt_value_handle],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_bool_entry,
-                  [:bt_value_handle, :string, :bt_bool],
+                  [:bt_value_map_handle, :string, :bt_bool],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_unsigned_integer_entry,
-                  [:bt_value_handle, :string, :uint64],
+                  [:bt_value_map_handle, :string, :uint64],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_signed_integer_entry,
-                  [:bt_value_handle, :string, :int64],
+                  [:bt_value_map_handle, :string, :int64],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_real_entry,
-                  [:bt_value_handle, :string, :double],
+                  [:bt_value_map_handle, :string, :double],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_string_entry,
-                  [:bt_value_handle, :string, :string],
+                  [:bt_value_map_handle, :string, :string],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_empty_array_entry,
-                  [:bt_value_handle, :string, :pointer],
+                  [:bt_value_map_handle, :string, :pointer],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_insert_empty_map_entry,
-                  [:bt_value_handle, :string, :pointer],
+                  [:bt_value_map_handle, :string, :pointer],
                   :bt_value_map_insert_entry_status
 
   attach_function :bt_value_map_borrow_entry_value,
-                  [:bt_value_handle, :string],
+                  [:bt_value_map_handle, :string],
                   :bt_value_handle
 
   attach_function :bt_value_map_borrow_entry_value_const,
-                  [:bt_value_handle, :string],
+                  [:bt_value_map_handle, :string],
                   :bt_value_handle
 
   BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK = BT_FUNC_STATUS_OK
@@ -681,7 +682,7 @@ module Babeltrace2
       :BT_VALUE_MAP_FOREACH_ENTRY_STATUS_ERROR, BT_VALUE_MAP_FOREACH_ENTRY_STATUS_ERROR ]
 
   attach_function :bt_value_map_foreach_entry,
-                  [:bt_value_handle, :bt_value_map_foreach_entry_func, :pointer],
+                  [:bt_value_map_handle, :bt_value_map_foreach_entry_func, :pointer],
                   :bt_value_map_foreach_entry_status
 
   BT_VALUE_MAP_FOREACH_ENTRY_CONST_FUNC_STATUS_OK = BT_FUNC_STATUS_OK
@@ -709,15 +710,16 @@ module Babeltrace2
       :BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_ERROR, BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_ERROR ]
 
   attach_function :bt_value_map_foreach_entry_const,
-                  [:bt_value_handle, :bt_value_map_foreach_entry_const_func, :pointer],
+                  [:bt_value_map_handle, :bt_value_map_foreach_entry_const_func,
+                   :pointer],
                   :bt_value_map_foreach_entry_const_status
 
   attach_function :bt_value_map_get_size,
-                  [:bt_value_handle],
+                  [:bt_value_map_handle],
                   :uint64
 
   attach_function :bt_value_map_has_entry,
-                  [:bt_value_handle],
+                  [:bt_value_map_handle],
                   :bt_bool
 
   BT_VALUE_MAP_EXTEND_STATUS_OK = BT_FUNC_STATUS_OK
@@ -727,7 +729,7 @@ module Babeltrace2
       :BT_VALUE_MAP_EXTEND_STATUS_MEMORY_ERROR, BT_VALUE_MAP_EXTEND_STATUS_MEMORY_ERROR ]
 
   attach_function :bt_value_map_extend,
-                  [:bt_value_handle, :bt_value_handle],
+                  [:bt_value_map_handle, :bt_value_map_handle],
                   :bt_value_map_extend_status
 
   class BTValue
@@ -786,7 +788,7 @@ module Babeltrace2
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_map_insert_empty_map_entry(@handle, key, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
-            map = BTValueMap.new(BTValueHandle.new(ptr.read_pointer),
+            map = BTValueMap.new(BTValueMapHandle.new(ptr.read_pointer),
                                  retain: false, auto_release: false)
             value.each { |k, v| map.insert_entry(k, v) }
             :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK

@@ -76,16 +76,16 @@ module Babeltrace2
                   :bt_uuid
 
   attach_function :bt_clock_class_set_user_attributes,
-                  [ :bt_clock_class_handle, :bt_value_handle ],
+                  [ :bt_clock_class_handle, :bt_value_map_handle ],
                   :void
 
   attach_function :bt_clock_class_borrow_user_attributes,
                   [ :bt_clock_class_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   attach_function :bt_clock_class_borrow_user_attributes_const,
                   [ :bt_clock_class_handle ],
-                  :bt_value_handle
+                  :bt_value_map_handle
 
   BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK = BT_FUNC_STATUS_OK
   BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR = BT_FUNC_STATUS_OVERFLOW_ERROR
@@ -242,7 +242,7 @@ module Babeltrace2
 
     def get_user_attributes
       handle = Babeltrace2.bt_clock_class_borrow_user_attributes(@handle)
-      BTValue.from_handle(handle)
+      BTValueMap.new(handle)
     end
     alias user_attributes get_user_attributes
 
