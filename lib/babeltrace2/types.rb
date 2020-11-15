@@ -94,8 +94,8 @@ module Babeltrace2
   typedef BTFieldClassEnumerationUnsignedMappingHandle,
           :bt_field_class_enumeration_unsigned_mapping_handle
 
-  class BTFieldClassStructureMember < BTHandle; end
-  typedef BTFieldClassStructureMember, :bt_field_class_structure_member_handle
+  class BTFieldClassStructureMemberHandle < BTHandle; end
+  typedef BTFieldClassStructureMemberHandle, :bt_field_class_structure_member_handle
 
   class BTFieldClassVariantOptionHandle < BTHandle; end
   typedef BTFieldClassVariantOptionHandle, :bt_field_class_variant_option_handle
