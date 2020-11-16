@@ -320,36 +320,106 @@ module Babeltrace2
   class BTFieldClassBoolHandle < BTFieldClassHandle; end
   typedef BTFieldClassBoolHandle, :bt_field_class_bool_handle
 
+  class BTFieldBoolHandle < BTFieldHandle; end
+  typedef BTFieldBoolHandle, :bt_field_bool_handle
+
   class BTFieldClassBitArrayHandle < BTFieldClassHandle; end
   typedef BTFieldClassBitArrayHandle, :bt_field_class_bit_array_handle
+
+  class BTFieldBitArrayHandle < BTFieldHandle; end
+  typedef BTFieldBitArrayHandle, :bt_field_bit_array_handle
 
   class BTFieldClassIntegerHandle < BTFieldClassHandle; end
   typedef BTFieldClassIntegerHandle, :bt_field_class_integer_handle
 
+  class BTFieldIntegerHandle < BTFieldHandle; end
+  typedef BTFieldIntegerHandle, :bt_field_integer_handle
+
   class BTFieldClassIntegerUnsignedHandle < BTFieldClassIntegerHandle; end
   typedef BTFieldClassIntegerUnsignedHandle, :bt_field_class_integer_unsigned_handle
 
+  class BTFieldIntegerUnsignedHandle < BTFieldIntegerHandle; end
+  typedef BTFieldIntegerUnsignedHandle, :bt_field_integer_unsigned_handle
+
   class BTFieldClassIntegerSignedHandle < BTFieldClassIntegerHandle; end
   typedef BTFieldClassIntegerSignedHandle, :bt_field_class_integer_signed_handle
+
+  class BTFieldIntegerSignedHandle < BTFieldIntegerHandle; end
+  typedef BTFieldIntegerSignedHandle, :bt_field_integer_signed_handle
 
   class BTFieldClassRealSinglePrecisionHandle < BTFieldClassHandle; end
   typedef BTFieldClassRealSinglePrecisionHandle,
          :bt_field_class_real_single_precision_handle
 
+  class BTFieldRealSinglePrecisionHandle < BTFieldHandle; end
+  typedef BTFieldRealSinglePrecisionHandle,
+         :bt_field_real_single_precision_handle
+
   class BTFieldClassRealDoublePrecisionHandle < BTFieldClassHandle; end
   typedef BTFieldClassRealDoublePrecisionHandle,
           :bt_field_class_real_double_precision_handle
 
-  class BTFieldClassEnumerationHandle < BTFieldClassHandle; end
-  typedef BTFieldClassEnumerationHandle, :bt_field_class_enumeration_handle
+  class BTFieldRealDoublePrecisionHandle < BTFieldHandle; end
+  typedef BTFieldRealDoublePrecisionHandle,
+          :bt_field_real_double_precision_handle
 
-  class BTFieldClassEnumerationUnsignedHandle < BTFieldClassEnumerationHandle; end
+  module BTFieldClassEnumerationHandle; end
+  class BTFieldClassEnumerationHandleCls < BTFieldClassIntegerHandle
+    include BTFieldClassEnumerationHandle
+    class << self
+      def to_native(value, context)
+        unless value.nil?
+          p = value.to_ptr
+          raise "invalid type #{p.class}, expected #{BTFieldClassEnumerationHandle}" unless p.kind_of?(BTFieldClassEnumerationHandle)
+          p
+        else
+          nil
+        end
+      end
+    end
+  end
+  typedef BTFieldClassEnumerationHandleCls, :bt_field_class_enumeration_handle
+
+  module BTFieldEnumerationHandle; end
+  class BTFieldEnumerationHandleCls < BTFieldIntegerHandle
+    include BTFieldEnumerationHandle
+    class << self
+      def to_native(value, context)
+        unless value.nil?
+          p = value.to_ptr
+          raise "invalid type #{p.class}, expected #{BTFieldEnumerationHandle}" unless p.kind_of?(BTFieldEnumerationHandle)
+          p
+        else
+          nil
+        end
+      end
+    end
+  end
+  typedef BTFieldEnumerationHandleCls, :bt_field_enumeration_handle
+
+  class BTFieldClassEnumerationUnsignedHandle < BTFieldClassIntegerUnsignedHandle
+    include BTFieldClassEnumerationHandle
+  end
   typedef BTFieldClassEnumerationUnsignedHandle,
           :bt_field_class_enumeration_unsigned_handle
 
-  class BTFieldClassEnumerationSignedHandle < BTFieldClassEnumerationHandle; end
+  class BTFieldEnumerationUnsignedHandle < BTFieldIntegerUnsignedHandle
+    include BTFieldEnumerationHandle
+  end
+  typedef BTFieldEnumerationUnsignedHandle,
+          :bt_field_enumeration_unsigned_handle
+
+  class BTFieldClassEnumerationSignedHandle < BTFieldClassIntegerSignedHandle
+    include BTFieldClassEnumerationHandle
+  end
   typedef BTFieldClassEnumerationSignedHandle,
           :bt_field_class_enumeration_signed_handle
+
+  class BTFieldEnumerationSignedHandle < BTFieldIntegerSignedHandle
+    include BTFieldClassEnumerationHandle
+  end
+  typedef BTFieldEnumerationSignedHandle,
+          :bt_field_enumeration_signed_handle
 
   class BTFieldClassStringHandle < BTFieldClassHandle; end
   typedef BTFieldClassStringHandle, :bt_field_class_string_handle

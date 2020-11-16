@@ -37,5 +37,6 @@ require_relative 'babeltrace2/trace-ir/clock-snapshot'
 require_relative 'babeltrace2/trace-ir/event'
 require_relative 'babeltrace2/trace-ir/event-class'
 require_relative 'babeltrace2/trace-ir/field-class'
+require_relative 'babeltrace2/trace-ir/field'
 
 BT2 = Babeltrace2

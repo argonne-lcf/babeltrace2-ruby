@@ -410,7 +410,7 @@ module Babeltrace2
                   [ :bt_field_class_enumeration_mapping_handle ],
                   :string
 
-  class BTFieldClass::Enumeration < BTFieldClass
+  module BTFieldClass::Enumeration
     GetMappingLabelsForValueStatus = BTFieldClassEnumerationGetMappingLabelsForValueStatus
     AddMappingStatus = BTFieldClassEnumerationAddMappingStatus
 
@@ -457,7 +457,8 @@ module Babeltrace2
                   [ :bt_field_class_enumeration_unsigned_mapping_handle ],
                   :bt_integer_range_set_unsigned_handle
 
-  class BTFieldClass::Enumeration::Unsigned < BTFieldClass::Enumeration
+  class BTFieldClass::Enumeration::Unsigned < BTFieldClass::Integer::Unsigned
+    include BTFieldClass::Enumeration
     class Mapping < BTFieldClass::Enumeration::Mapping
       def get_ranges
         BTIntegerRangeSetUnsigned.new(
@@ -544,7 +545,8 @@ module Babeltrace2
                   [ :bt_field_class_enumeration_signed_mapping_handle ],
                   :bt_integer_range_set_signed_handle
 
-  class BTFieldClass::Enumeration::Signed < BTFieldClass::Enumeration
+  class BTFieldClass::Enumeration::Signed < BTFieldClass::Integer::Signed
+    include BTFieldClass::Enumeration
     class Mapping < BTFieldClass::Enumeration::Mapping
       def get_ranges
         BTIntegerRangeSetSigned.new(
