@@ -349,4 +349,96 @@ module Babeltrace2
   BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL] = [
     BTFieldRealDoublePrecisionHandle,
     BTFieldRealDoublePrecision ]
+
+  BT_FIELD_STRING_SET_VALUE_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
+  BTFieldStringSetValueStatus = enum :bt_field_string_set_value_status,
+    [ :BT_FIELD_STRING_SET_VALUE_STATUS_OK,
+       BT_FIELD_STRING_SET_VALUE_STATUS_OK,
+      :BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR,
+       BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR ]
+
+  attach_function :bt_field_string_set_value,
+                  [ :bt_field_string_handle, :string ],
+                  :bt_field_string_set_value_status
+
+  attach_function :bt_field_string_get_length,
+                  [ :bt_field_string_handle ],
+                  :uint64
+
+  attach_function :bt_field_string_get_value,
+                  [ :bt_field_string_handle ],
+                  :string
+
+  attach_function :bt_field_string_get_value_ptr, :bt_field_string_get_value,
+                  [ :bt_field_string_handle ],
+                  :pointer
+
+  BT_FIELD_STRING_APPEND_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
+  BTFieldStringAppendStatus = enum :bt_field_string_append_status,
+    [ :BT_FIELD_STRING_APPEND_STATUS_OK,
+       BT_FIELD_STRING_APPEND_STATUS_OK,
+      :BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR,
+       BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR ]
+
+  attach_function :bt_field_string_append,
+                  [ :bt_field_string_handle, :string ],
+                  :bt_field_string_append_status
+
+  attach_function :bt_field_string_append_with_length,
+                  [ :bt_field_string_handle, :string, :uint64 ],
+                  :bt_field_string_append_status
+
+  attach_function :bt_field_string_clear,
+                  [ :bt_field_string_handle ],
+                  :void
+
+  class BTField::String < BTField
+    def set_value(value)
+      res = Babeltrace2.bt_field_string_set_value(@handle, value)
+      raise Babeltrace2.process_error(res) if res != :BT_FIELD_STRING_APPEND_STATUS_OK
+      self
+    end
+
+    def value=(value)
+      set_value(value)
+      value
+    end
+
+    def get_length
+      Babeltrace2.bt_field_string_get_length(@handle)
+    end
+    alias length get_length
+
+    def get_value
+      Babeltrace2.bt_field_string_get_value(@handle)
+    end
+    alias value get_value
+
+    def get_raw_value
+      Babeltrace2.bt_field_string_get_value_ptr(@handle).slice(0, get_length)
+    end
+    alias raw_value get_raw_value
+
+    def append(value, length: nil)
+      res = if length
+          Babeltrace2.bt_field_string_append_with_length(@handle, value, length)
+        else
+          Babeltrace2.bt_field_string_append(@handle, value)
+        end
+      raise Babeltrace2.process_error(res) if res != :BT_FIELD_STRING_APPEND_STATUS_OK
+      self
+    end
+    alias << append
+
+    def clear
+      Babeltrace2.bt_field_string_clear(@handle)
+      self
+    end
+  end
+  BTFieldString = BTField::String
+  BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STRING] = [
+    BTFieldStringHandle,
+    BTFieldString ]
 end

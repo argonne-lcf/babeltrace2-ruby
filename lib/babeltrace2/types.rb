@@ -424,6 +424,9 @@ module Babeltrace2
   class BTFieldClassStringHandle < BTFieldClassHandle; end
   typedef BTFieldClassStringHandle, :bt_field_class_string_handle
 
+  class BTFieldStringHandle < BTFieldHandle; end
+  typedef BTFieldStringHandle, :bt_field_string_handle
+
   class BTFieldClassArrayHandle < BTFieldClassHandle; end
   typedef BTFieldClassArrayHandle, :bt_field_class_array_handle
 
