@@ -674,8 +674,8 @@ module Babeltrace2
   end
   BTFieldClassArrayStatic = BTFieldClass::Array::Static
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_ARRAY] = [
-        BTFieldClassArrayStaticHandle,
-        BTFieldClassArrayStatic ]
+    BTFieldClassArrayStaticHandle,
+    BTFieldClassArrayStatic ]
 
   attach_function :bt_field_class_array_dynamic_create,
                   [ :bt_trace_class_handle, :bt_field_class_handle,
@@ -687,25 +687,29 @@ module Babeltrace2
                   :bt_field_path_handle
 
   class BTFieldClass::Array::Dynamic < BTFieldClass::Array
+    module WithLengthField
+      def get_length_field_path
+        return nil unless type?(:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD)
+        handle = Babeltrace2.bt_field_class_array_dynamic_with_length_field_borrow_length_field_path(@handle)
+        return nil if handle.null?
+        BTFieldPath.new(handle, retain: true)
+      end
+      alias length_field_path get_length_field_path
+    end
     def initialize(handle, retain: true, auto_release: true,
                    trace_class: nil, element_field_class: nil, length_field_class: nil)
       if handle
+        self.extend(WithLengthField) if Babeltrace2.bt_field_class_get_type(handle) ==
+          :BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD
         super(handle, retain: retain, auto_release: auto_release)
       else
         handle = Babeltrace2.bt_field_class_array_dynamic_create(
                    trace_class, element_field_class, length_field_class)
         raise Babeltrace2.process_error if handle.null?
+        self.extend(WithLengthField) if length_field_class
         super(handle)
       end
     end
-
-    def get_length_field_path
-      return nil unless type?(:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD)
-      handle = Babeltrace2.bt_field_class_array_dynamic_with_length_field_borrow_length_field_path(@handle)
-      return nil if handle.null?
-      BTFieldPath.new(handle, retain: true)
-    end
-    alias length_field_path get_length_field_path
   end
   BTFieldClassArrayDynamic = BTFieldClass::Array::Dynamic
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD] = [
@@ -994,7 +998,7 @@ module Babeltrace2
     alias selector_ranges get_selector_ranges
   end
   BTFieldClassOptionWithSelectorFieldIntegerUnsigned = BTFieldClass::Option::WithSelectorField::IntegerUnsigned
-  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = [
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = [
     BTFieldClassOptionWithSelectorFieldIntegerUnsignedHandle,
     BTFieldClassOptionWithSelectorFieldIntegerUnsigned ]
 
@@ -1259,9 +1263,9 @@ module Babeltrace2
         when :BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD
           self.extend(BTFieldClass::Variant::WithoutSelectorField)
         when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD
-          self.extend(BTFieldClass::Variant::WithSelectorField::UnsignedInteger)
+          self.extend(BTFieldClass::Variant::WithSelectorField::IntegerUnsigned)
         when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD
-          self.extend(BTFieldClass::Variant::WithSelectorField::SignedInteger)
+          self.extend(BTFieldClass::Variant::WithSelectorField::IntegerSigned)
         else
           raise "unsupported variant type"
         end
@@ -1274,9 +1278,9 @@ module Babeltrace2
         when :BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD
           self.extend(BTFieldClass::Variant::WithoutSelectorField)
         when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD
-          self.extend(BTFieldClass::Variant::WithSelectorField::UnsignedInteger)
+          self.extend(BTFieldClass::Variant::WithSelectorField::IntegerUnsigned)
         when :BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD
-          self.extend(BTFieldClass::Variant::WithSelectorField::SignedInteger)
+          self.extend(BTFieldClass::Variant::WithSelectorField::IntegerSigned)
         else
           raise "unsupported variant type"
         end
