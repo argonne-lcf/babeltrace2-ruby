@@ -322,12 +322,12 @@ module Babeltrace2
     BTFieldRealSinglePrecision ]
 
   attach_function :bt_field_real_double_precision_set_value,
-                  [ :bt_field_real_double_precision_handle, :float ],
+                  [ :bt_field_real_double_precision_handle, :double ],
                   :void
 
   attach_function :bt_field_real_double_precision_get_value,
                   [ :bt_field_real_double_precision_handle ],
-                  :float
+                  :double
 
   class BTField::Real::DoublePrecision < BTField::Real
     def set_value(value)
