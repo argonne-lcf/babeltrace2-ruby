@@ -18,7 +18,7 @@ module Babeltrace2
       clss = TYPE_MAP[Babeltrace2.bt_field_get_class_type(handle)]
       raise "unsupported field class type" unless clss
       handle = clss[0].new(handle)
-      clss[1].new(handle, retain: retain, auto_release: auto_release)
+      clss[1].new(handle)
     end
 
     def get_class_type

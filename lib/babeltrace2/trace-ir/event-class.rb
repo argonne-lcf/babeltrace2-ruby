@@ -289,8 +289,7 @@ module Babeltrace2
     end
 
     def get_user_attributes
-      handle = Babeltrace2.bt_event_class_get_user_attributes(@handle)
-      BTValueMap.new(handle)
+      BTValueMap.new(Babeltrace2.bt_event_class_get_user_attributes(@handle))
     end
     alias user_attributes get_user_attributes
   end
