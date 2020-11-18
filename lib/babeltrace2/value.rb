@@ -52,6 +52,8 @@ module Babeltrace2
     @get_ref = :bt_value_get_ref
     @put_ref = :bt_value_put_ref
 
+    TYPE_MAP = {}
+
     def self.inherited(child)
       child.instance_variable_set(:@get_ref, @get_ref)
       child.instance_variable_set(:@put_ref, @put_ref)
@@ -63,27 +65,15 @@ module Babeltrace2
     alias type get_type
 
     def self.from_handle(handle, retain: true, auto_release: true)
-      case Babeltrace2.bt_value_get_type(handle)
-      when :BT_VALUE_TYPE_NULL
+      type = Babeltrace2.bt_value_get_type(handle)
+      if type == :BT_VALUE_TYPE_NULL
         return BTValueNull.instance
-      when :BT_VALUE_TYPE_BOOL
-        BTValueBool
-      when :BT_VALUE_TYPE_UNSIGNED_INTEGER
-        BTValueIntegerUnsigned
-      when :BT_VALUE_TYPE_SIGNED_INTEGER
-        BTValueIntegerSigned
-      when :BT_VALUE_TYPE_REAL
-        BTValueReal
-      when :BT_VALUE_TYPE_STRING
-        BTValueString
-      when :BT_VALUE_TYPE_ARRAY
-        BTValueArray
-      when :BT_VALUE_TYPE_MAP
-        handle = BTValueMapHandle.new(handle)
-        BTValueMap
       else
-        raise TypeError, "invalid type #{Babeltrace2.bt_value_get_type(handle)}"
-      end.new(handle, retain: retain, auto_release: auto_release)
+        clss = TYPE_MAP[type]
+        raise "unsupported value type" unless clss
+        handle = clss[0].new(handle)
+        clss[1].new(handle, retain: retain, auto_release: auto_release)
+      end
     end
 
     def self.from_value(value)
@@ -141,7 +131,7 @@ module Babeltrace2
     alias == is_equal
   end
 
-  attach_variable :bt_value_null, :bt_value_handle
+  attach_variable :bt_value_null, :bt_value_null_handle
 
   class BTValue
     class Null < BTValue
@@ -159,18 +149,18 @@ module Babeltrace2
 
   attach_function :bt_value_bool_create,
                   [],
-                  :bt_value_handle
+                  :bt_value_bool_handle
 
   attach_function :bt_value_bool_create_init,
                   [:bt_bool],
-                  :bt_value_handle
+                  :bt_value_bool_handle
 
   attach_function :bt_value_bool_set,
-                  [:bt_value_handle, :bt_bool],
+                  [:bt_value_bool_handle, :bt_bool],
                   :void
 
   attach_function :bt_value_bool_get,
-                  [:bt_value_handle],
+                  [:bt_value_bool_handle],
                   :bt_bool
 
   class BTValue
@@ -195,7 +185,7 @@ module Babeltrace2
       end
 
       def value=(value)
-        Babeltrace2.bt_value_bool_set(@handle, value ? BT_TRUE : BT_FALSE)
+        set(value)
         value
       end
 
@@ -206,166 +196,171 @@ module Babeltrace2
     end
   end
   BTValueBool = BTValue::Bool
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_BOOL] = [
+    BTValueBoolHandle,
+    BTValueBool ]
+
+  class BTValue::Integer < BTValue
+  end
+  BTValueInteger = BTValue::Integer
 
   attach_function :bt_value_integer_unsigned_create,
                   [],
-                  :bt_value_handle
+                  :bt_value_integer_unsigned_handle
 
   attach_function :bt_value_integer_unsigned_create_init,
                   [:uint64],
-                  :bt_value_handle
+                  :bt_value_integer_unsigned_handle
 
   attach_function :bt_value_integer_unsigned_set,
-                  [:bt_value_handle, :uint64],
-                  :bt_value_handle
+                  [:bt_value_integer_unsigned_handle, :uint64],
+                  :void
 
   attach_function :bt_value_integer_unsigned_get,
-                  [:bt_value_handle],
+                  [:bt_value_integer_unsigned_handle],
                   :uint64
 
-  class BTValue
-    class Integer < BTValue
-      class Unsigned < Integer
-        def initialize(handle = nil, retain: true, auto_release: true, value: nil)
-          if handle
-            super(handle, retain: retain, auto_release: auto_release)
+  class BTValue::Integer::Unsigned < BTValue::Integer
+    def initialize(handle = nil, retain: true, auto_release: true, value: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle = if value.nil?
+            Babeltrace2.bt_value_integer_unsigned_create()
           else
-            handle = if value.nil?
-                Babeltrace2.bt_value_integer_unsigned_create()
-              else
-                Babeltrace2.bt_value_integer_unsigned_create_init(value)
-              end
-            raise Babeltrace2.process_error if handle.null?
-            super(handle)
+            Babeltrace2.bt_value_integer_unsigned_create_init(value)
           end
-        end
-
-        def set(value)
-          Babeltrace2.bt_value_integer_unsigned_set(@handle, value)
-          self
-        end
-
-        def value=(value)
-          Babeltrace2.bt_value_integer_unsigned_set(@handle, value)
-          value
-        end
-
-        def get
-          Babeltrace2.bt_value_integer_unsigned_get(@handle)
-        end
-        alias value get
-        alias to_i value
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
       end
     end
-    IntegerUnsigned = Integer::Unsigned
+
+    def set(value)
+      Babeltrace2.bt_value_integer_unsigned_set(@handle, value)
+      self
+    end
+
+    def value=(value)
+      set(value)
+      value
+    end
+
+    def get
+      Babeltrace2.bt_value_integer_unsigned_get(@handle)
+    end
+    alias value get
+    alias to_i get
   end
-  BTValueInteger = BTValue::Integer
+  BTValue::IntegerUnsigned = BTValue::Integer::Unsigned
   BTValueIntegerUnsigned = BTValue::Integer::Unsigned
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_UNSIGNED_INTEGER] = [
+    BTValueIntegerUnsignedHandle,
+    BTValueIntegerUnsigned ]
 
   attach_function :bt_value_integer_signed_create,
                   [],
-                  :bt_value_handle
+                  :bt_value_integer_signed_handle
 
   attach_function :bt_value_integer_signed_create_init,
                   [:int64],
-                  :bt_value_handle
+                  :bt_value_integer_signed_handle
 
   attach_function :bt_value_integer_signed_set,
-                  [:bt_value_handle, :int64],
-                  :bt_value_handle
+                  [:bt_value_integer_signed_handle, :int64],
+                  :void
 
   attach_function :bt_value_integer_signed_get,
-                  [:bt_value_handle],
+                  [:bt_value_integer_signed_handle],
                   :int64
 
-  class BTValue
-    class Integer
-      class Signed < Integer
-        def initialize(handle = nil, retain: true, auto_release: true, value: nil)
-          if handle
-            super(handle, retain: retain, auto_release: auto_release)
+  class BTValue::Integer::Signed < BTValue::Integer
+    def initialize(handle = nil, retain: true, auto_release: true, value: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle = if value.nil?
+            Babeltrace2.bt_value_integer_signed_create()
           else
-            handle = if value.nil?
-                Babeltrace2.bt_value_integer_signed_create()
-              else
-                Babeltrace2.bt_value_integer_signed_create_init(value)
-              end
-            raise Babeltrace2.process_error if handle.null?
-            super(handle)
+            Babeltrace2.bt_value_integer_signed_create_init(value)
           end
-        end
-
-        def set(value)
-          Babeltrace2.bt_value_integer_signed_set(@handle, value)
-          self
-        end
-
-        def value=(value)
-          Babeltrace2.bt_value_integer_signed_set(@handle, value)
-          value
-        end
-
-        def get
-          Babeltrace2.bt_value_integer_signed_get(@handle)
-        end
-        alias value get
-        alias to_i value
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
       end
     end
-    IntegerSigned = Integer::Signed
+
+    def set(value)
+      Babeltrace2.bt_value_integer_signed_set(@handle, value)
+      self
+    end
+
+    def value=(value)
+      set(value)
+      value
+    end
+
+    def get
+      Babeltrace2.bt_value_integer_signed_get(@handle)
+    end
+    alias value get
+    alias to_i get
   end
+  BTValue::IntegerSigned = BTValue::Integer::Signed
   BTValueIntegerSigned = BTValue::Integer::Signed
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_SIGNED_INTEGER] = [
+    BTValueIntegerSignedHandle,
+    BTValueIntegerSigned ]
 
   attach_function :bt_value_real_create,
                   [],
-                  :bt_value_handle
+                  :bt_value_real_handle
 
   attach_function :bt_value_real_create_init,
                   [:double],
-                  :bt_value_handle
+                  :bt_value_real_handle
 
   attach_function :bt_value_real_set,
-                  [:bt_value_handle, :double],
-                  :bt_value_handle
+                  [:bt_value_real_handle, :double],
+                  :void
 
   attach_function :bt_value_real_get,
-                  [:bt_value_handle],
+                  [:bt_value_real_handle],
                   :double
 
-  class BTValue
-    class Real < BTValue
-      def initialize(handle = nil, retain: true, auto_release: true, value: nil)
-        if handle
-          super(handle, retain: retain, auto_release: auto_release)
-        else
-          handle = if value.nil?
-              Babeltrace2.bt_value_real_create()
-            else
-              Babeltrace2.bt_value_real_create_init(value)
-            end
-          raise Babeltrace2.process_error if handle.null?
-          super(handle)
-        end
+  class BTValue::Real < BTValue
+    def initialize(handle = nil, retain: true, auto_release: true, value: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle = if value.nil?
+            Babeltrace2.bt_value_real_create()
+          else
+            Babeltrace2.bt_value_real_create_init(value)
+          end
+        raise Babeltrace2.process_error if handle.null?
+        super(handle)
       end
-
-      def set(value)
-        Babeltrace2.bt_value_real_set(@handle, value)
-        self
-      end
-
-      def value=(value)
-        Babeltrace2.bt_value_real_set(@handle, value)
-        value
-      end
-
-      def get
-        Babeltrace2.bt_value_real_get(@handle)
-      end
-      alias value get
-      alias to_f value
     end
+
+    def set(value)
+      Babeltrace2.bt_value_real_set(@handle, value)
+      self
+    end
+
+    def value=(value)
+      set(value)
+      value
+    end
+
+    def get
+      Babeltrace2.bt_value_real_get(@handle)
+    end
+    alias value get
+    alias to_f get
   end
   BTValueReal = BTValue::Real
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_REAL] = [
+    BTValueRealHandle,
+    BTValueReal ]
 
   attach_function :bt_value_string_create,
                   [],
@@ -414,9 +409,7 @@ module Babeltrace2
       end
 
       def value=(value)
-        raise TypeError, "value is 'nil'" if value.nil?
-        res = Babeltrace2.bt_value_string_set(@handle, value)
-        raise Babeltrace2.process_error(res) if res != :BT_VALUE_STRING_SET_STATUS_OK
+        set(value)
         value
       end
 
@@ -424,10 +417,13 @@ module Babeltrace2
         Babeltrace2.bt_value_string_get(@handle)
       end
       alias value get
-      alias to_s value
+      alias to_s get
     end
   end
   BTValueString = BTValue::String
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_STRING] = [
+    BTValueStringHandle,
+    BTValueString ]
 
   attach_function :bt_value_array_create,
                   [],
@@ -534,7 +530,7 @@ module Babeltrace2
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_array_append_empty_array_element(@handle, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
-            arr = BTValueArray.new(BTValueHandle.new(ptr.read_pointer),
+            arr = BTValueArray.new(BTValueArrayHandle.new(ptr.read_pointer),
                                    retain: false, auto_release: false)
             value.each { |v| arr.append_element(v) }
             :BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK
@@ -606,6 +602,10 @@ module Babeltrace2
     end
   end
   BTValueArray = BTValue::Array
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_ARRAY] = [
+    BTValueArrayHandle,
+    BTValueArray ]
+
 
   attach_function :bt_value_map_create,
                   [],
@@ -780,7 +780,7 @@ module Babeltrace2
             ptr = FFI::MemoryPointer.new(:pointer)
             res = Babeltrace2.bt_value_map_insert_empty_array_entry(@handle, key, ptr)
             raise Babeltrace2.process_error(res) if res != :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
-            arr = BTValueArray.new(BTValueHandle.new(ptr.read_pointer),
+            arr = BTValueArray.new(BTValueArrayHandle.new(ptr.read_pointer),
                                    retain: false, auto_release: false)
             value.each { |v| arr.append_element(v) }
             :BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK
@@ -863,4 +863,7 @@ module Babeltrace2
     end
   end
   BTValueMap = BTValue::Map
+  BTValue::TYPE_MAP[:BT_VALUE_TYPE_MAP] = [
+    BTValueMapHandle,
+    BTValueMap ]
 end

@@ -314,6 +314,30 @@ module Babeltrace2
   typedef BTValueHandle, :bt_value_handle
 
   # Additional types for type checking
+  class BTValueNullHandle < BTValueHandle; end
+  typedef BTValueNullHandle, :bt_value_null_handle
+
+  class BTValueBoolHandle < BTValueHandle; end
+  typedef BTValueBoolHandle, :bt_value_bool_handle
+
+  class BTValueIntegerHandle < BTValueHandle; end
+  typedef BTValueIntegerHandle, :bt_value_integer_handle
+
+  class BTValueIntegerUnsignedHandle < BTValueIntegerHandle; end
+  typedef BTValueIntegerUnsignedHandle, :bt_value_integer_unsigned_handle
+
+  class BTValueIntegerSignedHandle < BTValueIntegerHandle; end
+  typedef BTValueIntegerSignedHandle, :bt_value_integer_signed_handle
+
+  class BTValueRealHandle < BTValueHandle; end
+  typedef BTValueRealHandle, :bt_value_real_handle
+
+  class BTValueStringHandle < BTValueHandle; end
+  typedef BTValueStringHandle, :bt_value_string_handle
+
+  class BTValueArrayHandle < BTValueHandle; end
+  typedef BTValueArrayHandle, :bt_value_array_handle
+
   class BTValueMapHandle < BTValueHandle; end
   typedef BTValueMapHandle, :bt_value_map_handle
 
