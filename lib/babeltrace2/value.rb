@@ -54,11 +54,6 @@ module Babeltrace2
 
     TYPE_MAP = {}
 
-    def self.inherited(child)
-      child.instance_variable_set(:@get_ref, @get_ref)
-      child.instance_variable_set(:@put_ref, @put_ref)
-    end
-
     def get_type
       Babeltrace2.bt_value_get_type(@handle)
     end

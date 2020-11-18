@@ -36,7 +36,7 @@ module Babeltrace2
       rescue StopIteration
         :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_component)
         :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR
       end
     }
@@ -107,7 +107,7 @@ module Babeltrace2
                     BTIntergerRangeSetUnsigned.new(supported_versions))
         :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_component)
         :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR
       end
     }
@@ -145,7 +145,7 @@ module Babeltrace2
         method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
         :BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_component)
         :BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR
       end
     }
@@ -183,7 +183,7 @@ module Babeltrace2
              :bt_value_handle, :pointer],
            :bt_component_class_initialize_method_status
 
-  def self._wrap_component_class_initialize_method(component_klass, component_configuration_klass, handle, method)
+  def self._wrap_component_class_initialize_method(component_class, component_configuration_class, handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_component, configuration, params, initialize_method_data|
       begin
@@ -194,7 +194,7 @@ module Babeltrace2
                     initialize_method_data)
         :BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_component)
         :BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR
       end
     }
@@ -237,7 +237,7 @@ module Babeltrace2
                     port_class.new(other_port))
         :BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_component)
         :BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_ERROR
       end
     }
@@ -326,7 +326,7 @@ module Babeltrace2
           :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT
         end
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_component)
         :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR
       end      
     }

@@ -582,10 +582,15 @@ module Babeltrace2
         Babeltrace2.method(@releaser).call(@handle)
       end
     end
-
+    @get_ref = nil
+    @put_ref = nil
+    def self.inherited(child)
+      child.instance_variable_set(:@get_ref, @get_ref)
+      child.instance_variable_set(:@put_ref, @put_ref)
+    end
     class << self
-      attr_reader :put_ref
       attr_reader :get_ref
+      attr_reader :put_ref
     end
 
     def initialize(handle, retain: false, auto_release: true)

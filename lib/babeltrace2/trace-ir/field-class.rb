@@ -179,7 +179,7 @@ module Babeltrace2
                   :bt_field_class_bool_handle
 
   class BTFieldClass::Bool < BTFieldClass
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -204,7 +204,7 @@ module Babeltrace2
                   :uint64
 
   class BTFieldClass::BitArray < BTFieldClass
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, length: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -297,7 +297,7 @@ module Babeltrace2
                   :bt_field_class_integer_unsigned_handle
 
   class BTFieldClass::Integer::Unsigned < BTFieldClassInteger
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -319,7 +319,7 @@ module Babeltrace2
                   :bt_field_class_integer_signed_handle
 
   class BTFieldClass::Integer::Signed < BTFieldClassInteger
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -345,7 +345,7 @@ module Babeltrace2
                   :bt_field_class_real_single_precision_handle
 
   class BTFieldClass::Real::SinglePrecision < BTFieldClassReal
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -367,7 +367,7 @@ module Babeltrace2
                   :bt_field_class_real_double_precision_handle
 
   class BTFieldClass::Real::DoublePrecision < BTFieldClassReal
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -468,7 +468,7 @@ module Babeltrace2
       alias ranges get_ranges
     end
 
-    def initialize(handle, retain: true, auto_release: true)
+    def initialize(handle = nil, retain: true, auto_release: true)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
       else
@@ -556,7 +556,7 @@ module Babeltrace2
       alias ranges get_ranges
     end
 
-    def initialize(handle, retain: true, auto_release: true)
+    def initialize(handle = nil, retain: true, auto_release: true)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
       else
@@ -612,7 +612,7 @@ module Babeltrace2
                   :bt_field_class_string_handle
 
   class BTFieldClass::String < BTFieldClass
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -654,7 +654,7 @@ module Babeltrace2
                   :uint64
 
   class BTFieldClass::Array::Static < BTFieldClass::Array
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, element_field_class: nil, length: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -696,7 +696,7 @@ module Babeltrace2
       end
       alias length_field_path get_length_field_path
     end
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, element_field_class: nil, length_field_class: nil)
       if handle
         self.extend(WithLengthField) if Babeltrace2.bt_field_class_get_type(handle) ==
@@ -810,7 +810,7 @@ module Babeltrace2
       alias user_attributes get_user_attributes
     end
 
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -887,7 +887,7 @@ module Babeltrace2
                   :bt_field_class_option_without_selector_field_handle
 
   class BTFieldClass::Option::WithoutSelectorField < BTFieldClass::Option
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, optional_field_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -932,7 +932,7 @@ module Babeltrace2
                   :bt_bool
 
   class BTFieldClass::Option::WithSelectorField::Bool < BTFieldClass::Option::WithSelectorField
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, optional_field_class: nil, selector_field_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
@@ -977,7 +977,7 @@ module Babeltrace2
                   :bt_integer_range_set_unsigned_handle
 
   class BTFieldClass::Option::WithSelectorField::IntegerUnsigned < BTFieldClass::Option::WithSelectorField
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, optional_field_class: nil, selector_field_class: nil,
                    ranges: nil)
       if handle
@@ -1013,7 +1013,7 @@ module Babeltrace2
                   :bt_integer_range_set_signed_handle
 
   class BTFieldClass::Option::WithSelectorField::IntegerSigned < BTFieldClass::Option::WithSelectorField
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, optional_field_class: nil, selector_field_class: nil,
                    ranges: nil)
       if handle
@@ -1256,7 +1256,7 @@ module Babeltrace2
         end
       end
     end
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, selector_field_class: nil)
       if handle
         case Babeltrace2.bt_field_class_get_type(handle)

@@ -117,7 +117,7 @@ module Babeltrace2
 
   attach_function :bt_message_iterator_can_seek_ns_from_origin,
                   [ :bt_message_iterator_handle,
-                    :int64, :bool ],
+                    :int64, :pointer ],
                   :bt_message_iterator_can_seek_ns_from_origin_status
 
   BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_OK = BT_FUNC_STATUS_OK
@@ -210,7 +210,7 @@ module Babeltrace2
     end
 
     def can_seek_beginning
-      ptr = FFI::MemoryPointer::new(:bt_bool)
+      ptr = FFI::MemoryPointer::new(:int)
       while ((res = Babeltrace2.bt_message_iterator_can_seek_beginning(@handle, ptr)) == :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_AGAIN)
         sleep BT_SLEEP_TIME
       end
@@ -229,7 +229,7 @@ module Babeltrace2
     end
 
     def can_seek_ns_from_origin(ns)
-      ptr = FFI::MemoryPointer::new(:bt_bool)
+      ptr = FFI::MemoryPointer::new(:int)
       while ((res = Babeltrace2.bt_message_iterator_can_seek_ns_from_origin(@handle, ns, ptr)) == :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_AGAIN)
         sleep BT_SLEEP_TIME
       end

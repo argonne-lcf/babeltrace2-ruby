@@ -317,12 +317,43 @@ module Babeltrace2
     def to_s
       str = ""
       causes.each { |c|
-        str << c.actor_type.to_s << ": "
+        file_name = c.file_name
+        line_number = c.line_number
+        str << file_name << ":" if file_name
+        str << line_number.to_s << ":" if line_number
+        str << " "
         str << c.message
         str << "\n"
       }
       str
     end
+  end
+
+  def self.stack_ruby_error(err, source: nil)
+    mess = err.message
+    err.backtrace_locations.each { |loc|
+      lineno = loc.lineno
+      absolute_path = loc.absolute_path
+      label = loc.label
+      message = ""
+      message << label
+      message << ": " << mess if mess
+      case source
+      when BTComponent, BTComponentHandle
+        BTCurrentThread::Error.append_cause_from_component(
+          source, message, file_name: absolute_path, line_number: lineno)
+      when BTComponentClass, BTComponentClassHandle
+        BTCurrentThread::Error.append_cause_from_component_class(
+          source, message, file_name: absolute_path, line_number: lineno)
+      when BTMessageIterator, BTMessageIteratorHandle
+        BTCurrentThread::Error.append_cause_from_message_iterator(
+          source, message, file_name: absolute_path, line_number: lineno)
+      else
+        BTCurrentThread::Error.append_cause_from_unknown(
+          "babeltrace2-ruby", message, file_name: absolute_path, line_number: lineno)
+      end
+      mess = nil
+    }
   end
 
   def self.process_error(code = :BT_FUNC_STATUS_MEMORY_ERROR)

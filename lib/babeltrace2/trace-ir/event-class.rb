@@ -162,7 +162,7 @@ module Babeltrace2
     @get_ref = :bt_event_class_get_ref
     @put_ref = :bt_event_class_put_ref
 
-    def initialize(handle, retain: true, auto_release: true,
+    def initialize(handle = nil, retain: true, auto_release: true,
                    stream_class: nil, id: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)

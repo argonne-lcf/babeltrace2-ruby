@@ -272,7 +272,7 @@ module Babeltrace2
         else
           handle = if clock_snapshot_value
               if packet
-                Babeltrace2.bt_message_event_create_with_default_clock_snapshot(
+                Babeltrace2.bt_message_event_create_with_packet_and_default_clock_snapshot(
                   self_message_iterator, event_class, packet, clock_snapshot_value)
               else
                 Babeltrace2.bt_message_event_create_with_default_clock_snapshot(

@@ -28,7 +28,7 @@ module Babeltrace2
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_ERROR
       end
     }
@@ -62,9 +62,9 @@ module Babeltrace2
       begin
         csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
-        :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
+        :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR
       end
     }
@@ -116,7 +116,7 @@ module Babeltrace2
                     BTSelfComponentPortOutput.new(port))
         :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR
       end
     }
@@ -146,7 +146,7 @@ module Babeltrace2
            [ :bt_self_message_iterator_handle,
              :bt_message_array_const,
              :uint64, :pointer ],
-           :pointer
+           :bt_message_iterator_class_next_method_status
 
   def self._wrap_message_iterator_class_next_method(method)
     lambda { |self_message_iterator, messages, capacity, count|
@@ -154,16 +154,18 @@ module Babeltrace2
         mess = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
                            capacity)
         if mess.size < capacity
-          mess.each { |m| bt_message_get_ref(m) }
-          messages.write_array_of_pointer(mess.collect(&:to_ptr))
-          count.write_uint64(cnt)
+          mess.each { |m| bt_message_get_ref(m.handle) }
+          messages.write_array_of_pointer(mess.collect(&:handle))
+          count.write_uint64(mess.size)
           :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK
         else
           puts "Too many messages for capacity"
           :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR
         end
+      rescue StopIteration
+        :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR
       end
     }
@@ -195,7 +197,7 @@ module Babeltrace2
         method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_ERROR
       end
     }
@@ -230,7 +232,7 @@ module Babeltrace2
         method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
       rescue => e
-        puts e
+        Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR
       end
     }
@@ -328,8 +330,11 @@ module Babeltrace2
     end
 
     def set_seek_beginning_methods(seek_method, can_seek_method: nil)
-      seek_method = Babeltrace2._wrap_message_iterator_class_seek_beginning_method(seek_method)
-      can_seek_method = Babeltrace2._wrap_message_iterator_class_can_seek_beginning_method(can_seek_method)
+      seek_method = Babeltrace2._wrap_message_iterator_class_seek_beginning_method(
+                      @handle, seek_method)
+      can_seek_method =
+        Babeltrace2._wrap_message_iterator_class_can_seek_beginning_method(
+          @handle, can_seek_method) if can_seek_method
       res = Babeltrace2.bt_message_iterator_class_set_seek_beginning_methods(
         @handle, seek_method, can_seek_method)
       raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK
@@ -342,8 +347,11 @@ module Babeltrace2
     end
 
     def set_seek_ns_from_origin_methods(seek_method, can_seek_method: nil)
-      seek_method = Babeltrace2._wrap_message_iterator_class_seek_ns_from_origin_method(seek_method)
-      can_seek_method = Babeltrace2._wrap_message_iterator_class_can_seek_ns_from_origin_method(can_seek_method)
+      seek_method = Babeltrace2._wrap_message_iterator_class_seek_ns_from_origin_method(
+                      @handle, seek_method)
+      can_seek_method =
+        Babeltrace2._wrap_message_iterator_class_can_seek_ns_from_origin_method(
+          @handle, can_seek_method) if can_seek_method
       res = Babeltrace2.bt_message_iterator_class_set_seek_ns_from_origin_methods(
         @handle, seek_method, can_seek_method)
       raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK

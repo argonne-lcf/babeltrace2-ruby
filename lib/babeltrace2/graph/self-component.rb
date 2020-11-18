@@ -82,12 +82,14 @@ module Babeltrace2
 
   class BTSelfComponent::Source < BTComponent::Source
     include BTSelfComponent
+    class Configuration < BTObject
+    end
 
     def add_output_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_source_add_output_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
-      BTSelfComponentPortOutput.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
+      BTSelfComponent::Port::Output.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
                                     retain: true, auto_release: true)
     end
 
@@ -104,6 +106,7 @@ module Babeltrace2
     end
   end
   BTSelfComponentSource = BTSelfComponent::Source
+  BTSelfComponentSourceConfiguration = BTSelfComponent::Source::Configuration
 
   attach_function :bt_self_component_filter_add_input_port,
                   [ :bt_self_component_filter_handle,
@@ -139,6 +142,8 @@ module Babeltrace2
 
   class BTSelfComponent::Filter < BTComponent::Filter
     include BTSelfComponent
+    class Configuration < BTObject
+    end
 
     def add_output_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
@@ -181,6 +186,7 @@ module Babeltrace2
     end
   end
   BTSelfComponentFilter = BTSelfComponent::Filter
+  BTSelfComponentFilterConfiguration = BTSelfComponent::Filter::Configuration
 
   attach_function :bt_self_component_sink_add_input_port,
                   [ :bt_self_component_sink_handle,
@@ -204,6 +210,8 @@ module Babeltrace2
 
   class BTSelfComponent::Sink < BTComponent::Sink
     include BTSelfComponent
+    class Configuration < BTObject
+    end
 
     def add_input_port(name, user_data: nil)
       ptr = FFI::MemoryPointer::new(:pointer)
@@ -231,5 +239,6 @@ module Babeltrace2
     alias interrupted? is_interrupted
   end
   BTSelfComponentSink = BTSelfComponent::Sink
+  BTSelfComponentSinkConfiguration = BTSelfComponent::Sink::Configuration
 
 end
