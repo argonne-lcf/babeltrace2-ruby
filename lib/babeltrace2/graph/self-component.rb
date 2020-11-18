@@ -89,7 +89,7 @@ module Babeltrace2
       ptr = FFI::MemoryPointer::new(:pointer)
       res = Babeltrace2.bt_self_component_source_add_output_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
-      BTSelfComponent::Port::Output.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
+      BTSelfComponentPortOutput.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
                                     retain: true, auto_release: true)
     end
 

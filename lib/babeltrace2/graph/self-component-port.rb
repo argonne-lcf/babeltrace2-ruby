@@ -30,5 +30,5 @@ module Babeltrace2
   class BTSelfComponent::Port::Output < BTPort::Output
     include BTSelfComponent::Port
   end
-  BTSelfComponentPortOuput = BTSelfComponent::Port::Output
+  BTSelfComponentPortOutput = BTSelfComponent::Port::Output
 end
