@@ -1,7 +1,3 @@
-[ '../lib', 'lib' ].each { |d| $:.unshift(d) if File::directory?(d) }
-require 'minitest/autorun'
-require 'babeltrace2'
-
 class BTComponentClassTest < Minitest::Test
   def setup
     @ctf_fs = BT2::BTPlugin.find("ctf").get_source_component_class_by_name("fs")

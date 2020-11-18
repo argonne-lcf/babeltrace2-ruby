@@ -1,7 +1,3 @@
-[ '../lib', 'lib' ].each { |d| $:.unshift(d) if File::directory?(d) }
-require 'minitest/autorun'
-require 'babeltrace2'
-
 class BTPluginTest < Minitest::Test
   def setup
     @ctf_plugin = BT2::BTPlugin.find("ctf")

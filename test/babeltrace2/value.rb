@@ -1,7 +1,3 @@
-[ '../lib', 'lib' ].each { |d| $:.unshift(d) if File::directory?(d) }
-require 'minitest/autorun'
-require 'babeltrace2'
-
 class BTValueTest < Minitest::Test
   def test_null
     n = BT2::BTValueNull.instance

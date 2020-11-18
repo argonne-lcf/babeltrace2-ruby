@@ -1,7 +1,3 @@
-[ '../lib', 'lib' ].each { |d| $:.unshift(d) if File::directory?(d) }
-require 'minitest/autorun'
-require 'babeltrace2'
-
 class BTIntegerRangeSetTest < Minitest::Test
   def test_unsigned
     res = [1..1, 2..5, 7..8, 11..14]

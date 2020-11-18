@@ -4,17 +4,15 @@ require 'babeltrace2'
 
 class BTGraphTest < Minitest::Test
   def setup
-    @trace_path = File.join(__dir__, "thapi-opencl-session-20201021-112005")
-    @trace_location = File.join(@trace_path, "ust/uid/1000/64-bit/")
     @ctf_fs = BT2::BTPlugin.find("ctf").get_source_component_class_by_name("fs")
     @utils_muxer = BT2::BTPlugin.find("utils").get_filter_component_class_by_name("muxer")
     @text_pretty = BT2::BTPlugin.find("text").get_sink_component_class_by_name("pretty")
-    @expected_output = `babeltrace2 #{@trace_location}`
+    @expected_output = `babeltrace2 #{TRACE_LOCATION}`
   end
 
   def test_graph_add_component
     graph = BT2::BTGraph.new
-    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [TRACE_LOCATION]})
     assert_instance_of(BT2::BTComponentSource, comp1)
     assert_equal("trace", comp1.name)
     comp2 = graph.add_component(@utils_muxer, "mux")
@@ -27,7 +25,7 @@ class BTGraphTest < Minitest::Test
 
   def test_connect_port
     graph = BT2::BTGraph.new
-    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [TRACE_LOCATION]})
     comp2 = graph.add_component(@utils_muxer, "mux")
     comp3 = graph.add_component(@text_pretty, "pretty")
     ops = comp1.output_ports
@@ -44,7 +42,7 @@ class BTGraphTest < Minitest::Test
   end
 
   def test_run
-    assert_equal(@expected_output, `ruby #{File.join(__dir__,"run_graph.rb")}`)
+    assert_equal(@expected_output, `ruby #{RUN_GRAPH_PATH}`)
   end
 
   def test_add_simple_sink
@@ -65,7 +63,7 @@ class BTGraphTest < Minitest::Test
     }
 
     graph = BT2::BTGraph.new
-    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [TRACE_LOCATION]})
     comp2 = graph.add(@utils_muxer, "mux")
     comp3 = graph.add_simple_sink("print", consume, initialize_func: init, finalize_func: fini)
     ops = comp1.output_ports
@@ -98,7 +96,7 @@ class BTGraphTest < Minitest::Test
       }
     }
     graph = BT2::BTGraph.new
-    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [TRACE_LOCATION]})
     comp2 = graph.add(@utils_muxer, "mux")
     comp3 = graph.add_simple_sink("print", consume)
     ops = comp1.output_ports
@@ -132,7 +130,7 @@ class BTGraphTest < Minitest::Test
     graph.add_filter_component_input_port_added_listener(list)
     graph.add_filter_component_output_port_added_listener(list)
     graph.add_sink_component_input_port_added_listener(list)
-    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp1 = graph.add_component(@ctf_fs, "trace", params: {"inputs" => [TRACE_LOCATION]})
     comp2 = graph.add_component(@utils_muxer, "mux")
     comp3 = graph.add_component(@text_pretty, "pretty")
     ops = comp1.output_ports
@@ -158,7 +156,7 @@ class BTGraphTest < Minitest::Test
       }
     }
     graph = BT2::BTGraph.new
-    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [@trace_location]})
+    comp1 = graph.add(@ctf_fs, "trace", params: {"inputs" => [TRACE_LOCATION]})
     comp2 = graph.add(@utils_muxer, "mux")
     comp3 = graph.add_simple_sink("print", consume)
     ops = comp1.output_ports
