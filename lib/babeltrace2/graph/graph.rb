@@ -245,7 +245,7 @@ module Babeltrace2
       end
     }
     arr = @@callbacks[id][category]
-    if arr == nil
+    if arr.nil?
       arr = []
       @@callbacks[id][category] = arr
     end

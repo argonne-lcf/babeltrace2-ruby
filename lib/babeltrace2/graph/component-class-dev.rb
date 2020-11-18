@@ -28,7 +28,7 @@ module Babeltrace2
            [:bt_self_component_sink_handle],
            :bt_component_class_sink_consume_method_status
 
-  def self._wrap_component_class_sink_consume_method(handle, method)
+  def self._wrap_component_class_sink_consume_method(method)
     lambda { |self_component|
       begin
         method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))

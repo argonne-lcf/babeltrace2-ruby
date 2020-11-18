@@ -306,7 +306,7 @@ module Babeltrace2
 
     def set_assigns_automatic_event_class_id(assigns_automatic_event_class_id)
       Babeltrace2.bt_stream_class_set_assigns_automatic_event_class_id(
-        @handle, assigns_automatic_event_class_id)
+        @handle, assigns_automatic_event_class_id ? BT_TRUE : BT_FALSE)
       self
     end
 
@@ -323,7 +323,7 @@ module Babeltrace2
 
     def set_assigns_automatic_stream_id(assigns_automatic_stream_id)
       Babeltrace2.bt_stream_class_set_assigns_automatic_stream_id(
-        @handle, assigns_automatic_stream_id)
+        @handle, assigns_automatic_stream_id ? BT_TRUE : BT_FALSE)
       self
     end
 
@@ -341,8 +341,10 @@ module Babeltrace2
     def set_supports_packets(supports_packets,
                              with_beginning_default_clock_snapshot: false,
                              with_end_default_clock_snapshot: false)
-      Babeltrace2.bt_stream_class_set_supports_packets(@handle, supports_packets,
-        with_beginning_default_clock_snapshot, with_end_default_clock_snapshot)
+      Babeltrace2.bt_stream_class_set_supports_packets(@handle,
+        supports_packets ? BT_TRUE : BT_FALSE,
+        with_beginning_default_clock_snapshot ? BT_TRUE : BT_FALSE,
+        with_end_default_clock_snapshot ? BT_TRUE : BT_FALSE)
       self
     end
 
@@ -363,12 +365,13 @@ module Babeltrace2
     def set_supports_discarded_events(supports_discarded_events,
                                       with_default_clock_snapshots: false)
       Babeltrace2.bt_stream_class_set_supports_discarded_events(
-        @handle, supports_discarded_events, with_default_clock_snapshots)
+        @handle, supports_discarded_events ? BT_TRUE : BT_FALSE,
+        with_default_clock_snapshots ? BT_TRUE : BT_FALSE)
       self
     end
 
     def supports_discarded_events
-      Babeltrace2.bt_stream_class_supports_discarded_events(@handle)
+      Babeltrace2.bt_stream_class_supports_discarded_events(@handle) == BT_FALSE ? false : true
     end
     alias supports_discarded_events? supports_discarded_events
 
@@ -380,12 +383,13 @@ module Babeltrace2
     def set_supports_discarded_packets(supports_discarded_packets,
                                       with_default_clock_snapshots: false)
       Babeltrace2.bt_stream_class_set_supports_discarded_packets(
-        @handle, supports_discarded_packets, with_default_clock_snapshots)
+        @handle, supports_discarded_packets ? BT_TRUE : BT_FALSE,
+        with_default_clock_snapshots ? BT_TRUE : BT_FALSE)
       self
     end
 
     def supports_discarded_packets
-      Babeltrace2.bt_stream_class_supports_discarded_packets(@handle)
+      Babeltrace2.bt_stream_class_supports_discarded_packets(@handle) == BT_FALSE ? false : true
     end
     alias supports_discarded_packets? supports_discarded_packets
 

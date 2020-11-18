@@ -42,5 +42,7 @@ require_relative 'babeltrace2/trace-ir/field-path'
 require_relative 'babeltrace2/trace-ir/packet'
 require_relative 'babeltrace2/trace-ir/stream-class'
 require_relative 'babeltrace2/trace-ir/stream'
+require_relative 'babeltrace2/trace-ir/trace-class'
+require_relative 'babeltrace2/trace-ir/trace'
 
 BT2 = Babeltrace2
