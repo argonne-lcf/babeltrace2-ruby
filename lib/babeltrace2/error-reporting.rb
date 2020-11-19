@@ -327,17 +327,51 @@ module Babeltrace2
       }
       str
     end
+
+    def exception_params()
+      klass = nil
+      message = nil
+      backtrace = []
+      cs = causes
+      return [klass, message, backtrace] if cs.empty?
+      c = cs.first
+      mess = c.message
+      m = mess.match(/ ::(.*): (.*)/)
+      if m
+        klass = m[1]
+        message = m[2]
+        mess.sub!( m[0], "" )
+      end
+      item = ""
+      item << c.file_name << ":"
+      item << c.line_number.to_s
+      item << (mess.match(/:in /) ? mess : ".")
+      backtrace.push(item)
+      cs[1..-1].each { |c|
+        item = ""
+        item << c.file_name << ":"
+        item << c.line_number.to_s
+        mess = c.message
+        item << (mess.match(/:in /) ? mess : ".")
+        backtrace.push(item)
+      }
+      [klass, message, backtrace]
+    end
   end
 
   def self.stack_ruby_error(err, source: nil)
-    mess = err.message
+    mess = "#{err.class}: #{err.message}"
     err.backtrace_locations.each { |loc|
       lineno = loc.lineno
       absolute_path = loc.absolute_path
       label = loc.label
       message = ""
-      message << label
-      message << ": " << mess if mess
+      if label
+        message << ":in `" << label << "'"
+      else
+        message << "."
+      end
+      message << " :: " << mess if mess
       case source
       when BTSelfComponent, BTSelfComponentHandle
         BTCurrentThread::Error.append_cause_from_component(
@@ -358,8 +392,16 @@ module Babeltrace2
 
   def self.process_error(code = :BT_FUNC_STATUS_MEMORY_ERROR)
     err = BTCurrentThread.take_error
-    str = err.to_s
+    klass, message, backtrace = err.exception_params
     err.release
-    Error.new(str)
+    if klass
+      klass = eval(klass)
+      e = klass.new(message)
+    else
+      message = "#{code}" unless message
+      e = Error.new
+    end
+    e.set_backtrace(backtrace+caller_locations.collect(&:to_s))
+    e
   end
 end
