@@ -173,7 +173,7 @@ module Babeltrace2
                   find_in_sys_dir: true,
                   find_in_static: false,
                   fail_on_load_error: true)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_plugin_find(
               name,
               find_in_std_env_var ? BT_TRUE : BT_FALSE,
@@ -193,7 +193,7 @@ module Babeltrace2
                       find_in_sys_dir: true,
                       find_in_static: false,
                       fail_on_load_error: true)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_plugin_find_all(
               find_in_std_env_var ? BT_TRUE : BT_FALSE,
               find_in_user_dir ? BT_TRUE : BT_FALSE,
@@ -208,7 +208,7 @@ module Babeltrace2
     end
 
     def self.find_all_from_file(path, fail_on_load_error: true)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_plugin_find_all_from_file(
               path,
               fail_on_load_error ? BT_TRUE : BT_FALSE,
@@ -220,7 +220,7 @@ module Babeltrace2
     end
 
     def self.find_all_from_dir(path, recurse: false, fail_on_load_error: true)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_plugin_find_all_from_dir(
               path,
               recurse ? BT_TRUE : BT_FALSE,
@@ -233,7 +233,7 @@ module Babeltrace2
     end
 
     def self.find_all_from_static(recurse: false, fail_on_load_error: true)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_plugin_find_all_from_static(
               path,
               recurse ? BT_TRUE : BT_FALSE,
@@ -271,10 +271,10 @@ module Babeltrace2
     alias path get_path
 
     def get_version
-      major = FFI::MemoryPointer::new(:uint)
-      minor = FFI::MemoryPointer::new(:uint)
-      patch = FFI::MemoryPointer::new(:uint)
-      extra = FFI::MemoryPointer::new(:pointer)
+      major = FFI::MemoryPointer.new(:uint)
+      minor = FFI::MemoryPointer.new(:uint)
+      patch = FFI::MemoryPointer.new(:uint)
+      extra = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_plugin_get_version(@handle, major, minor, patch, extra)
       if res == :BT_PROPERTY_AVAILABILITY_AVAILABLE
         extra = extra.read_pointer

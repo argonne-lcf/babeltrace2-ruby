@@ -91,6 +91,10 @@ module Babeltrace2
       Babeltrace2.bt_port_is_connected(@handle) == BT_FALSE ? false : true
     end
     alias connected? is_connected
+
+    def ==(other)
+      @handle == other.handle
+    end
   end
 
   attach_function :bt_port_input_get_ref,

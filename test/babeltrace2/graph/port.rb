@@ -31,8 +31,8 @@ class BTPortTest < Minitest::Test
 
       c = graph.connect_ports(op, ip)
       assert_instance_of(BT2::BTConnection, c)
-      assert_equal(c.handle, op.connection.handle)
-      assert_equal(c.handle, ip.connection.handle)
+      assert_equal(c, op.connection)
+      assert_equal(c, ip.connection)
       assert(op.connected?)
       assert(ip.connected?)
     }
@@ -57,8 +57,8 @@ class BTPortTest < Minitest::Test
 
     c = graph.connect_ports(op, ip)
     assert_instance_of(BT2::BTConnection, c)
-    assert_equal(c.handle, op.connection.handle)
-    assert_equal(c.handle, ip.connection.handle)
+    assert_equal(c, op.connection)
+    assert_equal(c, ip.connection)
     assert(op.connected?)
     assert(ip.connected?)
   end
