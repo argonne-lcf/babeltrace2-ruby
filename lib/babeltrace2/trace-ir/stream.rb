@@ -86,11 +86,11 @@ module Babeltrace2
     end
 
     def get_class
-      BTStreamClass.new(Babeltrace2.bt_stream_borrow_class(@handle))
+      BTStreamClass.new(Babeltrace2.bt_stream_borrow_class(@handle), retain: true)
     end
 
     def get_trace
-      BTTrace.new(Babeltrace2.bt_stream_borrow_trace(@handle))
+      BTTrace.new(Babeltrace2.bt_stream_borrow_trace(@handle), retain: true)
     end
     alias trace get_trace
 

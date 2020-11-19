@@ -169,7 +169,7 @@ module Babeltrace2
     end
 
     def get_user_attributes
-      BTValueMap.new(Babeltrace2.bt_field_class_borrow_user_attributes(@handle))
+      BTValueMap.new(Babeltrace2.bt_field_class_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
   end
@@ -463,7 +463,7 @@ module Babeltrace2
       def get_ranges
         BTIntegerRangeSetUnsigned.new(
           Babeltrace2.bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
-            @handle))
+            @handle), retain: true)
       end
       alias ranges get_ranges
     end
@@ -551,7 +551,7 @@ module Babeltrace2
       def get_ranges
         BTIntegerRangeSetSigned.new(
           Babeltrace2.bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
-            @handle))
+            @handle), retain: true)
       end
       alias ranges get_ranges
     end
@@ -805,7 +805,7 @@ module Babeltrace2
       end
 
       def get_user_attributes
-        BTValueMap.new(Babeltrace2.bt_field_class_structure_member_borrow_user_attributes(@handle))
+        BTValueMap.new(Babeltrace2.bt_field_class_structure_member_borrow_user_attributes(@handle), retain: true)
       end
       alias user_attributes get_user_attributes
     end
@@ -993,7 +993,8 @@ module Babeltrace2
 
     def get_selector_ranges
       BTIntegerRangeSetUnsigned.new(
-        Babeltrace2.bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(@hanlde))
+        Babeltrace2.bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(
+          @hanlde), retain: true)
     end
     alias selector_ranges get_selector_ranges
   end
@@ -1029,7 +1030,8 @@ module Babeltrace2
 
     def get_selector_ranges
       BTIntegerRangeSetSigned.new(
-        Babeltrace2.bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(@hanlde))
+        Babeltrace2.bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(
+          @hanlde), retain: true)
     end
     alias selector_ranges get_selector_ranges
   end
@@ -1100,7 +1102,8 @@ module Babeltrace2
       end
 
       def set_user_attributes(user_attributes)
-        Babeltrace2.bt_field_class_variant_option_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+        Babeltrace2.bt_field_class_variant_option_set_user_attributes(@handle,
+          BTValue.from_value(user_attributes))
         self
       end
 
@@ -1111,7 +1114,8 @@ module Babeltrace2
 
       def get_user_attributes
         BTValueMap.new(
-          Babeltrace2.bt_field_class_variant_option_borrow_user_attributes_const(@handle))
+          Babeltrace2.bt_field_class_variant_option_borrow_user_attributes_const(
+            @handle), retain: true)
       end
       alias user_attributes get_user_attributes
     end
@@ -1201,7 +1205,8 @@ module Babeltrace2
         class Option < BTFieldClassVariantOption
          def get_ranges
             BTIntegerRangeSetUnsigned.new(
-              Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(@handle))
+              Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
+                @handle), retain: true)
          end
          alias ranges get_ranges
         end
@@ -1217,7 +1222,8 @@ module Babeltrace2
         def get_option_by_index(index)
           return nil if index >= get_option_count
           BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption.new(
-            Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(@handle, index))
+            Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
+              @handle, index))
         end
 
         def get_option_by_name(name)
@@ -1230,7 +1236,8 @@ module Babeltrace2
         class Option < BTFieldClassVariantOption
          def get_ranges
             BTIntegerRangeSetSigned.new(
-              Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(@handle))
+              Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
+                @handle), retain: true)
          end
          alias ranges get_ranges
         end

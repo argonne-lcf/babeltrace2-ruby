@@ -216,7 +216,7 @@ module Babeltrace2
     end
 
     def get_log_level
-      ptr = MemoryPointer::new(:int)
+      ptr = FFI::MemoryPointer.new(:int)
       res = Babeltrace2.bt_event_class_get_log_level(@handle, ptr)
       return nil if res == :BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE
       BTEventClassLogLevel.from_native(ptr.read_int, nil)

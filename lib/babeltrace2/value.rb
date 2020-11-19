@@ -113,7 +113,7 @@ module Babeltrace2
     end
 
     def copy
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_value_copy(@handle, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_VALUE_COPY_STATUS_OK
       BTValue.from_handle(BTValueHandle.new(ptr.read_pointer), retain: false)

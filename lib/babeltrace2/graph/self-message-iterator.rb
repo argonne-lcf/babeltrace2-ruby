@@ -29,7 +29,7 @@ module Babeltrace2
 
     def get_port
       handle = Babeltrace2.bt_self_message_iterator_borrow_port(@handle)
-      BTSelfComponentPortOutput.new(handle)
+      BTSelfComponentPortOutput.new(handle, retain: true)
     end
     alias port get_port
 

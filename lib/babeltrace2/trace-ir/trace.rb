@@ -236,8 +236,8 @@ module Babeltrace2
 
     def get_environement_entry_by_index(index)
       return nil if index >= get_environment_entry_count
-      ptr1 = FFI::MemoryPointer::new(:pointer)
-      ptr2 = FFI::MemoryPointer::new(:pointer)
+      ptr1 = FFI::MemoryPointer.new(:pointer)
+      ptr2 = FFI::MemoryPointer.new(:pointer)
       Babeltrace2.bt_trace_borrow_environment_entry_by_index_const(
         @handle, index, ptr1, ptr2)
       name = ptr1.read_pointer.read_string

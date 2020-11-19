@@ -86,7 +86,7 @@ module Babeltrace2
     end
 
     def add_output_port(name, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_self_component_source_add_output_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortOutput.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
@@ -146,7 +146,7 @@ module Babeltrace2
     end
 
     def add_output_port(name, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_self_component_filter_add_output_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortOutput.new(BTSelfComponentPortOutputHandle.new(ptr.read_pointer),
@@ -154,7 +154,7 @@ module Babeltrace2
     end
 
     def add_input_port(name, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_self_component_filter_add_input_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortInput.new(BTSelfComponentPortInputHandle.new(ptr.read_pointer),
@@ -214,7 +214,7 @@ module Babeltrace2
     end
 
     def add_input_port(name, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_self_component_sink_add_input_port(@handle, name, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_SELF_COMPONENT_ADD_PORT_STATUS_OK
       BTSelfComponentPortInput.new(BTSelfComponentPortInputHandle.new(ptr.read_pointer),

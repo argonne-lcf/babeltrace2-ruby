@@ -145,8 +145,8 @@ module Babeltrace2
     end
 
     def get_offset
-      ptr1 = FFI::MemoryPointer::new(:int64)
-      ptr2 = FFI::MemoryPointer::new(:uint64)
+      ptr1 = FFI::MemoryPointer.new(:int64)
+      ptr2 = FFI::MemoryPointer.new(:uint64)
       Babeltrace2.bt_clock_class_get_offset(@handle, ptr1, ptr2)
       [ptr1.read_int64, ptr2.read_uint64]
     end
@@ -247,7 +247,7 @@ module Babeltrace2
     alias user_attributes get_user_attributes
 
     def cycles_to_ns_from_origin(value)
-      ptr = FFI::MemoryPointer::new(:int64)
+      ptr = FFI::MemoryPointer.new(:int64)
       res = Babeltrace2.bt_clock_class_cycles_to_ns_from_origin(@handle, value, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK
       ptr.read_int64

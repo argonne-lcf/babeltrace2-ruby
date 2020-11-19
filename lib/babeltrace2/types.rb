@@ -596,7 +596,7 @@ module Babeltrace2
     def initialize(handle, retain: false, auto_release: true)
       super(handle)
       Babeltrace2.method(self.class.get_ref).call(handle) if retain
-      ObjectSpace.define_finalizer(self, Releaser::new(handle, self.class.put_ref)) if auto_release
+      ObjectSpace.define_finalizer(self, Releaser.new(handle, self.class.put_ref)) if auto_release
     end
   end
 
@@ -640,7 +640,7 @@ module Babeltrace2
   BT_FALSE = 0
   BT_SLEEP_TIME = 0.1
 
-  @@callbacks = Hash::new { |h, k| h[k] = {} }
+  @@callbacks = Hash.new { |h, k| h[k] = {} }
   def self._callbacks
     @@callbacks
   end

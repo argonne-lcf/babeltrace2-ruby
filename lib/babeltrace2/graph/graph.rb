@@ -343,7 +343,7 @@ module Babeltrace2
     def add_source_component(component_class, name, params: {},
                              logging_level: :BT_LOGGING_LEVEL_NONE,
                              initialize_method_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = if initialize_method_data
           Babeltrace2.bt_graph_add_source_component_with_initialize_method_data(
             @handle, component_class, name, BTValue.from_value(params),
@@ -354,14 +354,14 @@ module Babeltrace2
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      BTComponentSource.new(BTComponentSourceHandle.new(ptr.read_pointer), retain: true, auto_release: true)
+      BTComponentSource.new(BTComponentSourceHandle.new(ptr.read_pointer), retain: true)
     end
     alias add_source add_source_component
 
     def add_filter_component(component_class, name, params: {},
                              logging_level: :BT_LOGGING_LEVEL_NONE,
                              initialize_method_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = if initialize_method_data
           Babeltrace2.bt_graph_add_filter_component_with_initialize_method_data(
             @handle, component_class, name, BTValue.from_value(params),
@@ -372,14 +372,14 @@ module Babeltrace2
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      BTComponentFilter.new(BTComponentFilterHandle.new(ptr.read_pointer), retain: true, auto_release: true)
+      BTComponentFilter.new(BTComponentFilterHandle.new(ptr.read_pointer), retain: true)
     end
     alias add_filter add_filter_component
 
     def add_sink_component(component_class, name, params: {},
                            logging_level: :BT_LOGGING_LEVEL_NONE,
                            initialize_method_data: nil)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = if initialize_method_data
           Babeltrace2.bt_graph_add_sink_component_with_initialize_method_data(
             @handle, component_class, name, BTValue.from_value(params),
@@ -390,7 +390,7 @@ module Babeltrace2
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
-      BTComponentSink.new(BTComponentSinkHandle.new(ptr.read_pointer), retain: true, auto_release: true)
+      BTComponentSink.new(BTComponentSinkHandle.new(ptr.read_pointer), retain: true)
     end
     alias add_sink add_sink_component
 
@@ -421,7 +421,7 @@ module Babeltrace2
         Babeltrace2._wrap_graph_simple_sink_component_initialize_func(initialize_func) if initialize_func
       consume_func =
         Babeltrace2._wrap_graph_simple_sink_component_consume_func(consume_func)
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_graph_add_simple_sink_component(@handle, name, initialize_func, consume_func, finalize_func, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
       handle = BTComponentSinkHandle.new(ptr.read_pointer)
@@ -429,14 +429,14 @@ module Babeltrace2
       Babeltrace2._callbacks[id][:initialize_func] = initialize_func
       Babeltrace2._callbacks[id][:consume_func] = consume_func
       Babeltrace2._callbacks[id][:finalize_func] = finalize_func
-      BTComponentSink.new(handle, retain: true, auto_release: true)
+      BTComponentSink.new(handle, retain: true)
     end
     alias add_simple_sink add_simple_sink_component
 
     def connect_ports(upstream_port, downstream_port)
       raise "upstream port already connected" if upstream_port.connected?
       raise "downstream port already connected" if downstream_port.connected?
-      ptr = FFI::MemoryPointer::new(:pointer)
+      ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_graph_connect_ports(@handle, upstream_port, downstream_port, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_CONNECT_PORTS_STATUS_OK
       BTConnection.new(BTConnectionHandle.new(ptr.read_pointer), retain: true)
@@ -477,7 +477,7 @@ module Babeltrace2
     alias default_interrupter get_default_interrupter
 
     def add_filter_component_input_port_added_listener(user_func, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:uint64)
+      ptr = FFI::MemoryPointer.new(:uint64)
       user_func = Babeltrace2._wrap_graph_filter_component_input_port_added_listener_func(
                     @handle, user_func)
       res = Babeltrace2.bt_graph_add_filter_component_input_port_added_listener(
@@ -487,7 +487,7 @@ module Babeltrace2
     end
 
     def add_sink_component_input_port_added_listener(user_func, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:uint64)
+      ptr = FFI::MemoryPointer.new(:uint64)
       user_func = Babeltrace2._wrap_graph_sink_component_input_port_added_listener_func(
                     @handle, user_func)
       res = Babeltrace2.bt_graph_add_sink_component_input_port_added_listener(
@@ -497,7 +497,7 @@ module Babeltrace2
     end
 
     def add_source_component_output_port_added_listener(user_func, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:uint64)
+      ptr = FFI::MemoryPointer.new(:uint64)
       user_func = Babeltrace2._wrap_graph_source_component_output_port_added_listener_func(
                     @handle, user_func)
       res = Babeltrace2.bt_graph_add_source_component_output_port_added_listener(
@@ -507,7 +507,7 @@ module Babeltrace2
     end
 
     def add_filter_component_output_port_added_listener(user_func, user_data: nil)
-      ptr = FFI::MemoryPointer::new(:uint64)
+      ptr = FFI::MemoryPointer.new(:uint64)
       user_func = Babeltrace2._wrap_graph_filter_component_output_port_added_listener_func(
                     @handle, user_func)
       res = Babeltrace2.bt_graph_add_filter_component_output_port_added_listener(

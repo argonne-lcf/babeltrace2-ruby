@@ -35,7 +35,7 @@ module Babeltrace2
     alias value get_value
 
     def get_ns_from_origin
-      ptr = MemoryPointer::new(:int64)
+      ptr = FFI::MemoryPointer.new(:int64)
       res = Babeltrace2.bt_clock_snapshot_get_ns_from_origin(@handle, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OK
       ptr.read_int64

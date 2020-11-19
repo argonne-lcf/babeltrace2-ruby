@@ -116,7 +116,7 @@ module Babeltrace2
     @put_ref = :bt_component_source_put_ref
     def get_class
       handle = Babeltrace2.bt_component_source_borrow_class_const(@handle)
-      BTComponentClassSource.new(handle, retain: true, auto_release: true)
+      BTComponentClassSource.new(handle, retain: true)
     end
 
     def get_output_port_count
@@ -127,13 +127,13 @@ module Babeltrace2
     def get_output_port_by_index(index)
       return nil if index >= get_output_port_count
       handle = Babeltrace2.bt_component_source_borrow_output_port_by_index_const(@handle, index)
-      BTPortOutput.new(handle, retain: true, auto_release: true)
+      BTPortOutput.new(handle, retain: true)
     end
 
     def get_output_port_by_name(name)
       handle = Babeltrace2.bt_component_source_borrow_output_port_by_name_const(@handle, name)
       return nil if handle.null?
-      BTPortOutput.new(handle, retain: true, auto_release: true)
+      BTPortOutput.new(handle, retain: true)
     end
 
     def get_output_port(port)
@@ -152,7 +152,7 @@ module Babeltrace2
       output_port_count.times.collect { |index|
         handle = Babeltrace2.bt_component_source_borrow_output_port_by_index_const(
                    @handle, index)
-        BTPortOutput.new(handle, retain: true, auto_release: true)
+        BTPortOutput.new(handle, retain: true)
       }
     end
   end
@@ -203,7 +203,7 @@ module Babeltrace2
     @put_ref = :bt_component_filter_put_ref
     def get_class
       handle = Babeltrace2.bt_component_filter_borrow_class_const(@handle)
-      BTComponentClassFilter.new(handle, retain: true, auto_release: true)
+      BTComponentClassFilter.new(handle, retain: true)
     end
 
     def get_output_port_count
@@ -214,13 +214,13 @@ module Babeltrace2
     def get_output_port_by_index(index)
       return nil if index >= get_output_port_count
       handle = Babeltrace2.bt_component_filter_borrow_output_port_by_index_const(@handle, index)
-      BTPortOutput.new(handle, retain: true, auto_release: true)
+      BTPortOutput.new(handle, retain: true)
     end
 
     def get_output_port_by_name(name)
       handle = Babeltrace2.bt_component_filter_borrow_output_port_by_name_const(@handle, name)
       return nil if handle.null?
-      BTPortOutput.new(handle, retain: true, auto_release: true)
+      BTPortOutput.new(handle, retain: true)
     end
 
     def get_output_port(port)
@@ -238,7 +238,7 @@ module Babeltrace2
       output_port_count.times.collect { |index|
         handle = Babeltrace2.bt_component_filter_borrow_output_port_by_index_const(
                    @handle, index)
-        BTPortOutput.new(handle, retain: true, auto_release: true)
+        BTPortOutput.new(handle, retain: true)
       }
     end
     alias output_port get_output_port
@@ -251,13 +251,13 @@ module Babeltrace2
     def get_input_port_by_index(index)
       return nil if index >= get_input_port_count
       handle = Babeltrace2.bt_component_filter_borrow_input_port_by_index_const(@handle, index)
-      BTPortInput.new(handle, retain: true, auto_release: true)
+      BTPortInput.new(handle, retain: true)
     end
 
     def get_input_port_by_name(name)
       handle = Babeltrace2.bt_component_filter_borrow_input_port_by_name_const(@handle, name)
       return nil if handle.null?
-      BTPortInput.new(handle, retain: true, auto_release: true)
+      BTPortInput.new(handle, retain: true)
     end
 
     def get_input_port(port)
@@ -276,7 +276,7 @@ module Babeltrace2
       input_port_count.times.collect { |index|
         handle = Babeltrace2.bt_component_filter_borrow_input_port_by_index_const(
                    @handle, index)
-        BTPortInput.new(handle, retain: true, auto_release: true)
+        BTPortInput.new(handle, retain: true)
       }
     end
   end
@@ -313,7 +313,7 @@ module Babeltrace2
     @put_ref = :bt_component_sink_put_ref
     def get_class
       handle = Babeltrace2.bt_component_sink_borrow_class_const(@handle)
-      BTComponentClassSink.new(handle, retain: true, auto_release: true)
+      BTComponentClassSink.new(handle, retain: true)
     end
 
     def get_input_port_count
@@ -324,13 +324,13 @@ module Babeltrace2
     def get_input_port_by_index(index)
       return nil if index >= get_input_port_count
       handle = Babeltrace2.bt_component_sink_borrow_input_port_by_index_const(@handle, index)
-      BTPortInput.new(handle, retain: true, auto_release: true)
+      BTPortInput.new(handle, retain: true)
     end
 
     def get_input_port_by_name(name)
       handle = Babeltrace2.bt_component_sink_borrow_input_port_by_name_const(@handle, name)
       return nil if handle.null?
-      BTPortInput.new(handle, retain: true, auto_release: true)
+      BTPortInput.new(handle, retain: true)
     end
 
     def get_input_port(port)
@@ -349,7 +349,7 @@ module Babeltrace2
       input_port_count.times.collect { |index|
         handle = Babeltrace2.bt_component_sink_borrow_input_port_by_index_const(
                    @handle, index)
-        BTPortInput.new(handle, retain: true, auto_release: true)
+        BTPortInput.new(handle, retain: true)
       }
     end
 
