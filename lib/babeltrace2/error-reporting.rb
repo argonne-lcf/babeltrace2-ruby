@@ -339,13 +339,13 @@ module Babeltrace2
       message << label
       message << ": " << mess if mess
       case source
-      when BTComponent, BTComponentHandle
+      when BTSelfComponent, BTSelfComponentHandle
         BTCurrentThread::Error.append_cause_from_component(
           source, message, file_name: absolute_path, line_number: lineno)
-      when BTComponentClass, BTComponentClassHandle
+      when BTSelfComponentClass, BTSelfComponentClassHandle
         BTCurrentThread::Error.append_cause_from_component_class(
           source, message, file_name: absolute_path, line_number: lineno)
-      when BTMessageIterator, BTMessageIteratorHandle
+      when BTSelfMessageIterator, BTSelfMessageIteratorHandle
         BTCurrentThread::Error.append_cause_from_message_iterator(
           source, message, file_name: absolute_path, line_number: lineno)
       else

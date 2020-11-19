@@ -1,5 +1,6 @@
-class BTMessageIteratorClassTest < Minitest::Test
-  def test_create_source
+class BTSelfMessageIteratorTest < Minitest::Test
+
+  def test_self_message_iterator
     stream_beginning_count = 0
     stream_end_count = 0
     consume = lambda { |iterator, _|
@@ -10,31 +11,22 @@ class BTMessageIteratorClassTest < Minitest::Test
           stream_beginning_count += 1
         when :BT_MESSAGE_TYPE_STREAM_END
           stream_end_count += 1
-          iterator.seek_beginning if stream_end_count == 1
-          begin
-            iterator.seek_ns_from_origin(1) if stream_end_count == 2
-          rescue => e
-            puts e
-            puts e.backtrace
-          end
         end
       }
     }
 
-    fini_done = false
-    fini = lambda { |self_message_iterator|
-      refute(self_message_iterator.handle.null?)
-      fini_done = true
-    }
-
     ini_done = false
     ini = lambda { |self_message_iterator, configuration, port|
-      refute(self_message_iterator.handle.null?)
-      assert_instance_of(BT2::BTSelfMessageIterator, self_message_iterator)
-      refute(configuration.handle.null?)
-      assert_instance_of(BT2::BTSelfMessageIteratorConfiguration, configuration)
-      refute(port.handle.null?)
-      assert_instance_of(BT2::BTSelfComponentPortOutput, port)
+      p = self_message_iterator.port
+      assert_equal(p.handle, port.handle)
+      configuration.can_seek_forward = true
+      assert(self_message_iterator.can_seek_forward?)
+      configuration.can_seek_forward = false
+      refute(self_message_iterator.can_seek_forward?)
+      assert(self_message_iterator.data.null?)
+      self_message_iterator.data= FFI::Pointer.new(0xdeadbeef)
+      assert_equal(0xdeadbeef, self_message_iterator.data.to_i)
+      refute(self_message_iterator.interrupted?)
       ini_done = true
     }
 
@@ -63,22 +55,6 @@ class BTMessageIteratorClassTest < Minitest::Test
       [m]
     }
 
-    seek_beg = lambda { |it|
-      index = 0
-    }
-
-    can_seek_beg = lambda { |it|
-      true
-    }
- 
-    seek_ns = lambda { |it, ns|
-      index = ns
-    }
-
-    can_seek_ns = lambda { |it, ns|
-      true
-    }
-
     comp_initialize_method = lambda { |self_component, configuration, params, data|
       self_component.add_output_port("p0")
       trace_class = BT2::BTTraceClass.new(self_component: self_component)
@@ -88,18 +64,9 @@ class BTMessageIteratorClassTest < Minitest::Test
     }
 
     iter_class = BT2::BTMessageIteratorClass.new(next_method: next_method)
-    assert_instance_of(BT2::BTMessageIteratorClass, iter_class)
-    refute(iter_class.handle.null?)
     iter_class.initialize_method = ini
-    iter_class.finalize_method = fini
-    iter_class.set_seek_beginning_methods(seek_beg, can_seek_method: can_seek_beg)
-    iter_class.set_seek_ns_from_origin_methods(seek_ns, can_seek_method: can_seek_ns)
-
     source_class = BT2::BTComponentClass::Source.new(name: "empty_stream", message_iterator_class: iter_class)
-    assert_instance_of(BT2::BTComponentClass::Source, source_class)
-    refute(source_class.handle.null?)
     source_class.initialize_method = comp_initialize_method
-
     graph = BT2::BTGraph.new
     comp1 = graph.add(source_class, "source")
     comp2 = graph.add_simple_sink("count", consume)
@@ -110,14 +77,9 @@ class BTMessageIteratorClassTest < Minitest::Test
     graph.connect_ports(op, ip)
     graph.run
     assert(ini_done)
-    assert_equal(2, stream_beginning_count)
-    assert_equal(3, stream_end_count)
-    graph = nil
-    comp1 = nil
-    comp2 = nil
-    op = ip = nil
-    GC.start
-    assert(fini_done)
+    assert_equal(1, stream_beginning_count)
+    assert_equal(1, stream_end_count)
   end
+
 end
 

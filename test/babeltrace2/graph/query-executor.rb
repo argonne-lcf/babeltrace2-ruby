@@ -16,7 +16,7 @@ class BTQueryExecutorTest < Minitest::Test
                        component_class: @ctf_fs,
                        object_name: "babeltrace.support-info",
                        params: params)
-    assert_equal({"group"=>"b8de1a6b-446c-4dcd-93ab-15ca896a29be", "weight"=>0.75},
+    assert_equal({"group"=>TRACE_UUID, "weight"=>0.75},
                  query_executor.query.value)
   end
 

@@ -3,7 +3,6 @@ class BTGraphTest < Minitest::Test
     @ctf_fs = BT2::BTPlugin.find("ctf").get_source_component_class_by_name("fs")
     @utils_muxer = BT2::BTPlugin.find("utils").get_filter_component_class_by_name("muxer")
     @text_pretty = BT2::BTPlugin.find("text").get_sink_component_class_by_name("pretty")
-    @expected_output = `babeltrace2 #{TRACE_LOCATION}`
   end
 
   def test_graph_add_component
@@ -38,7 +37,7 @@ class BTGraphTest < Minitest::Test
   end
 
   def test_run
-    assert_equal(@expected_output, `ruby #{RUN_GRAPH_PATH}`)
+    assert_equal(EXPECTED_OUTPUT, `ruby #{RUN_GRAPH_PATH}`)
   end
 
   def test_add_simple_sink
@@ -72,7 +71,7 @@ class BTGraphTest < Minitest::Test
     ip = comp3.input_port(0)
     graph.connect_ports(op, ip)
     graph.run
-    assert_equal(@expected_output.lines.count, event_count)
+    assert_equal(EXPECTED_OUTPUT.lines.count, event_count)
     assert(init_done)
     graph = nil
     comp1 = nil
@@ -107,7 +106,7 @@ class BTGraphTest < Minitest::Test
     loop do
       graph.run_once
     end
-    assert_equal(@expected_output.lines.count, event_count)
+    assert_equal(EXPECTED_OUTPUT.lines.count, event_count)
   end
 
   def test_port_added_listener
@@ -170,6 +169,6 @@ class BTGraphTest < Minitest::Test
     thr = Thread.new { sleep 0.5; int.reset! }
     graph.run
     thr.join
-    assert_equal(@expected_output.lines.count, event_count)
+    assert_equal(EXPECTED_OUTPUT.lines.count, event_count)
   end
 end
