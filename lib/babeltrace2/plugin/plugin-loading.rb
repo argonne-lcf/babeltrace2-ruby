@@ -204,7 +204,7 @@ module Babeltrace2
       return [] if res == :BT_PLUGIN_FIND_ALL_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_STATUS_OK
       handle = BTPluginSetHandle.new(ptr.read_pointer)
-      BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle, retain: false).plugins
     end
 
     def self.find_all_from_file(path, fail_on_load_error: true)
@@ -216,7 +216,7 @@ module Babeltrace2
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK
       handle = BTPluginSetHandle.new(ptr.read_pointer)
-      BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle, retain: false).plugins
     end
 
     def self.find_all_from_dir(path, recurse: false, fail_on_load_error: true)
@@ -229,7 +229,7 @@ module Babeltrace2
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK
       handle = BTPluginSetHandle.new(ptr.read_pointer)
-      BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle, retain: false).plugins
     end
 
     def self.find_all_from_static(recurse: false, fail_on_load_error: true)
@@ -242,7 +242,7 @@ module Babeltrace2
       return [] if res == :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_NOT_FOUND
       raise Babeltrace2.process_error(res) if res != :BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK
       handle = BTPluginSetHandle.new(ptr.read_pointer)
-      BTPluginSet.new(handle).plugins
+      BTPluginSet.new(handle, retain: false).plugins
     end
 
     def get_name
@@ -305,14 +305,14 @@ module Babeltrace2
       return nil if index >= get_source_component_class_count
       handle = Babeltrace2.bt_plugin_borrow_source_component_class_by_index_const(
                  @handle, index)
-      BTComponentClassSource.new(handle, retain: true, auto_release: true)
+      BTComponentClassSource.new(handle, retain: true)
     end
 
     def get_source_component_class_by_name(name)
       handle = Babeltrace2.bt_plugin_borrow_source_component_class_by_name_const(
                  @handle, name)
       return nil if handle.null?
-      BTComponentClassSource.new(handle, retain: true, auto_release: true)
+      BTComponentClassSource.new(handle, retain: true)
     end
 
     def get_source_component_class(source_component_class)
@@ -330,7 +330,7 @@ module Babeltrace2
       source_component_class_count.times.collect { |index|
         handle = Babeltrace2.bt_plugin_borrow_source_component_class_by_index_const(
                    @handle, index)
-        BTComponentClassSource.new(handle, retain: true, auto_release: true)
+        BTComponentClassSource.new(handle, retain: true)
       }
     end
 
@@ -338,14 +338,14 @@ module Babeltrace2
       return nil if index >= get_filter_component_class_count
       handle = Babeltrace2.bt_plugin_borrow_filter_component_class_by_index_const(
                  @handle, index)
-      BTComponentClassFilter.new(handle, retain: true, auto_release: true)
+      BTComponentClassFilter.new(handle, retain: true)
     end
 
     def get_filter_component_class_by_name(name)
       handle = Babeltrace2.bt_plugin_borrow_filter_component_class_by_name_const(
                  @handle, name)
       return nil if handle.null?
-      BTComponentClassFilter.new(handle, retain: true, auto_release: true)
+      BTComponentClassFilter.new(handle, retain: true)
     end
 
     def get_filter_component_class(filter_component_class)
@@ -363,7 +363,7 @@ module Babeltrace2
       filter_component_class_count.times.collect { |index|
         handle = Babeltrace2.bt_plugin_borrow_filter_component_class_by_index_const(
                    @handle, index)
-        BTComponentClassFilter.new(handle, retain: true, auto_release: true)
+        BTComponentClassFilter.new(handle, retain: true)
       }
     end
 
@@ -371,14 +371,14 @@ module Babeltrace2
       return nil if index >= get_sink_component_class_count
       handle = Babeltrace2.bt_plugin_borrow_sink_component_class_by_index_const(
                  @handle, index)
-      BTComponentClassSink.new(handle, retain: true, auto_release: true)
+      BTComponentClassSink.new(handle, retain: true)
     end
 
     def get_sink_component_class_by_name(name)
       handle = Babeltrace2.bt_plugin_borrow_sink_component_class_by_name_const(
                  @handle, name)
       return nil if handle.null?
-      BTComponentClassSink.new(handle, retain: true, auto_release: true)
+      BTComponentClassSink.new(handle, retain: true)
     end
 
     def get_sink_component_class(sink_component_class)
@@ -396,7 +396,7 @@ module Babeltrace2
       sink_component_class_count.times.collect { |index|
         handle = Babeltrace2.bt_plugin_borrow_sink_component_class_by_index_const(
                    @handle, index)
-        BTComponentClassSink.new(handle, retain: true, auto_release: true)
+        BTComponentClassSink.new(handle, retain: true)
       }
     end
   end
@@ -431,13 +431,13 @@ module Babeltrace2
       def get_plugin_by_index(index)
         return nil if index >= get_plugin_count
         handle = Babeltrace2.bt_plugin_set_borrow_plugin_by_index_const(@handle, index)
-        BTPlugin.new(handle, retain: true, auto_release: true)
+        BTPlugin.new(handle, retain: true)
       end
 
       def plugins
         get_plugin_count.times.collect { |index|
           handle = Babeltrace2.bt_plugin_set_borrow_plugin_by_index_const(@handle, index)
-          BTPlugin.new(handle, retain: true, auto_release: true)
+          BTPlugin.new(handle, retain: true)
         }
       end
     end

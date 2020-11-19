@@ -154,7 +154,7 @@ module Babeltrace2
     end
 
     def get_user_attributes
-      BTValueMap.new(Babeltrace2.bt_trace_class_get_user_attributes(@handle))
+      BTValueMap.new(Babeltrace2.bt_trace_class_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
 

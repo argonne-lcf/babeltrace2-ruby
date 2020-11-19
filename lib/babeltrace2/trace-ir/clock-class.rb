@@ -242,7 +242,7 @@ module Babeltrace2
 
     def get_user_attributes
       handle = Babeltrace2.bt_clock_class_borrow_user_attributes(@handle)
-      BTValueMap.new(handle)
+      BTValueMap.new(handle, retain: true)
     end
     alias user_attributes get_user_attributes
 

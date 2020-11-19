@@ -206,7 +206,7 @@ module Babeltrace2
     end
 
     def get_trace_class
-      BTTraceClass.new(Babeltrace2.bt_stream_class_borrow_trace_class(@handle))
+      BTTraceClass.new(Babeltrace2.bt_stream_class_borrow_trace_class(@handle), retain: true)
     end
     alias trace_class get_trace_class
 
@@ -218,13 +218,13 @@ module Babeltrace2
     def get_event_class_by_index(index)
       return nil if index >= event_class_count
       BTEventClass.new(
-        Babeltrace2.bt_stream_class_borrow_event_class_by_index(@handle, index))
+        Babeltrace2.bt_stream_class_borrow_event_class_by_index(@handle, index), retain: true)
     end
 
     def get_event_class_by_id(id)
       return nil if index >= event_class_count
       BTEventClass.new(
-        Babeltrace2.bt_stream_class_borrow_event_class_by_id(@handle, id))
+        Babeltrace2.bt_stream_class_borrow_event_class_by_id(@handle, id), retain: true)
     end
 
     def get_id
@@ -262,7 +262,7 @@ module Babeltrace2
     def get_default_clock_class
       handle = Babeltrace2.bt_stream_class_borrow_default_clock_class(@handle)
       return nil if handle.null?
-      BTClockClass.new(handle)
+      BTClockClass.new(handle, retain: true)
     end
     alias default_clock_class get_default_clock_class
 
@@ -409,7 +409,7 @@ module Babeltrace2
     end
 
     def get_user_attributes
-      BTValueMap.new(Babeltrace2.bt_stream_class_get_user_attributes(@handle))
+      BTValueMap.new(Babeltrace2.bt_stream_class_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
   end

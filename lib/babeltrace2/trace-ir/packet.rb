@@ -43,7 +43,7 @@ module Babeltrace2
     end
 
     def get_stream
-      BTStream.new(Babeltrace2.bt_packet_borrow_stream(@handle))
+      BTStream.new(Babeltrace2.bt_packet_borrow_stream(@handle), retain: true)
     end
     alias stream get_stream
 

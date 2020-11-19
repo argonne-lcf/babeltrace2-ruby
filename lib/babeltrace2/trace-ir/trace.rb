@@ -103,7 +103,7 @@ module Babeltrace2
   def self._wrap_trace_destruction_listener_func(method)
     method_wrapper = lambda { |trace_class, user_data|
       begin
-        method.call(BTTrace.new(trace_class), user_data)
+        method.call(BTTrace.new(trace_class, retain: true), user_data)
       rescue => e
         puts e
       end
@@ -165,7 +165,7 @@ module Babeltrace2
 
     def get_class
       BTTraceClass.new(
-        Babeltrace2.bt_trace_borrow_class(@handle))
+        Babeltrace2.bt_trace_borrow_class(@handle), retain: true)
     end
 
     def get_stream_count
@@ -175,13 +175,13 @@ module Babeltrace2
     def get_stream_by_index(index)
       return nil if index >= get_stream_count
       BTStream.new(
-        Babeltrace2.bt_trace_borrow_stream_by_index(@handle, index))
+        Babeltrace2.bt_trace_borrow_stream_by_index(@handle, index), retain: true)
     end
 
     def get_stream_by_id(id)
       return nil if id >= get_stream_count
       BTStream.new(
-        Babeltrace2.bt_trace_borrow_stream_by_id(@handle, id))
+        Babeltrace2.bt_trace_borrow_stream_by_id(@handle, id), retain: true)
     end
 
     def set_name(name)
@@ -289,7 +289,7 @@ module Babeltrace2
     end
 
     def get_user_attributes
-      BTValueMap.new(Babeltrace2.bt_trace_get_user_attributes(@handle))
+      BTValueMap.new(Babeltrace2.bt_trace_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
 
