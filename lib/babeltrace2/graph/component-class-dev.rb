@@ -797,7 +797,7 @@ module Babeltrace2
 
     def graph_is_configured_method=(method)
       set_graph_is_configured_method(method)
-      mathod
+      method
     end
 
     def set_input_port_connected_method(method, &block)

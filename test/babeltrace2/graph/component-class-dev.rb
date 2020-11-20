@@ -291,4 +291,156 @@ class BTComponentClassDevTest < Minitest::Test
     GC.start
     assert(fini_done)
   end
+
+  def test_sink
+    stream_beginning_count = 0
+    stream_end_count = 0
+    iterator = nil
+    consume = lambda { |self_component|
+      mess = iterator.next_messages
+      mess.each { |m|
+        case m.type
+        when :BT_MESSAGE_TYPE_STREAM_BEGINNING
+          stream_beginning_count += 1
+        when :BT_MESSAGE_TYPE_STREAM_END
+          stream_end_count += 1
+        end
+      }
+    }
+
+    states = [
+      :BT_MESSAGE_TYPE_STREAM_BEGINNING,
+      :BT_MESSAGE_TYPE_STREAM_END ]
+    index = 0
+    trace_class = nil
+    stream_class = nil
+    trace = nil
+    stream = nil
+
+    next_method = lambda { |it, capacity|
+      return [] if capacity == 0
+      m = case states[index]
+        when :BT_MESSAGE_TYPE_STREAM_BEGINNING
+          BT2::BTMessage::StreamBeginning.new(self_message_iterator: it, stream: stream)
+        when :BT_MESSAGE_TYPE_STREAM_END
+          BT2::BTMessage::StreamEnd.new(self_message_iterator: it, stream: stream)
+        when nil
+          raise StopIteration
+        else
+          raise "invalid state"
+        end
+      index += 1
+      [m]
+    }
+
+    help_text = "Help text."
+    description_text = "Description text."
+
+    comp_initialize_method = lambda { |self_component, configuration, params, data|
+      self_component.add_output_port("p0")
+      trace_class = BT2::BTTraceClass.new(self_component: self_component)
+      stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
+      trace = BT2::BTTrace.new(trace_class: trace_class)
+      stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)
+    }
+
+    ini_done = true
+    comp_sink_initialize_method = lambda { |self_component, configuration, params, data|
+      assert_instance_of(BT2::BTSelfComponentSink, self_component)
+      self_component.add_input_port("in0")
+    }
+
+    config_done = true
+    comp_sink_graph_is_configured_method = lambda { |self_component|
+      assert_instance_of(BT2::BTSelfComponentSink, self_component)
+      iterator = self_component.create_message_iterator(self_component.input_port(0))
+    }
+
+    fini_done = false
+    comp_sink_finalize_method = lambda { |self_component|
+      assert_instance_of(BT2::BTSelfComponentSink, self_component)
+      fini_done = true
+    }
+
+    comp_sink_mip_method = lambda { |self_component_class, params, initialize_method_data, logging_level, supported_versions|
+      supported_versions.add_range(0, 0)
+    }
+
+    comp_sink_query_method = lambda { |self_component_class, query_executor, object_name, params, method_data|
+      assert_instance_of(BT2::BTSelfComponentClassSink, self_component_class)
+      assert_instance_of(BT2::BTPrivateQueryExecutor, query_executor)
+      assert_instance_of(FFI::Pointer, method_data)
+      case object_name
+      when "Yes"
+        assert_equal(15, params.value)
+        true
+      when "No"
+        assert_equal(1.0, params.value)
+        false
+      else
+        nil
+      end
+    }
+
+    port_connected_count = 0
+    comp_sink_port_connected_method = lambda { |self_component, self_port, other_port|
+      assert_instance_of(BT2::BTSelfComponentSink, self_component)
+      assert_instance_of(BT2::BTSelfComponentPortInput, self_port)
+      assert_instance_of(BT2::BTPortOutput, other_port)
+      port_connected_count += 1
+    }
+
+    iter_class = BT2::BTMessageIteratorClass.new(next_method: next_method)
+    assert_instance_of(BT2::BTMessageIteratorClass, iter_class)
+
+    source_class = BT2::BTComponentClass::Source.new(name: "empty_stream", message_iterator_class: iter_class)
+    assert_instance_of(BT2::BTComponentClass::Source, source_class)
+    refute(source_class.handle.null?)
+    source_class.initialize_method = comp_initialize_method
+
+    sink_class = BT2::BTComponentClass::Sink.new(name: "counter", consume_method: consume)
+    sink_class.initialize_method = comp_sink_initialize_method
+    sink_class.graph_is_configured_method = comp_sink_graph_is_configured_method
+    sink_class.finalize_method = comp_sink_finalize_method
+    sink_class.get_supported_mip_versions_method = comp_sink_mip_method
+    sink_class.query_method = comp_sink_query_method
+    sink_class.input_port_connected_method = comp_sink_port_connected_method
+
+    sink_class.help = help_text
+    assert_equal(help_text, sink_class.help)
+    sink_class.description = description_text
+    assert_equal(description_text, sink_class.description)
+
+    query_executor = BT2::BTQueryExecutor.new(
+                       component_class: sink_class,
+                       object_name: "Yes",
+                       params: 15)
+    assert_equal(true, query_executor.query.value)
+
+    query_executor = BT2::BTQueryExecutor.new(
+                       component_class: sink_class,
+                       object_name: "No",
+                       params: 1.0)
+    assert_equal(false, query_executor.query.value)
+
+    graph = BT2::BTGraph.new
+    comp1 = graph.add(source_class, "source")
+    comp2 = graph.add(sink_class, "count")
+    op = comp1.output_port(0)
+    ip = comp2.input_port(0)
+    graph.connect_ports(op, ip)
+    assert(ini_done)
+    graph.run
+    assert(config_done)
+    assert_equal(1, stream_beginning_count)
+    assert_equal(1, stream_end_count)
+    assert_equal(1, port_connected_count)
+    graph = nil
+    comp1 = nil
+    comp2 = nil
+    op = ip = nil
+    GC.start
+    assert(fini_done)
+  end
+
 end

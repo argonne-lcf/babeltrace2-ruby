@@ -237,6 +237,10 @@ module Babeltrace2
       Babeltrace2.bt_self_component_sink_is_interrupted(@handle) == BT_FALSE ? false : true
     end
     alias interrupted? is_interrupted
+
+    def create_message_iterator(port)
+      BTMessageIterator.create_from_sink_component(self, port)
+    end
   end
   BTSelfComponentSink = BTSelfComponent::Sink
   BTSelfComponentSinkConfiguration = BTSelfComponent::Sink::Configuration

@@ -186,7 +186,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_bool_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -211,7 +211,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_bit_array_create(trace_class, length)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -304,7 +304,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_integer_unsigned_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -326,7 +326,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_integer_signed_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -352,7 +352,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_real_single_precision_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -374,7 +374,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_real_double_precision_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -474,7 +474,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_enumeration_unsigned_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -562,7 +562,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_enumeration_signed_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -619,7 +619,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_string_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -662,7 +662,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_field_class_array_static_create(
                    trace_class, element_field_class, length)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -707,7 +707,7 @@ module Babeltrace2
                    trace_class, element_field_class, length_field_class)
         raise Babeltrace2.process_error if handle.null?
         self.extend(WithLengthField) if length_field_class
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -817,7 +817,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_field_class_structure_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -895,7 +895,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_field_class_option_without_selector_create(
                    trace_class, optional_field_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -940,7 +940,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_field_class_option_with_selector_field_bool_create(
                    trace_class, optional_field_class, selector_field_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -987,7 +987,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_field_class_option_with_selector_field_integer_unsigned_create(
                    trace_class, optional_field_class, selector_field_class, ranges)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -1024,7 +1024,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_field_class_option_with_selector_field_integer_signed_create(
                    trace_class, optional_field_class, selector_field_class, ranges)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -1291,7 +1291,7 @@ module Babeltrace2
         else
           raise "unsupported variant type"
         end
-        super(handle)
+        super(handle, retain: false)
       end
     end
 

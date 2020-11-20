@@ -392,8 +392,12 @@ module Babeltrace2
 
   def self.process_error(code = :BT_FUNC_STATUS_MEMORY_ERROR)
     err = BTCurrentThread.take_error
-    klass, message, backtrace = err.exception_params
-    err.release
+    if err
+      klass, message, backtrace = err.exception_params
+      err.release
+    else
+      klass, message, backtrace = nil, nil, []
+    end
     if klass
       klass = eval(klass)
       e = klass.new(message)
