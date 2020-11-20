@@ -1,5 +1,4 @@
-class BTTraceClassTest < Minitest::Test
-
+class BTTraceTest < Minitest::Test
   def test_trace_class
     stream_beginning_count = 0
     stream_end_count = 0
@@ -17,8 +16,8 @@ class BTTraceClassTest < Minitest::Test
 
     destroyed = 0
 
-    dest_listen = lambda { |trace_class, user_data|
-      assert_instance_of(BT2::BTTraceClass, trace_class)
+    dest_listen = lambda { |trace, user_data|
+      assert_instance_of(BT2::BTTrace, trace)
       assert_equal(0xdeadbeef, user_data.to_i)
       destroyed += 1
     }
@@ -51,24 +50,36 @@ class BTTraceClassTest < Minitest::Test
     comp_initialize_method = lambda { |self_component, configuration, params, data|
       self_component.add_output_port("p0")
       trace_class = BT2::BTTraceClass.new(self_component: self_component)
-      assert(trace_class.assigns_automatic_stream_class_id?)
-      trace_class.assigns_automatic_stream_class_id = false
-      refute(trace_class.assigns_automatic_stream_class_id?)
-      trace_class.assigns_automatic_stream_class_id = true
-      assert(trace_class.assigns_automatic_stream_class_id?)
-      assert_equal({}, trace_class.user_attributes.value)
-      trace_class.user_attributes = { "foo" => 15 }
-      assert_equal({ "foo" => 15 }, trace_class.user_attributes.value)
-      trace_class.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xdeadbeef))
-      id = trace_class.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xbeef))
-      trace_class.remove_destruction_listener(id)
-      assert_equal(0, trace_class.stream_class_count)
       stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
-      assert_equal(stream_class, trace_class.get_stream_class_by_index(0))
-      assert_equal(stream_class, trace_class.get_stream_class_by_id(stream_class.id))
-      assert_equal(1, trace_class.stream_class_count)
       trace = BT2::BTTrace.new(trace_class: trace_class)
+      assert_equal(0, trace.stream_count)
+      assert_nil(trace.get_stream_by_index(0))
+      assert_nil(trace.get_stream_by_id(0))
+      assert_equal(trace_class, trace.get_class)
+      assert_nil(trace.name)
+      trace.name = "trace"
+      assert_equal("trace", trace.name)
+      assert_nil(trace.uuid)
+      trace.uuid = BT2::BTUUID.from_string(TRACE_UUID)
+      assert_equal(TRACE_UUID, trace.uuid.to_s)
+      assert_equal({}, trace.environment)
+      trace.environment = { "foo" => 1, "bar" => "baz" }
+      assert_equal({}, trace.user_attributes.value)
+      assert_equal({ "foo" => 1, "bar" => "baz" }, trace.environment)
+      assert_nil(trace.get_environement_entry_by_index(2))
+      entry = trace.get_environement_entry_by_index(1)
+      assert_equal(["bar", "baz"], [entry[0], entry[1].value])
+      assert_equal(1, trace.get_environment_entry_value_by_name("foo").value)
+      assert_nil(trace.get_environment_entry_value_by_name("baz"))
+      trace.user_attributes = { "foo" => 15 }
+      assert_equal({ "foo" => 15 }, trace.user_attributes.value)
+      trace.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xdeadbeef))
+      id = trace.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xbeef))
+      trace.remove_destruction_listener(id)
       stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)
+      assert_equal(1, trace.stream_count)
+      assert_equal(stream, trace.get_stream_by_index(0))
+      assert_equal(stream, trace.get_stream_by_id(stream.id))
     }
 
     fini_done = false

@@ -9,23 +9,23 @@ module Babeltrace2
                   :bt_stream_handle
 
   attach_function :bt_stream_borrow_class,
-                  [ :bt_stream_class_handle ],
+                  [ :bt_stream_handle ],
                   :bt_stream_class_handle
 
   attach_function :bt_stream_borrow_class_const,
-                  [ :bt_stream_class_handle ],
+                  [ :bt_stream_handle ],
                   :bt_stream_class_handle
 
   attach_function :bt_stream_borrow_trace,
-                  [ :bt_stream_class_handle ],
+                  [ :bt_stream_handle ],
                   :bt_trace_handle
 
   attach_function :bt_stream_borrow_trace_const,
-                  [ :bt_stream_class_handle ],
+                  [ :bt_stream_handle ],
                   :bt_trace_handle
 
   attach_function :bt_stream_get_id,
-                  [ :bt_stream_class_handle ],
+                  [ :bt_stream_handle ],
                   :uint64
 
   BT_STREAM_SET_NAME_STATUS_OK = BT_FUNC_STATUS_OK

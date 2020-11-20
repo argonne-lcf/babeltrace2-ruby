@@ -608,7 +608,7 @@ module Babeltrace2
     layout :id, [ :uint8_t, 16 ]
     def to_s
       a = self[:id].to_a
-      s = "{ id: "
+      s = ""
       s << "%02x" % a[15]
       s << "%02x" % a[14]
       s << "%02x" % a[13]
@@ -629,7 +629,19 @@ module Babeltrace2
       s << "%02x" % a[2]
       s << "%02x" % a[1]
       s << "%02x" % a[0]
-      s << " }"
+    end
+
+    def self.from_string(uuid)
+      new.from_string(uuid)
+    end
+
+    def from_string(uuid)
+      m = uuid.match(/(\h\h)(\h\h)(\h\h)(\h\h)-(\h\h)(\h\h)-(\h\h)(\h\h)-(\h\h)(\h\h)-(\h\h)(\h\h)(\h\h)(\h\h)(\h\h)(\h\h)/)
+      raise "invalid format" unless m
+      16.times { |i|
+        self[:id][15-i] = m[i+1].to_i(16)
+      }
+      self
     end
   end
   typedef BTUUID.by_ref, :bt_uuid
