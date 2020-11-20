@@ -2,6 +2,8 @@
 require 'minitest/autorun'
 require 'babeltrace2'
 
+#BT2::BTLogging.global_level = BT2::BTLogging.minimal_level
+
 TRACE_PATH = File.join(__dir__, "thapi-opencl-session-20201021-112005")
 TRACE_LOCATION = File.join(TRACE_PATH, "ust/uid/1000/64-bit/")
 TRACE_UUID = "b8de1a6b-446c-4dcd-93ab-15ca896a29be"

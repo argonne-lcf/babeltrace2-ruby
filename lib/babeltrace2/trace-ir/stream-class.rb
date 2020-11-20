@@ -201,7 +201,7 @@ module Babeltrace2
             Babeltrace2.bt_stream_class_create(trace_class)
           end
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 

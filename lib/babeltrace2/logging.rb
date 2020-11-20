@@ -24,10 +24,11 @@ module Babeltrace2
     class << self
       def set_global_level(logging_level)
         Babeltrace2.bt_logging_set_global_level(logging_level)
+        self
       end
 
       def global_level=(logging_level)
-        Babeltrace2.bt_logging_set_global_level(logging_level)
+        set_global_level(logging_level)
         logging_level
       end
 

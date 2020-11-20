@@ -16,7 +16,7 @@ class BTComponentTest < Minitest::Test
     klass = comp.get_class
     assert_instance_of(BT2::BTComponentClassSource, klass)
     assert_equal("trace", comp.name)
-    assert_equal(:BT_LOGGING_LEVEL_NONE, comp.logging_level)
+    assert_equal(BT2::BTLogging.global_level, comp.logging_level)
     assert_equal(TRACE_STREAM_COUNT, comp.output_port_count)
     comp.output_port_count.times { |i|
       p = comp.output_port(i)
@@ -39,7 +39,7 @@ class BTComponentTest < Minitest::Test
     klass = comp.get_class
     assert_instance_of(BT2::BTComponentClassFilter, klass)
     assert_equal("mux", comp.name)
-    assert_equal(:BT_LOGGING_LEVEL_NONE, comp.logging_level)
+    assert_equal(BT2::BTLogging.global_level, comp.logging_level)
     assert_equal(1, comp.output_port_count)
     p = comp.output_port(0)
     assert_instance_of(BT2::BTPortOutput, p)

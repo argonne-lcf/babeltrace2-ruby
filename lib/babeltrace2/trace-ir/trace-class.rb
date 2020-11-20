@@ -51,7 +51,8 @@ module Babeltrace2
   def self._wrap_trace_class_destruction_listener_func(method)
     method_wrapper = lambda { |trace_class, user_data|
       begin
-        method.call(BTTraceClass.new(trace_class), user_data)
+        method.call(BTTraceClass.new(trace_class,
+                      retain: false, auto_release: false), user_data)
       rescue => e
         puts e
       end

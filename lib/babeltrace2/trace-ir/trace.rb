@@ -103,7 +103,8 @@ module Babeltrace2
   def self._wrap_trace_destruction_listener_func(method)
     method_wrapper = lambda { |trace_class, user_data|
       begin
-        method.call(BTTrace.new(trace_class, retain: true), user_data)
+        method.call(BTTrace.new(trace_class,
+                    retain: false, auto_release: false), user_data)
       rescue => e
         puts e
       end
@@ -149,8 +150,8 @@ module Babeltrace2
     SetEnvironmentEntryStatus = BTTraceSetEnvironmentEntryStatus
     AddListenerStatus = BTTraceAddListenerStatus
     RemoveListenerStatus = BTTraceRemoveListenerStatus
-    @get_ref = :bt_trace_class_get_ref
-    @put_ref = :bt_trace_class_put_ref
+    @get_ref = :bt_trace_get_ref
+    @put_ref = :bt_trace_put_ref
 
     def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil)
@@ -159,7 +160,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_trace_create(trace_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
