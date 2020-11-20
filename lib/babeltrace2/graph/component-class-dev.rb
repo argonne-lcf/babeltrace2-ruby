@@ -47,18 +47,19 @@ module Babeltrace2
            :void
 
   callback :bt_component_class_filter_finalize_method,
-           [:bt_self_component_sink_handle],
+           [:bt_self_component_filter_handle],
            :void
 
   callback :bt_component_class_sink_finalize_method,
            [:bt_self_component_sink_handle],
            :void
 
-  def self._wrap_component_class_finalize_method(handle, method)
+  def self._wrap_component_class_finalize_method(component_class, handle, method)
     id = handle.to_i
-    method_wrapper = lambda { |component_class|
+    method_wrapper = lambda { |self_component|
       begin
-        method.call(BTComponentClass.from_handle(component_class, retain: false, auto_release: false))
+        method.call(component_class.new(self_component,
+                                        retain: false, auto_release: false))
       rescue => e
         puts e
       end
@@ -96,18 +97,18 @@ module Babeltrace2
            [:bt_self_component_class_sink_handle, :bt_value_handle, :pointer, :bt_logging_level, :bt_integer_range_set_unsigned_handle],
            :bt_component_class_get_supported_mip_versions_method_status
 
-  def self._wrap_component_class_get_supported_mip_versions_method(handle, method)
+  def self._wrap_component_class_get_supported_mip_versions_method(component_class_class, handle, method)
     id = handle.to_i
-    method_wrapper = lambda { |component_class, params, initialize_method_data, logging_level, supported_versions|
+    method_wrapper = lambda { |self_component_class, params, initialize_method_data, logging_level, supported_versions|
       begin
-        method.call(BTComponentClass.from_handle(component_class,
-                                                 retain: false, auto_release: false),
+        method.call(component_class_class.new(self_component_class,
+                                              retain: false, auto_release: false),
                     BTValue.from_handle(params),
                     initialize_method_data, logging_level,
-                    BTIntergerRangeSetUnsigned.new(supported_versions))
+                    BTIntergerRangeSetUnsigned.new(supported_versions, retain: true))
         :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK
       rescue => e
-        Babeltrace2.stack_ruby_error(e, source: self_component)
+        Babeltrace2.stack_ruby_error(e, source: self_component_class)
         :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR
       end
     }
@@ -309,15 +310,15 @@ module Babeltrace2
     QueryMethodStatus = BTComponentClassQueryMethodStatus
   end
 
-  def self._wrap_component_class_query_method(component_class, handle, method)
+  def self._wrap_component_class_query_method(component_class_class, handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_component_class, query_executor, object_name, params, method_data, result|
       begin
-        rvalue = method.call(component_class.new(self_component_class,
-                                                 retain: false, auto_release: false),
+        rvalue = method.call(component_class_class.new(self_component_class,
+                                                       retain: false, auto_release: false),
                               BTPrivateQueryExecutor.new(query_executor),
                               object_name, BTValue.from_handle(params), method_data)
-        if rvalue
+        unless rvalue.nil?
           rvalue = BTValue.from_value(rvalue)
           bt_value_get_ref(rvalue.handle)
           result.write_pointer(rvalue.handle)
@@ -326,7 +327,7 @@ module Babeltrace2
           :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT
         end
       rescue => e
-        Babeltrace2.stack_ruby_error(e, source: self_component)
+        Babeltrace2.stack_ruby_error(e, source: self_component_class)
         :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR
       end      
     }
@@ -482,9 +483,7 @@ module Babeltrace2
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_finalize_method(@handle, method)
-      end
+      method = _wrap_finalize_method(method)
       res = _set_finalize_method(method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
@@ -500,9 +499,7 @@ module Babeltrace2
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_get_supported_mip_versions_method(@handle, method)
-      end
+      method = _wrap_get_supported_mip_versions_method(method)
       res = _set_get_supported_mip_versions_method(method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
@@ -518,9 +515,7 @@ module Babeltrace2
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = _wrap_initialize_method(method)
-      end
+      method = _wrap_initialize_method(method)
       res = _set_initialize_method(method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
@@ -536,9 +531,7 @@ module Babeltrace2
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = _wrap_query_method(method)
-      end
+      method = _wrap_query_method(method)
       res = _set_query_method(method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
@@ -577,8 +570,16 @@ module Babeltrace2
 
   class BTComponentClass::Source
     private
+    def _wrap_finalize_method(method)
+      Babeltrace2._wrap_component_class_finalize_method(BTSelfComponentSource, @handle, method)
+    end
+
     def _set_finalize_method(method)
       Babeltrace2.bt_component_class_source_set_finalize_method(@handle, method)
+    end
+
+    def _wrap_get_supported_mip_versions_method(method)
+      Babeltrace2._wrap_component_class_get_supported_mip_versions_method(BTSelfComponentClassSource, @handle, method)
     end
 
     def _set_get_supported_mip_versions_method(method)
@@ -593,16 +594,22 @@ module Babeltrace2
       Babeltrace2.bt_component_class_source_set_initialize_method(@handle, method)
     end
 
+    def _wrap_query_method(method)
+      Babeltrace2._wrap_component_class_query_method(BTSelfComponentClassSource, @handle, method)
+    end
+
+    def _set_query_method(method)
+      Babeltrace2.bt_component_class_source_set_query_method(@handle, method)
+    end
+
     public
     def set_output_port_connected_method(method, &block)
       if method.nil?
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_source_output_port_connected_method(@handle, method)
-      end
-      res = Babeltrace2.bt_component_class_source_set_output_port_connected_method(method)
+      method = Babeltrace2._wrap_component_class_source_output_port_connected_method(@handle, method)
+      res = Babeltrace2.bt_component_class_source_set_output_port_connected_method(@handle, method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
@@ -610,15 +617,6 @@ module Babeltrace2
     def output_port_connected_method=(method)
       set_output_port_connected_method(method)
       method
-    end
-
-    private
-    def _wrap_query_method(method)
-      Babeltrace2._wrap_component_class_query_method(BTSelfComponentClassSource, @handle, method)
-    end
-
-    def _set_query_method(method)
-      Babeltrace2.bt_component_class_source_set_query_method(@handle, method)
     end
   end
 
@@ -655,8 +653,16 @@ module Babeltrace2
 
   class BTComponentClass::Filter
     private
+    def _wrap_finalize_method(method)
+      Babeltrace2._wrap_component_class_finalize_method(BTSelfComponentFilter, @handle, method)
+    end
+
     def _set_finalize_method(method)
       Babeltrace2.bt_component_class_filter_set_finalize_method(@handle, method)
+    end
+
+    def _wrap_get_supported_mip_versions_method(method)
+      Babeltrace2._wrap_component_class_get_supported_mip_versions_method(BTSelfComponentClassFilter, @handle, method)
     end
 
     def _set_get_supported_mip_versions_method(method)
@@ -671,16 +677,22 @@ module Babeltrace2
       Babeltrace2.bt_component_class_filter_set_initialize_method(@handle, method)
     end
 
+    def _wrap_query_method(method)
+      Babeltrace2._wrap_component_class_query_method(BTSelfComponentClassFilter, @handle, method)
+    end
+
+    def _set_query_method(method)
+      Babeltrace2.bt_component_class_filter_set_query_method(@handle, method)
+    end
+
     public
     def set_input_port_connected_method(method, &block)
       if method.nil?
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_filter_input_port_connected_method(@handle, method)
-      end
-      res = Babeltrace2.bt_component_class_filter_set_input_port_connected_method(method)
+      method = Babeltrace2._wrap_component_class_filter_input_port_connected_method(@handle, method)
+      res = Babeltrace2.bt_component_class_filter_set_input_port_connected_method(@handle, method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
@@ -695,10 +707,8 @@ module Babeltrace2
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_filter_output_port_connected_method(@handle, method)
-      end
-      res = Babeltrace2.bt_component_class_filter_set_output_port_connected_method(method)
+      method = Babeltrace2._wrap_component_class_filter_output_port_connected_method(@handle, method)
+      res = Babeltrace2.bt_component_class_filter_set_output_port_connected_method(@handle, method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
@@ -706,15 +716,6 @@ module Babeltrace2
     def output_port_connected_method=(method)
       set_output_port_connected_method(method)
       method
-    end
-
-    private
-    def _wrap_query_method(method)
-      Babeltrace2._wrap_component_class_query_method(BTSelfComponentClassFilter, @handle, method)
-    end
-
-    def _set_query_method(method)
-      Babeltrace2.bt_component_class_filter_set_query_method(@handle, method)
     end
   end
 
@@ -750,12 +751,36 @@ module Babeltrace2
 
   class BTComponentClass::Sink
     private
+    def _wrap_finalize_method(method)
+      Babeltrace2._wrap_component_class_finalize_method(BTSelfComponentSink, @handle, method)
+    end
+
     def _set_finalize_method(method)
       Babeltrace2.bt_component_class_sink_set_finalize_method(@handle, method)
     end
 
+    def _wrap_get_supported_mip_versions_method(method)
+      Babeltrace2._wrap_component_class_get_supported_mip_versions_method(BTSelfComponentClassSink, @handle, method)
+    end
+
     def _set_get_supported_mip_versions_method(method)
       Babeltrace2.bt_component_class_sink_set_get_supported_mip_versions_method(@handle, method)
+    end
+
+    def _wrap_initialize_method(method)
+      Babeltrace2._wrap_component_class_initialize_method(BTSelfComponentSink, BTSelfComponentSinkConfiguration, @handle, method)
+    end
+
+    def _set_initialize_method(method)
+      Babeltrace2.bt_component_class_sink_set_initialize_method(@handle, method)
+    end
+
+    def _wrap_query_method(method)
+      Babeltrace2._wrap_component_class_query_method(BTSelfComponentClassSink, @handle, method)
+    end
+
+    def _set_query_method(method)
+      Babeltrace2.bt_component_class_sink_set_query_method(@handle, method)
     end
 
     public
@@ -764,10 +789,8 @@ module Babeltrace2
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_sink_graph_is_configured_method(@handle, method)
-      end
-      res = Babeltrace2.bt_component_class_sink_set_graph_is_configured_method(method)
+      method = Babeltrace2._wrap_component_class_sink_graph_is_configured_method(@handle, method)
+      res = Babeltrace2.bt_component_class_sink_set_graph_is_configured_method(@handle, method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
@@ -777,25 +800,13 @@ module Babeltrace2
       mathod
     end
 
-    private
-    def _wrap_initialize_method(method)
-      Babeltrace2._wrap_component_class_initialize_method(BTSelfComponentSink, BTSelfComponentSinkConfiguration, @handle, method)
-    end
-
-    def _set_initialize_method(method)
-      Babeltrace2.bt_component_class_sink_set_initialize_method(@handle, method)
-    end
-
-    public
     def set_input_port_connected_method(method, &block)
       if method.nil?
         raise ArgumentError, "method or block must be provided" unless block_given?
         method = block
       end
-      if method.kind_of?(Proc)
-        method = Babeltrace2._wrap_component_class_sink_input_port_connected_method(@handle, method)
-      end
-      res = Babeltrace2.bt_component_class_sink_set_input_port_connected_method(method)
+      method = Babeltrace2._wrap_component_class_sink_input_port_connected_method(@handle, method)
+      res = Babeltrace2.bt_component_class_sink_set_input_port_connected_method(@handle, method)
       raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK
       self
     end
@@ -803,15 +814,6 @@ module Babeltrace2
     def input_port_connected_method=(method)
       set_input_port_connected_method(method)
       method
-    end
-
-    private
-    def _wrap_query_method(method)
-      Babeltrace2._wrap_component_class_query_method(BTSelfComponentClassSink, @handle, method)
-    end
-
-    def _set_query_method(method)
-      Babeltrace2.bt_component_class_sink_set_query_method(@handle, method)
     end
   end
 end
