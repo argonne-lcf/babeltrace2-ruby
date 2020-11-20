@@ -352,10 +352,6 @@ module Babeltrace2
         BTPortInput.new(handle, retain: true)
       }
     end
-
-    def create_message_iterator(port)
-      BTMessageIterator.create_from_sink_component(self, port)
-    end
   end
   BTComponentSink = BTComponent::Sink
 

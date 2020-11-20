@@ -5,6 +5,7 @@ require 'babeltrace2'
 TRACE_PATH = File.join(__dir__, "thapi-opencl-session-20201021-112005")
 TRACE_LOCATION = File.join(TRACE_PATH, "ust/uid/1000/64-bit/")
 TRACE_UUID = "b8de1a6b-446c-4dcd-93ab-15ca896a29be"
+TRACE_STREAM_COUNT = 8
 RUN_GRAPH_PATH = File.join(__dir__, "run_graph.rb")
 EXPECTED_OUTPUT = `babeltrace2 #{TRACE_LOCATION}`
 
@@ -20,7 +21,7 @@ require_relative 'babeltrace2/graph/port'
 require_relative 'babeltrace2/graph/connection'
 require_relative 'babeltrace2/graph/component-class'
 require_relative 'babeltrace2/graph/component-class-dev'
-#require_relative 'babeltrace2/graph/component'
+require_relative 'babeltrace2/graph/component'
 #require_relative 'babeltrace2/graph/self-component-class'
 #require_relative 'babeltrace2/graph/self-component'
 #require_relative 'babeltrace2/graph/self-component-port'
