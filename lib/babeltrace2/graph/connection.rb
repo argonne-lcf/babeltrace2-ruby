@@ -31,9 +31,5 @@ module Babeltrace2
       BTPortOutput.new(handle, retain: true)
     end
     alias upstream_port get_upstream_port
-
-    def ==(other)
-      @handle == other.handle
-    end
   end
 end

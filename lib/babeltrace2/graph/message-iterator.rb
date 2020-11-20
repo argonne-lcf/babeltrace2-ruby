@@ -166,7 +166,7 @@ module Babeltrace2
       ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_message_iterator_create_from_message_iterator(self_message_iterator, port, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK
-      BTMessageIterator.new(BTMessageIteratorHandle.new(ptr.read_pointer), retain: true)
+      BTMessageIterator.new(BTMessageIteratorHandle.new(ptr.read_pointer), retain: false)
     end
 
     def create_message_iterator(port)
@@ -177,7 +177,7 @@ module Babeltrace2
       ptr = FFI::MemoryPointer.new(:pointer)
       res = Babeltrace2.bt_message_iterator_create_from_sink_component(self_component_sink, port, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK
-      BTMessageIterator.new(BTMessageIteratorHandle.new(ptr.read_pointer), retain: true)
+      BTMessageIterator.new(BTMessageIteratorHandle.new(ptr.read_pointer), retain: false)
     end
 
     def get_component

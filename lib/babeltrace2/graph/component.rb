@@ -79,10 +79,6 @@ module Babeltrace2
       Babeltrace2.bt_component_get_logging_level(@handle)
     end
     alias logging_level get_logging_level
-
-    def ==(other)
-      self.handle == other.handle
-    end
   end
 
   attach_function :bt_component_source_borrow_class_const,

@@ -76,7 +76,8 @@ module Babeltrace2
   def self._wrap_graph_simple_sink_component_initialize_func(method)
     lambda { |message_iterator, user_data|
       begin
-        method.call(BTMessageIterator.new(message_iterator, retain: true), user_data)
+        method.call(BTMessageIterator.new(message_iterator,
+                      retain: false, auto_release: false), user_data)
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: message_iterator)
@@ -110,7 +111,8 @@ module Babeltrace2
   def self._wrap_graph_simple_sink_component_consume_func(method)
     lambda { |message_iterator, user_data|
       begin
-        method.call(BTMessageIterator.new(message_iterator, retain: false, auto_release: false), user_data)
+        method.call(BTMessageIterator.new(message_iterator,
+                      retain: false, auto_release: false), user_data)
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK
       rescue StopIteration
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_END
@@ -236,8 +238,9 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |component, port, user_data|
       begin
-        method.call(component_class.new(component, retain: true),
-                    port_class.new(port, retain: true), user_data)
+        method.call(component_class.new(component, retain: false, auto_release: false),
+                    port_class.new(port, retain: false, auto_release: false),
+                    user_data)
         :BT_GRAPH_LISTENER_FUNC_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: component)

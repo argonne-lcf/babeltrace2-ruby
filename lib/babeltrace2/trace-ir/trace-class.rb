@@ -69,7 +69,7 @@ module Babeltrace2
 
   attach_function :bt_trace_class_add_destruction_listener,
                   [ :bt_trace_class_handle, :bt_trace_class_destruction_listener_func,
-                    :pointer, :bt_listener_id ],
+                    :pointer, :pointer ],
                   :bt_trace_class_add_listener_status
 
   BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_OK = BT_FUNC_STATUS_OK
@@ -105,7 +105,7 @@ module Babeltrace2
       else
         handle = Babeltrace2.bt_trace_class_create(self_component)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
 
@@ -162,22 +162,22 @@ module Babeltrace2
       user_func = Babeltrace2._wrap_trace_class_destruction_listener_func(user_func)
       id = @handle.to_i
       ptr = FFI::MemoryPointer.new(:uint64)
-      res = Babeltrace2.bt_trace_class_add_destruction_listener(@handle, user_func, ptr)
+      res = Babeltrace2.bt_trace_class_add_destruction_listener(@handle, user_func, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_TRACE_CLASS_ADD_LISTENER_STATUS_OK
       listener_id = ptr.read_uint64
-      h = @@callbacks[id][:destruction_listener_funcs]
+      h = BT2._callbacks[id][:destruction_listener_funcs]
       if h.nil?
         h = {}
-        @@callbacks[id][:destruction_listener_funcs] = h
+        BT2._callbacks[id][:destruction_listener_funcs] = h
       end
-      h[listener_id] = user_func
+      h[listener_id] = [user_func, user_data]
       listener_id
     end
 
     def remove_destruction_listener(listener_id)
       res = Babeltrace2.bt_trace_class_remove_destruction_listener(@handle, listener_id)
       raise Babeltrace2.process_error(res) if res != :BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_OK
-      @@callbacks[@handle.to_i][:destruction_listener_funcs].delete(listener_id)
+      BT2._callbacks[@handle.to_i][:destruction_listener_funcs].delete(listener_id)
       self
     end
   end

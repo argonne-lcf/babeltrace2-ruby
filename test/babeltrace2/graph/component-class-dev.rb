@@ -44,7 +44,15 @@ class BTComponentClassDevTest < Minitest::Test
     description_text = "Description text."
 
     comp_initialize_method = lambda { |self_component, configuration, params, data|
-      self_component.add_output_port("p0")
+      assert_instance_of(BT2::BTSelfComponentSource, self_component)
+      assert_instance_of(BT2::BTSelfComponentSourceConfiguration, configuration)
+      assert_equal([], self_component.output_ports)
+      p = self_component.add_output_port("p0")
+      assert_instance_of(BT2::BTSelfComponentPortOutput, p)
+      assert_equal(p, self_component.output_port(0))
+      assert_equal(p, self_component.output_port("p0"))
+      assert_equal(self_component, p.component)
+      assert_instance_of(BT2::BTSelfComponentSource, p.component)
       trace_class = BT2::BTTraceClass.new(self_component: self_component)
       stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
       trace = BT2::BTTrace.new(trace_class: trace_class)
@@ -233,8 +241,20 @@ class BTComponentClassDevTest < Minitest::Test
     }
 
     comp_filter_initialize_method = lambda { |self_component, configuration, params, data|
-      self_component.add_input_port("fi0")
-      self_component.add_output_port("fo0")
+      assert_instance_of(BT2::BTSelfComponentFilter, self_component)
+      assert_instance_of(BT2::BTSelfComponentFilterConfiguration, configuration)
+      p = self_component.add_input_port("fi0")
+      assert_instance_of(BT2::BTSelfComponentPortInput, p)
+      assert_equal(p, self_component.input_port(0))
+      assert_equal(p, self_component.input_port("fi0"))
+      assert_equal(self_component, p.component)
+      assert_instance_of(BT2::BTSelfComponentFilter, p.component)
+      p = self_component.add_output_port("fo0")
+      assert_instance_of(BT2::BTSelfComponentPortOutput, p)
+      assert_equal(p, self_component.output_port(0))
+      assert_equal(p, self_component.output_port("fo0"))
+      assert_equal(self_component, p.component)
+      assert_instance_of(BT2::BTSelfComponentFilter, p.component)
     }
 
     iter_class = BT2::BTMessageIteratorClass.new(next_method: next_method)
@@ -347,7 +367,14 @@ class BTComponentClassDevTest < Minitest::Test
     ini_done = true
     comp_sink_initialize_method = lambda { |self_component, configuration, params, data|
       assert_instance_of(BT2::BTSelfComponentSink, self_component)
-      self_component.add_input_port("in0")
+      assert_instance_of(BT2::BTSelfComponentSinkConfiguration, configuration)
+      refute(self_component.interrupted?)
+      p = self_component.add_input_port("in0")
+      assert_instance_of(BT2::BTSelfComponentPortInput, p)
+      assert_equal(p, self_component.input_port(0))
+      assert_equal(p, self_component.input_port("in0"))
+      assert_equal(self_component, p.component)
+      assert_instance_of(BT2::BTSelfComponentSink, p.component)
     }
 
     config_done = true

@@ -31,7 +31,8 @@ module Babeltrace2
   def self._wrap_component_class_sink_consume_method(method)
     lambda { |self_component|
       begin
-        method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
+        method.call(BTSelfComponentSink.new(self_component,
+                                            retain: false, auto_release: false))
         :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK
       rescue StopIteration
         :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END
@@ -102,10 +103,11 @@ module Babeltrace2
     method_wrapper = lambda { |self_component_class, params, initialize_method_data, logging_level, supported_versions|
       begin
         method.call(component_class_class.new(self_component_class,
-                                              retain: false, auto_release: false),
-                    BTValue.from_handle(params),
+                      retain: false, auto_release: false),
+                    BTValue.from_handle(params, retain: false, auto_release: false),
                     initialize_method_data, logging_level,
-                    BTIntergerRangeSetUnsigned.new(supported_versions, retain: true))
+                    BTIntergerRangeSetUnsigned.new(supported_versions,
+                      retain: false, auto_release: false))
         :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: self_component_class)
@@ -143,7 +145,8 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_component|
       begin
-        method.call(BTSelfComponentSink.new(self_component, retain: false, auto_release: false))
+        method.call(BTSelfComponentSink.new(self_component,
+                      retain: false, auto_release: false))
         :BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: self_component)
@@ -189,9 +192,9 @@ module Babeltrace2
     method_wrapper = lambda { |self_component, configuration, params, initialize_method_data|
       begin
         method.call(component_class.new(self_component,
-                                        retain: false, auto_release: false),
+                      retain: false, auto_release: false),
                     component_configuration_class.new(configuration),
-                    BTValue.from_handle(params),
+                    BTValue.from_handle(params, retain: false, auto_release: false),
                     initialize_method_data)
         :BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK
       rescue => e
@@ -232,10 +235,11 @@ module Babeltrace2
     method_wrapper = lambda { |self_component, self_port, other_port|
       begin
         method.call(self_component_class.new(self_component,
-                                             retain: false, auto_release: false),
+                      retain: false, auto_release: false),
                     self_component_port_class.new(self_port,
-                                                  retain: false, auto_release: false),
-                    port_class.new(other_port))
+                      retain: false, auto_release: false),
+                    port_class.new(other_port,
+                      retain: false, auto_release: false))
         :BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: self_component)
@@ -315,9 +319,11 @@ module Babeltrace2
     method_wrapper = lambda { |self_component_class, query_executor, object_name, params, method_data, result|
       begin
         rvalue = method.call(component_class_class.new(self_component_class,
-                                                       retain: false, auto_release: false),
-                              BTPrivateQueryExecutor.new(query_executor),
-                              object_name, BTValue.from_handle(params), method_data)
+                                retain: false, auto_release: false),
+                              BTPrivateQueryExecutor.new(query_executor,
+                                retain: false, auto_release: false),
+                              object_name, BTValue.from_handle(params,
+                                retain: false, auto_release: false), method_data)
         unless rvalue.nil?
           rvalue = BTValue.from_value(rvalue)
           bt_value_get_ref(rvalue.handle)
@@ -368,7 +374,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_component_class_source_create(
           name, message_iterator_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -388,7 +394,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_component_class_filter_create(
           name, message_iterator_class)
         raise Babeltrace2.process_error if handle.null?
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end
@@ -410,7 +416,7 @@ module Babeltrace2
           name, consume_method)
         raise Babeltrace2.process_error if handle.null?
         Babeltrace2._callbacks[handle.to_i][:consume_method] = consume_method
-        super(handle)
+        super(handle, retain: false)
       end
     end
   end

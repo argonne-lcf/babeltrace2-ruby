@@ -24,7 +24,8 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, can_seek_beginning|
       begin
-        csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+        csb = method.call(BTSelfMessageIterator.new(self_message_iterator,
+                            retain: false, auto_release: false))
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
       rescue => e
@@ -60,7 +61,8 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, ns_from_origin, can_seek_beginning|
       begin
-        csb = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
+        csb = method.call(BTSelfMessageIterator.new(self_message_iterator,
+                            retain: false, auto_release: false), ns_from_origin)
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
       rescue => e
@@ -80,7 +82,8 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator|
       begin
-        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+        method.call(BTSelfMessageIterator.new(self_message_iterator,
+                            retain: false, auto_release: false))
       rescue => e
         puts e
       end
@@ -111,9 +114,11 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, configuration, port|
       begin
-        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
+        method.call(BTSelfMessageIterator.new(self_message_iterator,
+                      retain: false, auto_release: false),
                     BTSelfMessageIteratorConfiguration.new(configuration),
-                    BTSelfComponentPortOutput.new(port))
+                    BTSelfComponentPortOutput.new(port,
+                      retain: false, auto_release: false))
         :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
@@ -151,7 +156,8 @@ module Babeltrace2
   def self._wrap_message_iterator_class_next_method(method)
     lambda { |self_message_iterator, messages, capacity, count|
       begin
-        mess = method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true),
+        mess = method.call(BTSelfMessageIterator.new(self_message_iterator,
+                             retain: false, auto_release: false),
                            capacity)
         if mess.size < capacity
           mess.each { |m| bt_message_get_ref(m.handle) }
@@ -194,7 +200,8 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator|
       begin
-        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true))
+        method.call(BTSelfMessageIterator.new(self_message_iterator,
+                      retain: false, auto_release: false))
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
@@ -229,7 +236,8 @@ module Babeltrace2
     id = handle.to_i
     method_wrapper = lambda { |self_message_iterator, ns_from_origin|
       begin
-        method.call(BTSelfMessageIterator.new(self_message_iterator, retain: true), ns_from_origin)
+        method.call(BTSelfMessageIterator.new(self_message_iterator,
+          retain: false, auto_release: false), ns_from_origin)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
       rescue => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
@@ -301,7 +309,7 @@ module Babeltrace2
         handle = Babeltrace2.bt_message_iterator_class_create(next_method)
         raise Babeltrace2.process_error if handle.null?
         Babeltrace2._callbacks[handle.to_i][:next_method] = next_method
-        super(handle)
+        super(handle, retain: false)
       end
     end
 

@@ -569,6 +569,10 @@ module Babeltrace2
     def to_ptr
       @handle
     end
+
+    def ==(other)
+      @handle == other.handle
+    end
   end
 
   class BTSharedObject < BTObject

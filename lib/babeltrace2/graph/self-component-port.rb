@@ -19,6 +19,7 @@ module Babeltrace2
       def get_data
         Babeltrace2.bt_self_component_port_get_data(@handle)
       end
+      alias data get_data
     end
   end
 

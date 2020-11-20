@@ -208,8 +208,10 @@ module Babeltrace2
       end
 
       def get_default_clock_snapshot
-        handle = Babeltrace2.bt_message_stream_end_borrow_default_clock_snapshot_const(@handle)
-        BTClockSnapshot.new(handle)
+        ptr = FFI::MemoryPointer.new(:pointer)
+        res = Babeltrace2.bt_message_stream_end_borrow_default_clock_snapshot_const(@handle, ptr)
+        return nil if res == :BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN
+        BTClockSnapshot.new(BTClockSnapshotHandle.new(ptr.read_pointer))
       end
       alias default_clock_snapshot get_default_clock_snapshot
 
