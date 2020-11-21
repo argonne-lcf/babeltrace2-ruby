@@ -150,6 +150,7 @@ module Babeltrace2
       Babeltrace2.bt_clock_class_get_offset(@handle, ptr1, ptr2)
       [ptr1.read_int64, ptr2.read_uint64]
     end
+    alias offset get_offset
 
     def set_precision(precision)
       Babeltrace2.bt_clock_class_set_precision(@handle, precision)
@@ -205,8 +206,7 @@ module Babeltrace2
     end
 
     def description=(description)
-      res = Babeltrace2.bt_clock_class_set_description(@handle, description)
-      raise Babeltrace2.process_error(res) if res != :BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_OK
+      set_description(description)
       description
     end
 
@@ -226,7 +226,9 @@ module Babeltrace2
     end
 
     def get_uuid
-      Babeltrace2.bt_clock_class_get_uuid(@handle)
+      uuid = Babeltrace2.bt_clock_class_get_uuid(@handle)
+      return nil if uuid.null?
+      uuid
     end
     alias uuid get_uuid
 

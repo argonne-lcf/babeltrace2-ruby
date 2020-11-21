@@ -65,13 +65,13 @@ class BTTraceTest < Minitest::Test
       assert_equal(TRACE_UUID, trace.uuid.to_s)
       assert_equal({}, trace.environment)
       trace.environment = { "foo" => 1, "bar" => "baz" }
-      assert_equal({}, trace.user_attributes.value)
       assert_equal({ "foo" => 1, "bar" => "baz" }, trace.environment)
       assert_nil(trace.get_environement_entry_by_index(2))
       entry = trace.get_environement_entry_by_index(1)
       assert_equal(["bar", "baz"], [entry[0], entry[1].value])
       assert_equal(1, trace.get_environment_entry_value_by_name("foo").value)
       assert_nil(trace.get_environment_entry_value_by_name("baz"))
+      assert_equal({}, trace.user_attributes.value)
       trace.user_attributes = { "foo" => 15 }
       assert_equal({ "foo" => 15 }, trace.user_attributes.value)
       trace.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xdeadbeef))
