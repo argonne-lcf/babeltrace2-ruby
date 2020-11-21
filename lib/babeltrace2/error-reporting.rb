@@ -336,7 +336,7 @@ module Babeltrace2
       return [klass, message, backtrace] if cs.empty?
       c = cs.first
       mess = c.message
-      m = mess.match(/ ::(.*): (.*)/)
+      m = mess.match(/ ::(.*?): (.*)/)
       if m
         klass = m[1]
         message = m[2]
