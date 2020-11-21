@@ -1,6 +1,6 @@
 class BTStreamTest < Minitest::Test
 
-  def test_trace_class
+  def test_stream
     stream_beginning_count = 0
     stream_end_count = 0
     consume = lambda { |iterator, _|

@@ -1,5 +1,5 @@
 class BTClockClassTest < Minitest::Test
-  def test_trace_class
+  def test_clock_class
     stream_beginning_count = 0
     stream_end_count = 0
     consume = lambda { |iterator, _|
