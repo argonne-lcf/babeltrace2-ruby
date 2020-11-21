@@ -359,35 +359,54 @@ module Babeltrace2
     end
   end
 
+  def self.stack_error(source, message, absolute_path, lineno)
+    case source
+    when BTSelfComponent, BTSelfComponentHandle
+      BTCurrentThread::Error.append_cause_from_component(
+        source, message, file_name: absolute_path, line_number: lineno)
+    when BTSelfComponentClass, BTSelfComponentClassHandle
+      BTCurrentThread::Error.append_cause_from_component_class(
+        source, message, file_name: absolute_path, line_number: lineno)
+    when BTSelfMessageIterator, BTSelfMessageIteratorHandle
+      BTCurrentThread::Error.append_cause_from_message_iterator(
+        source, message, file_name: absolute_path, line_number: lineno)
+    else
+      BTCurrentThread::Error.append_cause_from_unknown(
+        "babeltrace2-ruby", message, file_name: absolute_path, line_number: lineno)
+    end
+  end
+
   def self.stack_ruby_error(err, source: nil)
     mess = "#{err.class}: #{err.message}"
-    err.backtrace_locations.each { |loc|
-      lineno = loc.lineno
-      absolute_path = loc.absolute_path
-      label = loc.label
-      message = ""
-      if label
-        message << ":in `" << label << "'"
-      else
-        message << "."
-      end
-      message << " :: " << mess if mess
-      case source
-      when BTSelfComponent, BTSelfComponentHandle
-        BTCurrentThread::Error.append_cause_from_component(
-          source, message, file_name: absolute_path, line_number: lineno)
-      when BTSelfComponentClass, BTSelfComponentClassHandle
-        BTCurrentThread::Error.append_cause_from_component_class(
-          source, message, file_name: absolute_path, line_number: lineno)
-      when BTSelfMessageIterator, BTSelfMessageIteratorHandle
-        BTCurrentThread::Error.append_cause_from_message_iterator(
-          source, message, file_name: absolute_path, line_number: lineno)
-      else
-        BTCurrentThread::Error.append_cause_from_unknown(
-          "babeltrace2-ruby", message, file_name: absolute_path, line_number: lineno)
-      end
-      mess = nil
-    }
+    backtrace_locations = err.backtrace_locations
+    if backtrace_locations
+      err.backtrace_locations.each { |loc|
+        lineno = loc.lineno
+        absolute_path = loc.absolute_path
+        label = loc.label
+        message = ""
+        if label
+          message << ":in `" << label << "'"
+        else
+          message << "."
+        end
+        message << " :: " << mess if mess
+        stack_error(source, message, absolute_path, lineno)
+        mess = nil
+      }
+    else
+      err.backtrace.each { |loc|
+        m = loc.match(/(.*?):(\d*)([\.:].*)/)
+        if m
+          absolute_path = m[1]
+          lineno = m[2].to_i
+          message = m[3]
+          message << " :: " << mess if mess
+          stack_error(source, message, absolute_path, lineno)
+          mess = nil
+        end
+      }
+    end
   end
 
   def self.process_error(code = :BT_FUNC_STATUS_MEMORY_ERROR)
