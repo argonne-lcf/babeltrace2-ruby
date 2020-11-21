@@ -260,6 +260,7 @@ module Babeltrace2
   class BTFieldClass::Integer < BTFieldClass
 
     def set_field_value_range(n)
+      raise "invalid range" if n < 0 || n > 63
       Babeltrace2.bt_field_class_integer_set_field_value_range(@handle, n)
       self
     end
@@ -281,6 +282,20 @@ module Babeltrace2
     end
 
     def preferred_display_base=(preferred_display_base)
+      if preferred_display_base.kind_of?(Integer)
+        preferred_display_base = case preferred_display_base
+          when 2
+            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY
+          when 8
+            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL
+          when 10
+            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
+          when 16
+            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL
+          else
+            raise "unsupported display base"
+          end
+      end
       set_preferred_display_base(preferred_display_base)
       preferred_display_base
     end
@@ -289,6 +304,21 @@ module Babeltrace2
       Babeltrace2.bt_field_class_integer_get_preferred_display_base(@handle)
     end
     alias preferred_display_base get_preferred_display_base
+
+    def preferred_display_base_integer
+      case preferred_display_base
+      when :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY
+        2
+      when :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL
+        8
+      when :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
+        10
+      when :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL
+        16
+      else
+        preferred_display_base
+      end
+    end
   end
   BTFieldClassInteger = BTFieldClass::Integer
 
@@ -334,7 +364,7 @@ module Babeltrace2
   BTFieldClassIntegerSigned = BTFieldClass::Integer::Signed
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_SIGNED_INTEGER] = [
     BTFieldClassIntegerSignedHandle,
-    BTFieldClassIntegerUnsigned ]
+    BTFieldClassIntegerSigned ]
 
   class BTFieldClass::Real < BTFieldClass
   end
@@ -420,10 +450,26 @@ module Babeltrace2
     alias mapping_count get_mapping_count
     alias size get_mapping_count
 
+    def get_mapping(map)
+      case map
+      when Integer
+        get_mapping_by_index(map)
+      when String, Symbol
+        get_mapping_by_label(map)
+      else
+        raise "unsupported mapping query"
+      end
+    end
+    alias mapping get_mapping
+
     class Mapping < BTObject
       def get_label
         label = Babeltrace2.bt_field_class_enumeration_mapping_get_label(@handle)
-        label.sub(/^:/, "").to_sym if label.match(/^:/)
+        if label.match(/^:/)
+          label.sub(/^:/, "").to_sym
+        else
+          label
+        end
       end
       alias label get_label
     end
@@ -468,7 +514,8 @@ module Babeltrace2
       alias ranges get_ranges
     end
 
-    def initialize(handle = nil, retain: true, auto_release: true)
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
       else
@@ -479,7 +526,7 @@ module Babeltrace2
     end
 
     def add_mapping(label, ranges)
-      label = ":#{label}" if label.kind_of?(Symbol)
+      label = label.inspect if label.kind_of?(Symbol)
       ranges = BTIntegerRangeSetUnsigned.from_value(ranges)
       res = Babeltrace2.bt_field_class_enumeration_unsigned_add_mapping(
               @handle, label, ranges)
@@ -496,10 +543,10 @@ module Babeltrace2
     end
 
     def get_mapping_by_label(label)
-      label = ":#{label}" if label.kind_of?(Symbol)
+      label = label.inspect if label.kind_of?(Symbol)
       handle =
         Babeltrace2.bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
-          @handle, index)
+          @handle, label)
       BTFieldClassEnumerationUnsignedMapping.new(handle)
     end
 
@@ -510,8 +557,12 @@ module Babeltrace2
               @handle, value, ptr1, ptr2)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_OK
       count = ptr2.read_uint64
-      ptr1.read_array_of_pointer(count).collect(&:read_string)
+      return [] if count == 0
+      ptr1 = ptr1.read_pointer
+      ptr1.read_array_of_pointer(count).collect(&:read_string).collect { |v|
+        v.match(/^:/) ? v.sub(/^:/, "").to_sym : v }
     end
+    alias mapping_labels_for_value get_mapping_labels_for_value
   end
   BTFieldClassEnumerationUnsigned = BTFieldClass::Enumeration::Unsigned
   BTFieldClassEnumerationUnsignedMapping = BTFieldClass::Enumeration::Unsigned::Mapping
@@ -556,7 +607,8 @@ module Babeltrace2
       alias ranges get_ranges
     end
 
-    def initialize(handle = nil, retain: true, auto_release: true)
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   trace_class: nil)
       if handle
         super(handle, retain: retain, auto_release: auto_release)
       else
@@ -567,7 +619,7 @@ module Babeltrace2
     end
 
     def add_mapping(label, ranges)
-      label = ":#{label}" if label.kind_of?(Symbol)
+      label = label.inspect if label.kind_of?(Symbol)
       ranges = BTIntegerRangeSetSigned.from_value(ranges)
       res = Babeltrace2.bt_field_class_enumeration_signed_add_mapping(
               @handle, label, ranges)
@@ -584,10 +636,10 @@ module Babeltrace2
     end
 
     def get_mapping_by_label(label)
-      label = ":#{label}" if label.kind_of?(Symbol)
+      label = label.inspect if label.kind_of?(Symbol)
       handle =
         Babeltrace2.bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
-          @handle, index)
+          @handle, label)
       BTFieldClassEnumerationSignedMapping.new(handle)
     end
 
@@ -598,8 +650,12 @@ module Babeltrace2
               @handle, value, ptr1, ptr2)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_OK
       count = ptr2.read_uint64
-      ptr1.read_array_of_pointer(count).collect(&:read_string)
+      return [] if count == 0
+      ptr1 = ptr1.read_pointer
+      ptr1.read_array_of_pointer(count).collect(&:read_string).collect { |v|
+        v.match(/^:/) ? v.sub(/^:/, "").to_sym : v }
     end
+    alias mapping_labels_for_value get_mapping_labels_for_value
   end
   BTFieldClassEnumerationSigned = BTFieldClass::Enumeration::Signed
   BTFieldClassEnumerationSignedMapping = BTFieldClass::Enumeration::Signed::Mapping
@@ -689,7 +745,6 @@ module Babeltrace2
   class BTFieldClass::Array::Dynamic < BTFieldClass::Array
     module WithLengthField
       def get_length_field_path
-        return nil unless type?(:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD)
         handle = Babeltrace2.bt_field_class_array_dynamic_with_length_field_borrow_length_field_path(@handle)
         return nil if handle.null?
         BTFieldPath.new(handle, retain: true)
@@ -712,6 +767,7 @@ module Babeltrace2
     end
   end
   BTFieldClassArrayDynamic = BTFieldClass::Array::Dynamic
+  BTFieldClassArrayDynamicWithLengthField = BTFieldClass::Array::Dynamic::WithLengthField
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD] = [
     BTFieldClassArrayDynamicHandle,
     BTFieldClassArrayDynamic ]
@@ -784,7 +840,7 @@ module Babeltrace2
     class Member < BTObject
       def get_name
         name = Babeltrace2.bt_field_class_structure_member_get_name(@handle)
-        name = name.sub(/^:/, "").to_sym if name.match(/^:/)
+        name.match(/^:/) ? name.sub(/^:/, "").to_sym : name
       end
       alias name get_name
 
@@ -822,7 +878,7 @@ module Babeltrace2
     end
 
     def append_member(name, member_field_class)
-      name = ":#{name}" if name.kind_of?(Symbol)
+      name = name.inspect if name.kind_of?(Symbol)
       res = Babeltrace2.bt_field_class_structure_append_member(
               @handle, name, member_field_class)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK
@@ -841,7 +897,7 @@ module Babeltrace2
     end
 
     def get_member_by_name(name)
-      name = ":#{name}" if name.kind_of?(Symbol)
+      name = name.inspect if name.kind_of?(Symbol)
       handle = Babeltrace2.bt_field_class_structure_borrow_member_by_name(@handle, name)
       return nil if handle.null?
       BTFieldClassStructureMember.new(handle)
@@ -849,9 +905,9 @@ module Babeltrace2
 
     def get_member(member)
       case member
-      when String
+      when ::String, ::Symbol
         get_member_by_name(member)
-      when Integer
+      when ::Integer
         get_member_by_index(member)
       else
         raise TypeError, "wrong type for member query"
@@ -946,7 +1002,7 @@ module Babeltrace2
 
     def set_selector_is_reversed(selector_is_reversed)
       Babeltrace2.bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
-        @handle, selector_is_reversed)
+        @handle, selector_is_reversed ? BT_TRUE : BT_FALSE)
       self
     end
 
@@ -994,7 +1050,7 @@ module Babeltrace2
     def get_selector_ranges
       BTIntegerRangeSetUnsigned.new(
         Babeltrace2.bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(
-          @hanlde), retain: true)
+          @handle), retain: true)
     end
     alias selector_ranges get_selector_ranges
   end
@@ -1031,7 +1087,7 @@ module Babeltrace2
     def get_selector_ranges
       BTIntegerRangeSetSigned.new(
         Babeltrace2.bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(
-          @hanlde), retain: true)
+          @handle), retain: true)
     end
     alias selector_ranges get_selector_ranges
   end
@@ -1092,7 +1148,8 @@ module Babeltrace2
   class BTFieldClass::Variant < BTFieldClass
     class Option < BTObject
       def get_name
-        Babeltrace2.bt_field_class_variant_option_get_name(@handle)
+        name = Babeltrace2.bt_field_class_variant_option_get_name(@handle)
+        name.match(/^:/) ? name.sub(/^:/, "").to_sym : name
       end
       alias name get_name
 
@@ -1100,6 +1157,7 @@ module Babeltrace2
         BTFieldClass.from_handle(
           Babeltrace2.bt_field_class_variant_option_borrow_field_class(@handle))
       end
+      alias field_class get_field_class
 
       def set_user_attributes(user_attributes)
         Babeltrace2.bt_field_class_variant_option_set_user_attributes(@handle,
@@ -1187,7 +1245,7 @@ module Babeltrace2
     module WithoutSelectorField
       AppendOptionStatus = BTFieldClassVariantWithoutSelectorAppendOptionStatus
       def append_option(name, option_field_class)
-        name = ":#{name}" if name.kind_of?(Symbol)
+        name = name.inspect if name.kind_of?(Symbol)
         res = Babeltrace2.bt_field_class_variant_without_selector_append_option(
                 @handle, name, option_field_class)
         raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
@@ -1201,6 +1259,7 @@ module Babeltrace2
         return nil if handle.null?
         BTFieldPath.new(handle, retain: true)
       end
+      alias selector_field_path get_selector_field_path
       module IntegerUnsigned
         class Option < BTFieldClassVariantOption
          def get_ranges
@@ -1212,9 +1271,10 @@ module Babeltrace2
         end
         include WithSelectorField
         def append_option(name, option_field_class, ranges)
+          name = name.inspect if name.kind_of?(Symbol)
           ranges = BTIntegerRangeSetUnsigned.from_value(ranges)
           res = Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
-                     name, option_field_class, ranges)
+                  @handle, name, option_field_class, ranges)
           raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
           self
         end
@@ -1227,6 +1287,7 @@ module Babeltrace2
         end
 
         def get_option_by_name(name)
+          name = name.inspect if name.kind_of?(Symbol)
           handle = Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const(@handle, name)
           return nil if handle.null?
           BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption.new(handle)
@@ -1243,9 +1304,10 @@ module Babeltrace2
         end
         include WithSelectorField
         def append_option(name, option_field_class, ranges)
+          name = name.inspect if name.kind_of?(Symbol)
           ranges = BTIntegerRangeSetSigned.from_value(ranges)
           res = Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_append_option(
-                     name, option_field_class, ranges)
+                  @handle, name, option_field_class, ranges)
           raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
           self
         end
@@ -1257,6 +1319,7 @@ module Babeltrace2
         end
 
         def get_option_by_name(name)
+          name = name.inspect if name.kind_of?(Symbol)
           handle = Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_const(@handle, name)
           return nil if handle.null?
           BTFieldClassVariantWithSelectorFieldIntegerSignedOption.new(handle)
@@ -1307,6 +1370,7 @@ module Babeltrace2
     end
 
     def get_option_by_name(name)
+      name = name.inspect if name.kind_of?(Symbol)
       handle = Babeltrace2.bt_field_class_variant_borrow_option_by_name(@handle, name)
       return nil if handle.null?
       BTFieldClassVariantOption.new(handle)
@@ -1314,9 +1378,9 @@ module Babeltrace2
 
     def get_option(option)
       case option
-      when String
+      when ::String, Symbol
         get_option_by_name(option)
-      when Integer
+      when ::Integer
         get_option_by_index(option)
       else
         raise TypeError, "wrong type for option query"
@@ -1325,8 +1389,16 @@ module Babeltrace2
     alias [] get_option
 
   end
-  BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption = BTFieldClass::Variant::WithSelectorField::IntegerUnsigned::Option
-  BTFieldClassVariantWithSelectorFieldIntegerSignedOption = BTFieldClass::Variant::WithSelectorField::IntegerSigned::Option
+  BTFieldClassVariantWithoutSelectorField =
+    BTFieldClass::Variant::WithoutSelectorField
+  BTFieldClassVariantWithSelectorFieldIntegerUnsigned =
+    BTFieldClass::Variant::WithSelectorField::IntegerUnsigned
+  BTFieldClassVariantWithSelectorFieldIntegerSigned =
+    BTFieldClass::Variant::WithSelectorField::IntegerSigned
+  BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption =
+    BTFieldClass::Variant::WithSelectorField::IntegerUnsigned::Option
+  BTFieldClassVariantWithSelectorFieldIntegerSignedOption =
+    BTFieldClass::Variant::WithSelectorField::IntegerSigned::Option
   BTFieldClassVariant = BTFieldClass::Variant
   vcls = [ 
     BTFieldClassVariantHandle,
