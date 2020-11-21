@@ -121,7 +121,7 @@ module Babeltrace2
 
     def is_equal(other)
       other = BTValue.from_value(other)
-      Babeltrace2.bt_value_is_equal(@handle, other) == BT_FALSE ? false : true
+      Babeltrace2.bt_value_is_equal(@handle, other) != BT_FALSE
     end
     alias == is_equal
   end
@@ -185,7 +185,7 @@ module Babeltrace2
       end
 
       def get
-        Babeltrace2.bt_value_bool_get(@handle) == BT_FALSE ? false : true
+        Babeltrace2.bt_value_bool_get(@handle) != BT_FALSE
       end
       alias value get
     end
@@ -810,7 +810,7 @@ module Babeltrace2
 
       def has_entry(key)
         key = ":#{key}" if key.kind_of?(Symbol)
-        Babeltrace2.bt_value_map_has_entry(@handle, key) == BT_FALSE ? false : true
+        Babeltrace2.bt_value_map_has_entry(@handle, key) != BT_FALSE
       end
       alias include? has_entry
 

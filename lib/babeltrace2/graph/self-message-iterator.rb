@@ -49,7 +49,7 @@ module Babeltrace2
     alias data get_data
 
     def is_interrupted
-      Babeltrace2.bt_self_message_iterator_is_interrupted(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_self_message_iterator_is_interrupted(@handle) != BT_FALSE
     end
     alias interrupted? is_interrupted
   end

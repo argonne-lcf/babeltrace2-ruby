@@ -139,8 +139,7 @@ module Babeltrace2
     end
 
     def assigns_automatic_stream_class_id
-      Babeltrace2.bt_trace_class_assigns_automatic_stream_class_id(@handle) == BT_FALSE ?
-        false : true
+      Babeltrace2.bt_trace_class_assigns_automatic_stream_class_id(@handle) != BT_FALSE
     end
     alias assigns_automatic_stream_class_id? assigns_automatic_stream_class_id
 

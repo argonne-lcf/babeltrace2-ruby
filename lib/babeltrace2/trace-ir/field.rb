@@ -51,7 +51,7 @@ module Babeltrace2
     end
 
     def get_value
-      Babeltrace2.bt_field_bool_get_value(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_field_bool_get_value(@handle) != BT_FALSE
     end
     alias value get_value
   end

@@ -88,7 +88,7 @@ module Babeltrace2
     alias name get_name
 
     def is_connected
-      Babeltrace2.bt_port_is_connected(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_port_is_connected(@handle) != BT_FALSE
     end
     alias connected? is_connected
   end

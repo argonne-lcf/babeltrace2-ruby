@@ -234,7 +234,7 @@ module Babeltrace2
     end
 
     def is_interrupted
-      Babeltrace2.bt_self_component_sink_is_interrupted(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_self_component_sink_is_interrupted(@handle) != BT_FALSE
     end
     alias interrupted? is_interrupted
 

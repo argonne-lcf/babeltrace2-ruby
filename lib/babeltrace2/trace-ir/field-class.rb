@@ -957,7 +957,7 @@ module Babeltrace2
 
     def selector_is_reversed
       Babeltrace2.bt_field_class_option_with_selector_field_bool_selector_is_reversed(
-        @handle) == BT_FALSE ? false : true
+        @handle) != BT_FALSE
     end
     alias selector_is_reversed? selector_is_reversed
   end

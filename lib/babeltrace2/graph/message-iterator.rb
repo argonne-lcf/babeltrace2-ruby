@@ -213,7 +213,7 @@ module Babeltrace2
         sleep BT_SLEEP_TIME
       end
       raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_STATUS_OK
-      ptr.read_int == BT_FALSE ? false : true
+      ptr.read_int != BT_FALSE
     end
     alias can_seek_beginning? can_seek_beginning
 
@@ -232,7 +232,7 @@ module Babeltrace2
         sleep BT_SLEEP_TIME
       end
       raise Babeltrace2.process_error(res) if res != :BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_OK
-      ptr.read_int == BT_FALSE ? false : true
+      ptr.read_int != BT_FALSE
     end
     alias can_seek_ns_from_origin? can_seek_ns_from_origin
 
@@ -246,7 +246,7 @@ module Babeltrace2
     end
 
     def can_seek_forward
-      Babeltrace2.bt_message_iterator_can_seek_forward(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_message_iterator_can_seek_forward(@handle) != BT_FALSE
     end
     alias can_seek_forward? can_seek_forward
   end

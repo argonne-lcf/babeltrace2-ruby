@@ -49,7 +49,7 @@ module Babeltrace2
     alias reset! reset
 
     def is_set
-      Babeltrace2.bt_interrupter_is_set(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_interrupter_is_set(@handle) != BT_FALSE
     end
     alias set? is_set
   end

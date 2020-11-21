@@ -32,7 +32,7 @@ module Babeltrace2
     alias max get_upper
 
     def is_equal(other)
-      Babeltrace2.bt_integer_range_unsigned_is_equal(other) == BT_FALSE ? false : true
+      Babeltrace2.bt_integer_range_unsigned_is_equal(other) != BT_FALSE
     end
     alias == is_equal
   end
@@ -61,7 +61,7 @@ module Babeltrace2
     alias upper get_upper
 
     def is_equal(other)
-      Babeltrace2.bt_integer_range_signed_is_equal(other) == BT_FALSE ? false : true
+      Babeltrace2.bt_integer_range_signed_is_equal(other) != BT_FALSE
     end
     alias == is_equal
   end
@@ -194,8 +194,7 @@ module Babeltrace2
       alias [] get_range
 
       def is_equal(other)
-        Babeltrace2.bt_integer_range_set_unsigned_is_equal(@handle, other) == BT_FALSE ?
-          false : true
+        Babeltrace2.bt_integer_range_set_unsigned_is_equal(@handle, other) != BT_FALSE
       end
       alias == is_equal
     end
@@ -258,8 +257,7 @@ module Babeltrace2
       alias [] get_range
 
       def is_equal(other)
-        Babeltrace2.bt_integer_range_set_signed_is_equal(@handle, other) == BT_FALSE ?
-          false : true
+        Babeltrace2.bt_integer_range_set_signed_is_equal(@handle, other) != BT_FALSE
       end
       alias == is_equal
     end

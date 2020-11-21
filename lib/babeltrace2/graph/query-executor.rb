@@ -134,7 +134,7 @@ module Babeltrace2
     alias default_interrupter get_default_interrupter
 
     def is_interrupted
-      Babeltrace2.bt_query_executor_is_interrupted(@handle) == BT_FALSE ? false : true
+      Babeltrace2.bt_query_executor_is_interrupted(@handle) != BT_FALSE
     end
     alias interrupted? is_interrupted
   end
