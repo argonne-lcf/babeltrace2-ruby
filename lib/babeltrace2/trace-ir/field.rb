@@ -187,7 +187,7 @@ module Babeltrace2
   class BTField::Integer::Signed < BTField::Integer
     def set_value(value)
       range = get_field_value_range
-      raise "invalid range" if (1 << range) - 1 < value || value < -(1 << range)
+      raise "invalid range" if (1 << (range-1)) - 1 < value || value < -(1 << (range-1))
       Babeltrace2.bt_field_integer_signed_set_value(@handle, value)
       self
     end
@@ -203,7 +203,7 @@ module Babeltrace2
     alias value get_value
 
     def get_twos_complement(v)
-      (((v << get_field_value_range) -1) ^ -v) + 1
+      (((1 << get_field_value_range) -1) ^ -v) + 1
     end
     private :get_twos_complement
 
