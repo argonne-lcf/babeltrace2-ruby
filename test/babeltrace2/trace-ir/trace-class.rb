@@ -54,8 +54,6 @@ class BTTraceClassTest < Minitest::Test
       assert(trace_class.assigns_automatic_stream_class_id?)
       trace_class.assigns_automatic_stream_class_id = false
       refute(trace_class.assigns_automatic_stream_class_id?)
-      trace_class.assigns_automatic_stream_class_id = true
-      assert(trace_class.assigns_automatic_stream_class_id?)
       assert_equal({}, trace_class.user_attributes.value)
       trace_class.user_attributes = { "foo" => 15 }
       assert_equal({ "foo" => 15 }, trace_class.user_attributes.value)
@@ -63,7 +61,8 @@ class BTTraceClassTest < Minitest::Test
       id = trace_class.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xbeef))
       trace_class.remove_destruction_listener(id)
       assert_equal(0, trace_class.stream_class_count)
-      stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
+      stream_class = BT2::BTStreamClass.new(trace_class: trace_class, id: 16)
+      assert_equal(16, stream_class.id)
       assert_equal(stream_class, trace_class.get_stream_class_by_index(0))
       assert_equal(stream_class, trace_class.get_stream_class_by_id(stream_class.id))
       assert_equal(1, trace_class.stream_class_count)

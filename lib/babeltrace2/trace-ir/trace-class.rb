@@ -122,9 +122,9 @@ module Babeltrace2
     end
 
     def get_stream_class_by_id(id)
-      return nil if id >= get_stream_class_count
-      BTStreamClass.new(
-        Babeltrace2.bt_trace_class_borrow_stream_class_by_id(@handle, id))
+      handle = Babeltrace2.bt_trace_class_borrow_stream_class_by_id(@handle, id)
+      return nil if handle.null?
+      BTStreamClass.new(handle, retain: true)
     end
 
     def set_assigns_automatic_stream_class_id(assigns_automatic_stream_class_id)

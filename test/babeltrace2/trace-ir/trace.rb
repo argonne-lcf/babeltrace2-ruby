@@ -51,6 +51,7 @@ class BTTraceTest < Minitest::Test
       self_component.add_output_port("p0")
       trace_class = BT2::BTTraceClass.new(self_component: self_component)
       stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
+      stream_class.assigns_automatic_stream_id = false
       trace = BT2::BTTrace.new(trace_class: trace_class)
       assert_equal(0, trace.stream_count)
       assert_nil(trace.get_stream_by_index(0))
@@ -76,7 +77,8 @@ class BTTraceTest < Minitest::Test
       trace.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xdeadbeef))
       id = trace.add_destruction_listener(dest_listen, user_data: FFI::Pointer.new(0xbeef))
       trace.remove_destruction_listener(id)
-      stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)
+      stream = BT2::BTStream.new(stream_class: stream_class, trace: trace, id: 24)
+      assert_equal(24, stream.id)
       assert_equal(1, trace.stream_count)
       assert_equal(stream, trace.get_stream_by_index(0))
       assert_equal(stream, trace.get_stream_by_id(stream.id))

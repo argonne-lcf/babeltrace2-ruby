@@ -222,9 +222,9 @@ module Babeltrace2
     end
 
     def get_event_class_by_id(id)
-      return nil if index >= event_class_count
-      BTEventClass.new(
-        Babeltrace2.bt_stream_class_borrow_event_class_by_id(@handle, id), retain: true)
+      handle = Babeltrace2.bt_stream_class_borrow_event_class_by_id(@handle, id)
+      return nil if handle.null?
+      BTEventClass.new(handle, retain: true)
     end
 
     def get_id
@@ -361,6 +361,7 @@ module Babeltrace2
     def packets_have_end_default_clock_snapshot
       Babeltrace2.bt_stream_class_packets_have_end_default_clock_snapshot(@handle) == BT_FALSE ? false : true
     end
+    alias packets_have_end_default_clock_snapshot? packets_have_end_default_clock_snapshot
 
     def set_supports_discarded_events(supports_discarded_events,
                                       with_default_clock_snapshots: false)

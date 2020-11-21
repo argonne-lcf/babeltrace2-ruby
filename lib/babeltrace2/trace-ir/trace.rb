@@ -181,9 +181,9 @@ module Babeltrace2
     end
 
     def get_stream_by_id(id)
-      return nil if id >= get_stream_count
-      BTStream.new(
-        Babeltrace2.bt_trace_borrow_stream_by_id(@handle, id), retain: true)
+      handle = Babeltrace2.bt_trace_borrow_stream_by_id(@handle, id)
+      return nil if handle.null?
+      BTStream.new(handle, retain: true)
     end
 
     def set_name(name)
