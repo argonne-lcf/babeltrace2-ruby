@@ -751,7 +751,7 @@ module Babeltrace2
       end
 
       def insert_entry(key, value)
-        key = ":#{key}" if key.kind_of?(Symbol)
+        key = key.inspect if key.kind_of?(Symbol)
         res = case value
           when BTValue
             Babeltrace2.bt_value_map_insert_entry(@handle, key, value)
@@ -809,13 +809,13 @@ module Babeltrace2
       end
 
       def has_entry(key)
-        key = ":#{key}" if key.kind_of?(Symbol)
+        key = key.inspect if key.kind_of?(Symbol)
         Babeltrace2.bt_value_map_has_entry(@handle, key) != BT_FALSE
       end
       alias include? has_entry
 
       def get_entry_value(key)
-        key = ":#{key}" if key.kind_of?(Symbol)
+        key = key.inspect if key.kind_of?(Symbol)
         handle = Babeltrace2.bt_value_map_borrow_entry_value(@handle, key)
         return nil if handle.null?
         BTValue.from_handle(handle)
@@ -825,10 +825,15 @@ module Babeltrace2
       def each(&block)
         if block_given?
           block_wrapper = lambda { |key, handle, ptr|
-            val = BTValue.from_handle(handle)
-            key = key.sub(/^:/, "").to_sym if key.match(/^:/)
-            block.call(key, val)
-            :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK
+            begin
+              val = BTValue.from_handle(handle)
+              key = key.sub(/^:/, "").to_sym if key.match(/^:/)
+              block.call(key, val)
+              :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK
+            rescue => e
+              Babeltrace2.stack_ruby_error(e, source: nil)
+              :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_ERROR
+            end
           }
           Babeltrace2.bt_value_map_foreach_entry(@handle, block_wrapper, nil)
         else
