@@ -105,7 +105,7 @@ module Babeltrace2
       begin
         method.call(BTTrace.new(trace,
                     retain: false, auto_release: false), user_data)
-      rescue => e
+      rescue Exception => e
         puts e
       end
     }

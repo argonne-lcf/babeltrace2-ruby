@@ -53,7 +53,7 @@ module Babeltrace2
       begin
         method.call(BTTraceClass.new(trace_class,
                       retain: false, auto_release: false), user_data)
-      rescue => e
+      rescue Exception => e
         puts e
       end
     }

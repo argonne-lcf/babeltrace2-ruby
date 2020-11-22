@@ -79,7 +79,7 @@ module Babeltrace2
         method.call(BTMessageIterator.new(message_iterator,
                       retain: false, auto_release: false), user_data)
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: message_iterator)
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_ERROR
       end
@@ -116,7 +116,7 @@ module Babeltrace2
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK
       rescue StopIteration
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_END
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: message_iterator)
         :BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_ERROR
       end
@@ -242,7 +242,7 @@ module Babeltrace2
                     port_class.new(port, retain: false, auto_release: false),
                     user_data)
         :BT_GRAPH_LISTENER_FUNC_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: component)
         :BT_GRAPH_LISTENER_FUNC_STATUS_ERROR
       end

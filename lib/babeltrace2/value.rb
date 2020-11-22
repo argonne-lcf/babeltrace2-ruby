@@ -830,7 +830,7 @@ module Babeltrace2
               key = key.sub(/^:/, "").to_sym if key.match(/^:/)
               block.call(key, val)
               :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK
-            rescue => e
+            rescue Exception => e
               Babeltrace2.stack_ruby_error(e, source: nil)
               :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_ERROR
             end

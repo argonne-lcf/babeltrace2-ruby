@@ -28,7 +28,7 @@ module Babeltrace2
                             retain: false, auto_release: false))
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_ERROR
       end
@@ -65,7 +65,7 @@ module Babeltrace2
                             retain: false, auto_release: false), ns_from_origin)
         can_seek_beginning.write_int(csb ? BT_TRUE : BT_FALSE)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR
       end
@@ -84,7 +84,7 @@ module Babeltrace2
       begin
         method.call(BTSelfMessageIterator.new(self_message_iterator,
                             retain: false, auto_release: false))
-      rescue => e
+      rescue Exception => e
         puts e
       end
     }
@@ -120,7 +120,7 @@ module Babeltrace2
                     BTSelfComponentPortOutput.new(port,
                       retain: false, auto_release: false))
         :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR
       end
@@ -170,7 +170,7 @@ module Babeltrace2
         end
       rescue StopIteration
         :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR
       end
@@ -203,7 +203,7 @@ module Babeltrace2
         method.call(BTSelfMessageIterator.new(self_message_iterator,
                       retain: false, auto_release: false))
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_ERROR
       end
@@ -239,7 +239,7 @@ module Babeltrace2
         method.call(BTSelfMessageIterator.new(self_message_iterator,
           retain: false, auto_release: false), ns_from_origin)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK
-      rescue => e
+      rescue Exception => e
         Babeltrace2.stack_ruby_error(e, source: self_message_iterator)
         :BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR
       end
