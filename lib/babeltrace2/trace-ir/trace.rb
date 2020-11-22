@@ -302,10 +302,10 @@ module Babeltrace2
       res = Babeltrace2.bt_trace_add_destruction_listener(@handle, user_func, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_TRACE_ADD_LISTENER_STATUS_OK
       listener_id = ptr.read_uint64
-      h = BT2._callbacks[id][:destruction_listener_funcs]
+      h = Babeltrace2._callbacks[id][:destruction_listener_funcs]
       if h.nil?
         h = {}
-        BT2._callbacks[id][:destruction_listener_funcs] = h
+        Babeltrace2._callbacks[id][:destruction_listener_funcs] = h
       end
       h[listener_id] = [user_func, user_data]
       listener_id
@@ -314,7 +314,7 @@ module Babeltrace2
     def remove_destruction_listener(listener_id)
       res = Babeltrace2.bt_trace_remove_destruction_listener(@handle, listener_id)
       raise Babeltrace2.process_error(res) if res != :BT_TRACE_REMOVE_LISTENER_STATUS_OK
-      BT2._callbacks[@handle.to_i][:destruction_listener_funcs].delete(listener_id)
+      Babeltrace2._callbacks[@handle.to_i][:destruction_listener_funcs].delete(listener_id)
       self
     end
   end

@@ -411,5 +411,9 @@ module Babeltrace2
       BTValueMap.new(Babeltrace2.bt_stream_class_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
+
+    def create_stream(trace, id: nil)
+      BTStream.new(stream_class: @handle, trace: trace, id: nil)
+    end
   end
 end

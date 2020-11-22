@@ -62,6 +62,14 @@ module Babeltrace2
       Babeltrace2.bt_self_component_get_graph_mip_version(@handle)
     end
     alias graph_mip_version get_graph_mip_version
+
+    def create_trace_class
+      BTTraceClass.new(self_component: @handle)
+    end
+
+    def create_clock_class
+      BTClockClass.new(self_component: @handle)
+    end
   end
 
   attach_function :bt_self_component_source_add_output_port,

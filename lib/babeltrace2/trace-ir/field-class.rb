@@ -884,6 +884,7 @@ module Babeltrace2
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK
       self
     end
+    alias append append_member
 
     def get_member_count
       Babeltrace2.bt_field_class_structure_get_member_count(@handle)
@@ -1251,6 +1252,7 @@ module Babeltrace2
         raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
         self
       end
+      alias append append_option
     end
     module WithSelectorField
       AppendOptionStatus = BTFieldClassVariantWithSelectorAppendOptionStatus
@@ -1278,6 +1280,7 @@ module Babeltrace2
           raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
           self
         end
+        alias append append_option
 
         def get_option_by_index(index)
           return nil if index >= get_option_count
@@ -1311,6 +1314,7 @@ module Babeltrace2
           raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK
           self
         end
+        alias append append_option
 
         def get_option_by_index(index)
           return nil if index >= get_option_count

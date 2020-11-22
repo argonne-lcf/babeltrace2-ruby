@@ -165,10 +165,10 @@ module Babeltrace2
       res = Babeltrace2.bt_trace_class_add_destruction_listener(@handle, user_func, user_data, ptr)
       raise Babeltrace2.process_error(res) if res != :BT_TRACE_CLASS_ADD_LISTENER_STATUS_OK
       listener_id = ptr.read_uint64
-      h = BT2._callbacks[id][:destruction_listener_funcs]
+      h = Babeltrace2._callbacks[id][:destruction_listener_funcs]
       if h.nil?
         h = {}
-        BT2._callbacks[id][:destruction_listener_funcs] = h
+        Babeltrace2._callbacks[id][:destruction_listener_funcs] = h
       end
       h[listener_id] = [user_func, user_data]
       listener_id
@@ -177,8 +177,165 @@ module Babeltrace2
     def remove_destruction_listener(listener_id)
       res = Babeltrace2.bt_trace_class_remove_destruction_listener(@handle, listener_id)
       raise Babeltrace2.process_error(res) if res != :BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_OK
-      BT2._callbacks[@handle.to_i][:destruction_listener_funcs].delete(listener_id)
+      Babeltrace2._callbacks[@handle.to_i][:destruction_listener_funcs].delete(listener_id)
       self
     end
+
+    def create_stream_class(id: nil)
+      BTStreamClass.new(trace_class: @handle, id: id)
+    end
+
+    def create_trace
+      BTTrace.new(trace_class: @handle)
+    end
+
+    def create_field_class_bool
+      BTFieldClassBool.new(trace_class: @handle)
+    end
+    alias create_bool_class create_field_class_bool
+    alias create_bool create_field_class_bool
+
+    def create_field_class_bit_array(length)
+      BTFieldClassBitArray.new(trace_class: @handle, length: length)
+    end
+    alias create_bit_array_class create_field_class_bit_array
+    alias create_bit_array create_field_class_bit_array
+
+    def create_field_class_integer_unsigned
+      BTFieldClassIntegerUnsigned.new(trace_class: @handle)
+    end
+    alias create_unsigned_integer_class create_field_class_integer_unsigned
+    alias create_unsigned create_field_class_integer_unsigned
+
+    def create_field_class_integer_signed
+      BTFieldClassIntegerSigned.new(trace_class: @handle)
+    end
+    alias create_signed_integer_class create_field_class_integer_signed
+    alias create_signed create_field_class_integer_signed
+
+    def create_field_class_real_single_precision
+      BTFieldClassRealSinglePrecision.new(trace_class: @handle)
+    end
+    alias create_single_precision_real_class create_field_class_real_single_precision
+    alias create_single create_field_class_real_single_precision
+
+    def create_field_class_real_double_precision
+      BTFieldClassRealSinglePrecision.new(trace_class: @handle)
+    end
+    alias create_double_precision_real_class create_field_class_real_double_precision
+    alias create_double create_field_class_real_double_precision
+
+    def create_field_class_enumeration_unsigned
+      BTFieldClassEnumerationUnsigned.new(trace_class: @handle)
+    end
+    alias create_unsigned_enumeration_class create_field_class_enumeration_unsigned
+    alias create_unsigned_enum create_field_class_enumeration_unsigned
+
+    def create_field_class_enumeration_signed
+      BTFieldClassEnumerationSigned.new(trace_class: @handle)
+    end
+    alias create_signed_enumeration_class create_field_class_enumeration_signed
+    alias create_signed_enum create_field_class_enumeration_signed
+
+    def create_field_class_string
+      BTFieldClassString.new(trace_class: @handle)
+    end
+    alias create_string_class create_field_class_string
+    alias create_string create_field_class_string
+
+    def create_field_class_array_static(element_field_class, length)
+      BTFieldClassArrayStatic.new(trace_class: @handle,
+                                  element_field_class: element_field_class,
+                                  length: length)
+    end
+    alias create_static_array_class create_field_class_array_static
+    alias create_static_array create_field_class_array_static
+
+    def create_field_class_array_dynamic(element_field_class, length_field_class: nil)
+      BTFieldClassArrayDynamic.new(trace_class: @handle,
+                                   element_field_class: element_field_class,
+                                   length_field_class: length_field_class)
+    end
+    alias create_dynamic_array_class create_field_class_array_dynamic
+    alias create_dynamic_array create_field_class_array_dynamic
+
+    def create_field_class_array(element_field_class, length: nil)
+      case length
+      when Integer
+        create_field_class_array_static(element_field_class, length)
+      when nil, BTFieldClassIntegerUnsigned
+        create_field_class_array_dynamic(element_field_class, length_field_class: length)
+      else
+        raise "invalid length type"
+      end
+    end
+    alias create_array_class create_field_class_array
+    alias create_array create_field_class_array
+
+    def create_field_class_structure
+      BTFieldClassStructure.new(trace_class: @handle)
+    end
+    alias create_structure_class create_field_class_structure
+    alias create_structure create_field_class_structure
+
+    def create_field_class_option_without_selector(optional_field_class)
+      BTFieldClassOptionWithoutSelectorField.new(
+        trace_class: @handle,
+        optional_field_class: optional_field_class)
+    end
+    alias create_option_without_selector_class create_field_class_option_without_selector
+    alias create_option_without create_field_class_option_without_selector
+
+    def create_field_class_option_with_selector_field_bool(optional_field_class, selector_field_class)
+      BTFieldClassOptionWithSelectorFieldBool.new(
+        trace_class: @handle,
+        optional_field_class: optional_field_class,
+        selector_field_class: selector_field_class)
+    end
+    alias create_option_with_bool_selector_field_class create_field_class_option_with_selector_field_bool
+    alias create_option_with_bool_selector_field create_field_class_option_with_selector_field_bool
+
+    def create_field_class_option_with_selector_field_integer_unsigned(optional_field_class, selector_field_class, ranges)
+      BTFieldClassOptionWithSelectorFieldIntegerUnsigned.new(
+        trace_class: @handle,
+        optional_field_class: optional_field_class,
+        selector_field_class: selector_field_class,
+        ranges: ranges)
+    end
+    alias create_option_with_unsigned_integer_selector_field_class create_field_class_option_with_selector_field_integer_unsigned
+    alias create_option_with_unsigned_integer_selector_field create_field_class_option_with_selector_field_integer_unsigned
+
+    def create_field_class_option_with_selector_field_integer_signed(optional_field_class, selector_field_class, ranges)
+      BTFieldClassOptionWithSelectorFieldIntegerSigned.new(
+        trace_class: @handle,
+        optional_field_class: optional_field_class,
+        selector_field_class: selector_field_class,
+        ranges: ranges)
+    end
+    alias create_option_with_signed_integer_selector_field_class create_field_class_option_with_selector_field_integer_signed
+    alias create_option_with_signed_integer_selector_field create_field_class_option_with_selector_field_integer_signed
+
+    def create_field_class_option(optional_field_class, selector_field_class: nil, ranges: nil)
+      case selector_field_class
+      when nil
+        create_field_class_option_without_selector(optional_field_class)
+      when BTFieldClassBool
+        create_field_class_option_with_selector_field_bool(optional_field_class, selector_field_class)
+      when BTFieldClassIntegerUnsigned
+        create_field_class_option_with_selector_field_integer_unsigned(optional_field_class, selector_field_class, ranges)
+      when BTFieldClassIntegerSigned
+        create_field_class_option_with_selector_field_integer_signed(optional_field_class, selector_field_class, ranges)
+      else
+        raise "invalid selector field class"
+      end
+    end
+    alias create_option_class create_field_class_option
+    alias create_option create_field_class_option
+
+    def create_field_class_variant(selector_field_class: nil)
+      BTFieldClassVariant.new(trace_class: @handle, selector_field_class: selector_field_class)
+    end
+    alias create_variant_class create_field_class_variant
+    alias create_variant create_field_class_variant
   end
 end

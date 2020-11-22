@@ -551,6 +551,7 @@ module Babeltrace2
     end
 
     def get_member_field_by_name(name)
+      name = name.inspect if name.kind_of?(Symbol)
       handle = Babeltrace2.bt_field_structure_borrow_member_field_by_name(@handle, name)
       return nil if handle.null?
       BTField.from_handle(name)
@@ -558,9 +559,9 @@ module Babeltrace2
 
     def get_member_field(member_field)
       case member_field
-      when String
+      when ::String, Symbol
         get_member_field_by_name(member_field)
-      when Integer
+      when ::Integer
         get_member_field_by_index(member_field)
       else
         raise TypeError, "wrong type for member field query"
