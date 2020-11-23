@@ -47,14 +47,16 @@ module Babeltrace2
     alias root_scope get_root_scope
 
     def get_item_count
-      Babeltrace2.bt_field_path_get_item_count(@handle)
+      @item_count ||= Babeltrace2.bt_field_path_get_item_count(@handle)
     end
     alias item_count get_item_count
     alias size get_item_count
 
     def get_item_by_index(index)
-      return nil if index >= get_item_count
-      BTFieldPathItem.new(Babeltrace2.bt_field_path_borrow_item_by_index_const(@handle))
+      index  = get_item_count + index if index < 0
+      return nil if index >= get_item_count || index < 0
+      BTFieldPathItem.new(
+        Babeltrace2.bt_field_path_borrow_item_by_index_const(@handle, index))
     end
     alias [] get_item_by_index
 
@@ -66,6 +68,22 @@ module Babeltrace2
       else
         to_enum(:each)
       end
+    end
+
+    def to_s
+      path = ""
+      path << root_scope.to_s.sub("BT_FIELD_PATH_SCOPE_","")
+      each { |e|
+        case e.type
+        when :BT_FIELD_PATH_ITEM_TYPE_INDEX
+          path << "[#{e.index}]"
+        when :BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT
+          path << "->"
+        when :BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT
+          path << "=>"
+        end
+      }
+      path
     end
   end
 
@@ -99,6 +117,7 @@ module Babeltrace2
     def get_index
       Babeltrace2.bt_field_path_item_index_get_index(@handle)
     end
+    alias index get_index
   end
   BTFieldPathItem = BTFieldPath::Item
 end

@@ -546,7 +546,9 @@ module Babeltrace2
       alias push append_element
 
       def set_element_by_index(index, value)
-        raise IndexError, "invalid index" if index < 0 || index >= length
+        l = length
+        index += l if index < 0
+        raise IndexError, "invalid index" if index < 0 || index >= l
         val = value
         val = BTValue.from_value(val) unless val.kind_of?(BTValue)
         res = Babeltrace2.bt_value_array_set_element_by_index(@handle, index, val)
@@ -555,16 +557,14 @@ module Babeltrace2
       end
 
       def []=(index, value)
-        raise IndexError, "invalid index" if index < 0 || index >= length
-        val = value
-        val = BTValue.from_value(val) unless val.kind_of?(BTValue)
-        res = Babeltrace2.bt_value_array_set_element_by_index(@handle, index, val)
-        raise Babeltrace2.process_error(res) if res != :BT_VALUE_ARRAY_SET_ELEMENT_BY_INDEX_STATUS_OK
+        set_element_by_index(index, value)
         value
       end
 
       def get_element_by_index(index)
-        raise IndexError, "invalid index" if index < 0 || index >= length
+        l = length
+        index += l if index < 0
+        raise IndexError, "invalid index" if index < 0 || index >= l
         handle = Babeltrace2.bt_value_array_borrow_element_by_index(@handle, index)
         BTValue.from_handle(handle)
       end
@@ -827,7 +827,7 @@ module Babeltrace2
           block_wrapper = lambda { |key, handle, ptr|
             begin
               val = BTValue.from_handle(handle)
-              key = key.sub(/^:/, "").to_sym if key.match(/^:/)
+              key = key[1..-1].to_sym if key[0] == ':'
               block.call(key, val)
               :BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK
             rescue Exception => e

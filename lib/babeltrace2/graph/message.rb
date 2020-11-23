@@ -361,7 +361,7 @@ module Babeltrace2
       end
 
       def get_packet
-        bt_message_packet_beginning_borrow_packet(@handle)
+        handle = Babeltrace2.bt_message_packet_beginning_borrow_packet(@handle)
         BTPacket.new(handle, retain: true, auto_release: true)
       end
       alias packet get_packet
@@ -427,7 +427,7 @@ module Babeltrace2
       end
 
       def get_packet
-        bt_message_packet_end_borrow_packet(@handle)
+        handle = Babeltrace2.bt_message_packet_end_borrow_packet(@handle)
         BTPacket.new(handle, retain: true, auto_release: true)
       end
       alias packet get_packet

@@ -102,7 +102,9 @@ module Babeltrace2
     end
 
     def get_output_port_by_index(index)
-      return nil if index >= get_output_port_count
+      count = get_output_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_self_component_source_borrow_output_port_by_index(@handle, index)
       BTSelfComponentPortOutput.new(handle, retain: false, auto_release: false)
     end
@@ -170,7 +172,9 @@ module Babeltrace2
     end
 
     def get_output_port_by_index(index)
-      return nil if index >= get_output_port_count
+      count = get_output_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_self_component_filter_borrow_output_port_by_index(@handle, index)
       BTSelfComponentPortOutput.new(handle, retain: false, auto_release: false)
     end
@@ -182,7 +186,9 @@ module Babeltrace2
     end
 
     def get_input_port_by_index(index)
-      return nil if index >= get_input_port_count
+      count = get_input_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_self_component_filter_borrow_input_port_by_index(@handle, index)
       BTSelfComponentPortInput.new(handle, retain: false, auto_release: false)
     end
@@ -230,7 +236,9 @@ module Babeltrace2
     end
 
     def get_input_port_by_index(index)
-      return nil if index >= get_input_port_count
+      count = get_input_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_self_component_sink_borrow_input_port_by_index(@handle, index)
       BTSelfComponentPortInput.new(handle, retain: false, auto_release: false)
     end

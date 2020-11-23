@@ -583,7 +583,11 @@ module Babeltrace2
       end
 
       def call(id)
-        Babeltrace2.method(@releaser).call(@handle)
+        begin
+          Babeltrace2.method(@releaser).call(@handle)
+        rescue Exception => e
+          puts e
+        end
       end
     end
     @get_ref = nil

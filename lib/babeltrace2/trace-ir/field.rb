@@ -29,6 +29,10 @@ module Babeltrace2
     def get_class
       @class ||= BTFieldClass.from_handle(Babeltrace2.bt_field_borrow_class(@handle))
     end
+
+    def to_s
+      value.to_s
+    end
   end
 
   attach_function :bt_field_bool_set_value,
@@ -41,7 +45,7 @@ module Babeltrace2
 
   class BTField::Bool < BTField
     def set_value(value)
-      Babeltrace2.bt_field_bool_set_value(value ? BT_TRUE : BT_FALSE)
+      Babeltrace2.bt_field_bool_set_value(@handle, value ? BT_TRUE : BT_FALSE)
       self
     end
 
@@ -85,21 +89,45 @@ module Babeltrace2
     alias value_as_integer get_value_as_integer
 
     def get_length
-      get_class.get_length
+      @length ||= get_class.get_length
     end
     alias length get_length
 
     def [](position)
-      raise "invalid position" if position > get_length
-      get_value_as_integer[position]
+      length = get_length
+      position += length if position < 0
+      raise "invalid position" if position >= length || position < 0
+      get_value_as_integer[position] != 0
     end
 
     def []=(position, bool)
-      raise "invalid position" if position > get_length
+      length = get_length
+      position += length if position < 0
+      raise "invalid position" if position >= length || position < 0
       v = get_value_as_integer
-      if bool then v |= (1 << position) else v ^= (1 << position) end
+      if bool then v |= (1 << position) else v &= ~(1 << position) end
       set_value_as_integer(v)
       bool
+    end
+
+    def each
+      if block_given?
+        length.times { |i|
+          yield self[i]
+        }
+      else
+        to_enum(:each)
+      end
+    end
+
+    def value
+      get_length.times.collect { |i| self[i] }
+    end
+
+    def to_s
+      s = "["
+      s << get_length.times.collect { |i| self[i] }.join(", ")
+      s << "]"
     end
   end
   BTFieldBitArray = BTField::BitArray
@@ -109,12 +137,12 @@ module Babeltrace2
 
   class BTField::Integer < BTField
     def get_field_value_range
-      get_class.get_field_value_range
+      @field_value_range ||= get_class.get_field_value_range
     end
     alias field_value_range get_field_value_range
 
     def get_preferred_display_base
-      get_class.get_preferred_display_base
+      @preferred_display_base ||= get_class.get_preferred_display_base
     end
     alias preferred_display_base get_preferred_display_base
   end
@@ -145,16 +173,6 @@ module Babeltrace2
     end
     alias value get_value
 
-    def get_field_value_range
-      get_class.get_field_value_range
-    end
-    alias field_value_range get_field_value_range
-
-    def get_preferred_display_base
-      get_class.get_preferred_display_base
-    end
-    alias preferred_display_base get_preferred_display_base
-
     def to_s
       v = get_value
       case preferred_display_base
@@ -177,12 +195,12 @@ module Babeltrace2
     BTFieldIntegerUnsigned ]
 
   attach_function :bt_field_integer_signed_set_value,
-                  [ :bt_field_integer_signed_handle, :uint64 ],
+                  [ :bt_field_integer_signed_handle, :int64 ],
                   :void
 
   attach_function :bt_field_integer_signed_get_value,
                   [ :bt_field_integer_signed_handle ],
-                  :uint64
+                  :int64
 
   class BTField::Integer::Signed < BTField::Integer
     def set_value(value)
@@ -239,6 +257,12 @@ module Babeltrace2
 
   module BTField::Enumeration
     GetMappingLabelsStatus = BTFieldEnumerationGetMappingLabelsStatus
+
+    def to_s
+      s = "(#{value}) ["
+      s << mapping_labels.collect { |l| l.kind_of?(Symbol) ? l.inspect : l } .join(", ")
+      s << "]"
+    end
   end
   BTFieldEnumeration = BTField::Enumeration
 
@@ -256,7 +280,12 @@ module Babeltrace2
               @handle, ptr1, ptr2)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_ENUMERATION_GET_MAPPING_LABELS_STATUS_OK
       count = ptr2.read_uint64
-      ptr1.read_array_of_pointer(count).collect(&:read_string)
+      return [] if count == 0
+      ptr1 = ptr1.read_pointer
+      ptr1.read_array_of_pointer(count).collect.collect { |v|
+        v = v.read_string
+        v[0] == ':' ? v[1..-1].to_sym : v
+      }
     end
     alias mapping_labels get_mapping_labels
   end
@@ -279,7 +308,12 @@ module Babeltrace2
               @handle, ptr1, ptr2)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_ENUMERATION_GET_MAPPING_LABELS_STATUS_OK
       count = ptr2.read_uint64
-      ptr1.read_array_of_pointer(count).collect(&:read_string)
+      return [] if count == 0
+      ptr1 = ptr1.read_pointer
+      ptr1.read_array_of_pointer(count).collect.collect { |v|
+        v = v.read_string
+        v[0] == ':' ? v[1..-1].to_sym : v
+      }
     end
     alias mapping_labels get_mapping_labels
   end
@@ -302,7 +336,7 @@ module Babeltrace2
 
   class BTField::Real::SinglePrecision < BTField::Real
     def set_value(value)
-      Babeltrace2.bt_field_real_single_precision_handle(@handle, value)
+      Babeltrace2.bt_field_real_single_precision_set_value(@handle, value)
       self
     end
 
@@ -331,7 +365,7 @@ module Babeltrace2
 
   class BTField::Real::DoublePrecision < BTField::Real
     def set_value(value)
-      Babeltrace2.bt_field_real_double_precision_handle(@handle, value)
+      Babeltrace2.bt_field_real_double_precision_set_value(@handle, value)
       self
     end
 
@@ -399,7 +433,7 @@ module Babeltrace2
     AppendStatus = BTFieldStringAppendStatus
     def set_value(value)
       res = Babeltrace2.bt_field_string_set_value(@handle, value)
-      raise Babeltrace2.process_error(res) if res != :BT_FIELD_STRING_APPEND_STATUS_OK
+      raise Babeltrace2.process_error(res) if res != :BT_FIELD_STRING_SET_VALUE_STATUS_OK
       self
     end
 
@@ -414,9 +448,10 @@ module Babeltrace2
     alias length get_length
 
     def get_value
-      Babeltrace2.bt_field_string_get_value(@handle)
+      Babeltrace2.bt_field_string_get_value_ptr(@handle).read_string(length)
     end
     alias value get_value
+    alias to_s get_value
 
     def get_raw_value
       Babeltrace2.bt_field_string_get_value_ptr(@handle).slice(0, get_length)
@@ -432,12 +467,16 @@ module Babeltrace2
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_STRING_APPEND_STATUS_OK
       self
     end
-    alias << append
+
+    def <<(value)
+      append(value)
+    end
 
     def clear
       Babeltrace2.bt_field_string_clear(@handle)
       self
     end
+    alias clear! clear
   end
   BTFieldString = BTField::String
   BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STRING] = [
@@ -463,7 +502,9 @@ module Babeltrace2
     alias length get_length
 
     def get_element_field_by_index(index)
-      return nil if index >= get_length
+      length = get_length
+      index += length if index < 0
+      return nil if index >= length || index < 0
       BTField.from_handle(
         Babeltrace2.bt_field_array_borrow_element_field_by_index(@handle, index))
     end
@@ -478,10 +519,23 @@ module Babeltrace2
         to_enum(:each)
       end
     end
+
+    def value
+      each.collect { |e| e.value }
+    end
+
+    def to_s
+      s = "["
+      s << each.collect { |e| e.to_s }.join(", ")
+      s << "]"
+    end
   end
   BTFieldArray = BTField::Array
 
   class BTField::Array::Static < BTField::Array
+    def get_length
+      @length ||= super
+    end
   end
   BTFieldArrayStatic = BTField::Array::Static
   BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_ARRAY] = [
@@ -502,7 +556,15 @@ module Babeltrace2
                   :bt_field_array_dynamic_set_length_status
  
   class BTField::Array::Dynamic < BTField::Array
+    module WithLengthField
+    end
     SetLengthStatus = BTFieldArrayDynamicSetLengthStatus
+
+    def initialize(handle)
+      super
+      extend(BTFieldArrayDynamicWithLengthField) if class_type ==:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD
+    end
+
     def set_length(length)
       res = Babeltrace2.bt_field_array_dynamic_set_length(@handle, length)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_OK
@@ -514,6 +576,7 @@ module Babeltrace2
       length
     end
   end
+  BTFieldArrayDynamicWithLengthField = BTField::Array::Dynamic::WithLengthField
   BTFieldArrayDynamic = BTField::Array::Dynamic
   BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD] = [
     BTFieldArrayDynamicHandle,
@@ -540,12 +603,14 @@ module Babeltrace2
 
   class BTField::Structure < BTField
     def get_member_count
-      get_class.get_member_count
+      @member_count ||= get_class.get_member_count
     end
     alias member_count get_member_count
     
     def get_member_field_by_index(index)
-      return nil if index >= get_member_count
+      count = get_member_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       BTField.from_handle(
         Babeltrace2.bt_field_structure_borrow_member_field_by_index(@handle, index))
     end
@@ -554,7 +619,7 @@ module Babeltrace2
       name = name.inspect if name.kind_of?(Symbol)
       handle = Babeltrace2.bt_field_structure_borrow_member_field_by_name(@handle, name)
       return nil if handle.null?
-      BTField.from_handle(name)
+      BTField.from_handle(handle)
     end
 
     def get_member_field(member_field)
@@ -568,6 +633,36 @@ module Babeltrace2
       end
     end
     alias [] get_member_field
+
+    def each
+      if block_given?
+        get_member_count.times { |i|
+          yield get_member_field_by_index(i)
+        }
+      else
+        to_enum(:each)
+      end
+    end
+
+    def value
+      v = {}
+      klass = get_class
+      get_member_count.times { |i|
+        v[klass.get_member_by_index(i).name] = get_member_field_by_index(i).value
+      }
+      v
+    end
+
+    def to_s
+      s = "{"
+      klass = get_class
+      s << get_member_count.times.collect { |i|
+        name = klass.get_member_by_index(i).name
+        name = name.inspect if name.kind_of?(Symbol)
+        "#{name}: #{get_member_field_by_index(i)}"
+      }.join(", ")
+      s << "}"
+    end
   end
   BTFieldStructure = BTField::Structure
   BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STRUCTURE] = [
@@ -588,7 +683,7 @@ module Babeltrace2
 
   class BTField::Option < BTField
     def set_has_field(has_field)
-      Babeltrace2.bt_field_option_set_has_field(@handle, has_field)
+      Babeltrace2.bt_field_option_set_has_field(@handle, has_field ? BT_TRUE : BT_FALSE)
       self
     end
 
@@ -603,6 +698,16 @@ module Babeltrace2
       BTField.from_handle(handle)
     end
     alias field get_field
+
+    def value
+      f = get_field
+      return nil unless f
+      f.value
+    end
+
+    def to_s
+      get_field.to_s
+    end
   end
   BTFieldOption = BTField::Option
 
@@ -666,12 +771,14 @@ module Babeltrace2
 
   class BTField::Variant < BTField
     def get_option_count
-      get_class.get_option_count
+      @option_count ||= get_class.get_option_count
     end
     alias option_count get_option_count
 
     def select_option_by_index(index)
-      raise "invalid index" if index >= get_option_count
+      count = get_option_count
+      index += count if index < 0
+      raise "invalid index" if index >= count || index < 0
       res = Babeltrace2.bt_field_variant_select_option_by_index(@handle, index)
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_VARIANT_SELECT_OPTION_STATUS_OK
       self
@@ -693,6 +800,24 @@ module Babeltrace2
       handle = Babeltrace2.bt_field_variant_borrow_selected_option_class_const(@handle)
       return nil if handle.null?
       BTFieldClassVariantOption.new(handle)
+    end
+    alias selected_option_class get_selected_option_class
+
+    def value
+      f = get_selected_option_field
+      return nil unless f
+      { selected_option_class.name => f.value }
+    end
+
+    def to_s
+      s = "{"
+      opt = get_selected_option_field
+      if opt
+        name = selected_option_class.name
+        name = name.inspect if name.kind_of?(Symbol)
+        s << "#{name}: #{opt.to_s}"
+      end
+      s << "}"
     end
   end
   BTFieldVariant = BTField::Variant
@@ -719,6 +844,7 @@ module Babeltrace2
       return nil if handle.null?
       BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption.new(handle)
     end
+    alias selected_option_class get_selected_option_class
   end
   BTFieldVariantWithSelectorFieldIntegerUnsigned = BTField::Variant::WithSelectorField::IntegerUnsigned
   BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = [
@@ -736,9 +862,10 @@ module Babeltrace2
       return nil if handle.null?
       BTFieldClassVariantWithSelectorFieldIntegerSignedOption.new(handle)
     end
+    alias selected_option_class get_selected_option_class
   end
   BTFieldVariantWithSelectorFieldIntegerSigned = BTField::Variant::WithSelectorField::IntegerSigned
-  BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = [
+  BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD] = [
     BTFieldVariantWithSelectorFieldIntegerSignedHandle,
     BTFieldVariantWithSelectorFieldIntegerSigned ]
 end

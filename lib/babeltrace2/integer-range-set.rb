@@ -16,6 +16,10 @@ module Babeltrace2
     def value
       lower..upper
     end
+
+    def include?(val)
+      lower <= val && upper >= val
+    end
   end
 
   class BTIntegerRangeUnsigned < BTIntegerRange
@@ -186,7 +190,9 @@ module Babeltrace2
       alias add add_range
 
       def get_range(index)
-        return nil if index >= range_count
+        count = range_count
+        index += count if count < 0
+        return nil if index >= count || index < 0
         BTIntegerRangeUnsigned.new(
           Babeltrace2.bt_integer_range_set_unsigned_borrow_range_by_index_const(
             @handle, index))
@@ -249,7 +255,9 @@ module Babeltrace2
       alias add add_range
 
       def get_range(index)
-        return nil if index >= range_count
+        count = range_count
+        index += count if count < 0
+        return nil if index >= count || index < 0
         BTIntegerRangeSigned.new(
           Babeltrace2.bt_integer_range_set_signed_borrow_range_by_index_const(
             @handle, index))

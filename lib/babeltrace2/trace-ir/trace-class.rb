@@ -116,7 +116,9 @@ module Babeltrace2
     alias stream_class_count get_stream_class_count
 
     def get_stream_class_by_index(index)
-      return nil if index >= get_stream_class_count
+      count = get_stream_class_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       BTStreamClass.new(
         Babeltrace2.bt_trace_class_borrow_stream_class_by_index(@handle, index))
     end
@@ -220,7 +222,7 @@ module Babeltrace2
     alias create_single create_field_class_real_single_precision
 
     def create_field_class_real_double_precision
-      BTFieldClassRealSinglePrecision.new(trace_class: @handle)
+      BTFieldClassRealDoublePrecision.new(trace_class: @handle)
     end
     alias create_double_precision_real_class create_field_class_real_double_precision
     alias create_double create_field_class_real_double_precision

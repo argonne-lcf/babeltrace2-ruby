@@ -117,7 +117,7 @@ class BTValueTest < Minitest::Test
       e.nil? ? assert_nil(a[i].value) : assert_equal(e, a[i].value)
     }
     assert_raises(IndexError) { a[v.length] }
-    assert_raises(IndexError) { a[-1] }
+    assert_raises(IndexError) { a[-v.length - 1] }
     a[2] = 0
     assert_equal(0, a[2].value)
     a[2] = "foo"

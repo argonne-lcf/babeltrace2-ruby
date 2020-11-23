@@ -121,7 +121,9 @@ module Babeltrace2
     alias output_port_count get_output_port_count
 
     def get_output_port_by_index(index)
-      return nil if index >= get_output_port_count
+      count = get_output_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_component_source_borrow_output_port_by_index_const(@handle, index)
       BTPortOutput.new(handle, retain: true)
     end
@@ -208,7 +210,9 @@ module Babeltrace2
     alias output_port_count get_output_port_count
 
     def get_output_port_by_index(index)
-      return nil if index >= get_output_port_count
+      count = get_output_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_component_filter_borrow_output_port_by_index_const(@handle, index)
       BTPortOutput.new(handle, retain: true)
     end
@@ -245,7 +249,9 @@ module Babeltrace2
     alias input_port_count get_input_port_count
 
     def get_input_port_by_index(index)
-      return nil if index >= get_input_port_count
+      count = get_input_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_component_filter_borrow_input_port_by_index_const(@handle, index)
       BTPortInput.new(handle, retain: true)
     end
@@ -318,7 +324,9 @@ module Babeltrace2
     alias input_port_count get_input_port_count
 
     def get_input_port_by_index(index)
-      return nil if index >= get_input_port_count
+      count = get_input_port_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_component_sink_borrow_input_port_by_index_const(@handle, index)
       BTPortInput.new(handle, retain: true)
     end

@@ -216,7 +216,9 @@ module Babeltrace2
     alias event_class_count get_event_class_count
 
     def get_event_class_by_index(index)
-      return nil if index >= event_class_count
+      count = event_class_count
+      index += count if count < 0
+      return nil if index >= count || index < 0
       BTEventClass.new(
         Babeltrace2.bt_stream_class_borrow_event_class_by_index(@handle, index), retain: true)
     end

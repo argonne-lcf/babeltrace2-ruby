@@ -302,7 +302,9 @@ module Babeltrace2
     alias sink_component_class_count get_sink_component_class_count
 
     def get_source_component_class_by_index(index)
-      return nil if index >= get_source_component_class_count
+      count = get_source_component_class_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_plugin_borrow_source_component_class_by_index_const(
                  @handle, index)
       BTComponentClassSource.new(handle, retain: true)
@@ -335,7 +337,9 @@ module Babeltrace2
     end
 
     def get_filter_component_class_by_index(index)
-      return nil if index >= get_filter_component_class_count
+      count = get_filter_component_class_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_plugin_borrow_filter_component_class_by_index_const(
                  @handle, index)
       BTComponentClassFilter.new(handle, retain: true)
@@ -368,7 +372,9 @@ module Babeltrace2
     end
 
     def get_sink_component_class_by_index(index)
-      return nil if index >= get_sink_component_class_count
+      count = get_sink_component_class_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle = Babeltrace2.bt_plugin_borrow_sink_component_class_by_index_const(
                  @handle, index)
       BTComponentClassSink.new(handle, retain: true)
@@ -429,7 +435,9 @@ module Babeltrace2
       alias size get_plugin_count
 
       def get_plugin_by_index(index)
-        return nil if index >= get_plugin_count
+        count = get_plugin_count
+        index += count if index < 0
+        return nil if index >= count || index < 0
         handle = Babeltrace2.bt_plugin_set_borrow_plugin_by_index_const(@handle, index)
         BTPlugin.new(handle, retain: true)
       end

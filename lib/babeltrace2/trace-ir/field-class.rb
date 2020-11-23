@@ -282,20 +282,6 @@ module Babeltrace2
     end
 
     def preferred_display_base=(preferred_display_base)
-      if preferred_display_base.kind_of?(Integer)
-        preferred_display_base = case preferred_display_base
-          when 2
-            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY
-          when 8
-            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL
-          when 10
-            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
-          when 16
-            :BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL
-          else
-            raise "unsupported display base"
-          end
-      end
       set_preferred_display_base(preferred_display_base)
       preferred_display_base
     end
@@ -465,8 +451,8 @@ module Babeltrace2
     class Mapping < BTObject
       def get_label
         label = Babeltrace2.bt_field_class_enumeration_mapping_get_label(@handle)
-        if label.match(/^:/)
-          label.sub(/^:/, "").to_sym
+        if label[0] == ':'
+          label[1..-1].to_sym
         else
           label
         end
@@ -535,7 +521,9 @@ module Babeltrace2
     end
 
     def get_mapping_by_index(index)
-      return nil if index >= get_mapping_count
+      count = get_mapping_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle =
         Babeltrace2.bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
           @handle, index)
@@ -559,8 +547,10 @@ module Babeltrace2
       count = ptr2.read_uint64
       return [] if count == 0
       ptr1 = ptr1.read_pointer
-      ptr1.read_array_of_pointer(count).collect(&:read_string).collect { |v|
-        v.match(/^:/) ? v.sub(/^:/, "").to_sym : v }
+      ptr1.read_array_of_pointer(count).collect.collect { |v|
+        v = v.read_string
+        v[0] == ':' ? v[1..-1].to_sym : v
+      }
     end
     alias mapping_labels_for_value get_mapping_labels_for_value
   end
@@ -628,7 +618,9 @@ module Babeltrace2
     end
 
     def get_mapping_by_index(index)
-      return nil if index >= get_mapping_count
+      count = get_mapping_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       handle =
         Babeltrace2.bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
           @handle, index)
@@ -652,8 +644,10 @@ module Babeltrace2
       count = ptr2.read_uint64
       return [] if count == 0
       ptr1 = ptr1.read_pointer
-      ptr1.read_array_of_pointer(count).collect(&:read_string).collect { |v|
-        v.match(/^:/) ? v.sub(/^:/, "").to_sym : v }
+      ptr1.read_array_of_pointer(count).collect.collect { |v|
+        v = v.read_string
+        v[0] == ':' ? v[1..-1].to_sym : v
+      }
     end
     alias mapping_labels_for_value get_mapping_labels_for_value
   end
@@ -745,7 +739,7 @@ module Babeltrace2
   class BTFieldClass::Array::Dynamic < BTFieldClass::Array
     module WithLengthField
       def get_length_field_path
-        handle = Babeltrace2.bt_field_class_array_dynamic_with_length_field_borrow_length_field_path(@handle)
+        handle = Babeltrace2.bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(@handle)
         return nil if handle.null?
         BTFieldPath.new(handle, retain: true)
       end
@@ -840,7 +834,7 @@ module Babeltrace2
     class Member < BTObject
       def get_name
         name = Babeltrace2.bt_field_class_structure_member_get_name(@handle)
-        name.match(/^:/) ? name.sub(/^:/, "").to_sym : name
+        name[0] == ':' ? name[1..-1].to_sym : name
       end
       alias name get_name
 
@@ -892,7 +886,9 @@ module Babeltrace2
     alias member_count get_member_count
 
     def get_member_by_index(index)
-      return nil if index >= get_member_count
+      count = get_member_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       BTFieldClassStructureMember.new(
         Babeltrace2.bt_field_class_structure_borrow_member_by_index(@handle, index))
     end
@@ -971,6 +967,7 @@ module Babeltrace2
       return nil if handle.null?
       BTFieldPath.new(handle, retain: true)
     end
+    alias selector_field_path get_selector_field_path
   end
   BTFieldClassOptionWithSelectorField = BTFieldClass::Option::WithSelectorField
 
@@ -1150,7 +1147,7 @@ module Babeltrace2
     class Option < BTObject
       def get_name
         name = Babeltrace2.bt_field_class_variant_option_get_name(@handle)
-        name.match(/^:/) ? name.sub(/^:/, "").to_sym : name
+        name[0] == ':' ? name[1..-1].to_sym : name
       end
       alias name get_name
 
@@ -1283,7 +1280,9 @@ module Babeltrace2
         alias append append_option
 
         def get_option_by_index(index)
-          return nil if index >= get_option_count
+          count = get_option_count
+          index += count if index < 0
+          return nil if index >= count || index < 0
           BTFieldClassVariantWithSelectorFieldIntegerUnsignedOption.new(
             Babeltrace2.bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
               @handle, index))
@@ -1317,7 +1316,9 @@ module Babeltrace2
         alias append append_option
 
         def get_option_by_index(index)
-          return nil if index >= get_option_count
+          count = get_option_count
+          index += count if index < 0
+          return nil if index >= count || index < 0
           BTFieldClassVariantWithSelectorFieldIntegerSignedOption.new(
             Babeltrace2.bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(@handle, index))
         end
@@ -1368,7 +1369,9 @@ module Babeltrace2
     alias option_count get_option_count
 
     def get_option_by_index(index)
-      return nil if index >= get_option_count
+      count = get_option_count
+      index += count if index < 0
+      return nil if index >= count || index < 0
       BTFieldClassVariantOption.new(
         Babeltrace2.bt_field_class_variant_borrow_option_by_index(@handle, index))
     end
