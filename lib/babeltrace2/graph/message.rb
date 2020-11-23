@@ -296,7 +296,7 @@ module Babeltrace2
 
       def get_event
         handle = Babeltrace2.bt_message_event_borrow_event(@handle)
-        BTEvent.new(handle, retain: true, auto_release: true)
+        BTEvent.new(handle)
       end
       alias event get_event
 

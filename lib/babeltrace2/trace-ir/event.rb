@@ -60,18 +60,18 @@ module Babeltrace2
     alias stream get_stream
 
     def get_packet
-      raise "packet not supported" unless stream.get_class.supports_packets?
+      return nil unless stream.get_class.supports_packets?
       handle = Babeltrace2.bt_event_borrow_packet(@handle)
       BTPacket.new(handle, retain: true)
     end
     alias packet get_packet
 
-    def get_event_borrow_payload_field
+    def get_payload_field
       handle = Babeltrace2.bt_event_borrow_payload_field(@handle)
       return nil if handle.null?
       BTField.from_handle(handle)
     end
-    alias event_borrow_payload_field get_event_borrow_payload_field
+    alias payload_field get_payload_field
 
     def get_specific_context_field
       handle = Babeltrace2.bt_event_borrow_specific_context_field(@handle)
