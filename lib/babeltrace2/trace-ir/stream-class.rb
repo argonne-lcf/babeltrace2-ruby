@@ -417,5 +417,9 @@ module Babeltrace2
     def create_stream(trace, id: nil)
       BTStream.new(stream_class: @handle, trace: trace, id: nil)
     end
+
+    def create_event_class(id: nil)
+      BTEventClass.new(stream_class: @handle, id: nil)
+    end
   end
 end

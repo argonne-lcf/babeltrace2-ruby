@@ -195,8 +195,7 @@ module Babeltrace2
     end
 
     def name=(name)
-      res = Babeltrace2.bt_event_class_set_name(@handle, name)
-      raise Babeltrace2.process_error(res) if res != :BT_EVENT_CLASS_SET_NAME_STATUS_OK
+      set_name(name)
       name
     end
 
@@ -211,7 +210,7 @@ module Babeltrace2
     end
 
     def log_level=(log_level)
-      Babeltrace2.bt_event_class_set_log_level(@handle, log_level)
+      set_log_level(log_level)
       log_level
     end
 
@@ -230,13 +229,12 @@ module Babeltrace2
     end
 
     def emf_uri=(emf_uri)
-      res = Babeltrace2.bt_event_class_set_emf_uri(@handle, emf_uri)
-      raise Babeltrace2.process_error(res) if res != :BT_EVENT_CLASS_SET_EMF_URI_STATUS_OK
+      set_emf_uri(emf_uri)
       emf_uri
     end
 
     def get_emf_uri
-      Babeltrace2.bt_event_class_get_emf_uri
+      Babeltrace2.bt_event_class_get_emf_uri(@handle)
     end
     alias emf_uri get_emf_uri
 
@@ -247,8 +245,7 @@ module Babeltrace2
     end
 
     def payload_field_class=(field_class)
-      res = Babeltrace2.bt_event_class_set_payload_field_class(@handle, field_class)
-      raise Babeltrace2.process_error(res) if res != :BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK
+      set_payload_field_class(field_class)
       field_class
     end
 
@@ -266,8 +263,7 @@ module Babeltrace2
     end
 
     def specific_context_field_class=(field_class)
-      res = Babeltrace2.bt_event_class_set_specific_context_field_class(@handle, field_class)
-      raise Babeltrace2.process_error(res) if res != :BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK
+      set_specific_context_field_class(field_class)
       field_class
     end
 
@@ -284,7 +280,7 @@ module Babeltrace2
     end
 
     def user_attributes=(user_attributes)
-      Babeltrace2.bt_event_class_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+      set_user_attributes(user_attributes)
       user_attributes
     end
 
