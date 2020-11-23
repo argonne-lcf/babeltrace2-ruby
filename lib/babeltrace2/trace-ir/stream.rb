@@ -129,5 +129,9 @@ module Babeltrace2
       BTValueMap.new(Babeltrace2.bt_stream_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
+
+    def create_packet
+      BTPacket.new(stream: @handle)
+    end
   end
 end

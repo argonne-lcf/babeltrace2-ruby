@@ -1,5 +1,5 @@
 class BTEventTest < Minitest::Test
-  def test_class
+  def test_event
     stream_beginning_count = 0
     stream_end_count = 0
     event_count = 0

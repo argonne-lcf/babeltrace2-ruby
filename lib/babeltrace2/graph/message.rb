@@ -537,7 +537,7 @@ module Babeltrace2
       end
 
       def count=(count)
-        Babeltrace2.bt_message_discarded_events_set_count(@handle, count)
+        set_count(count)
         count
       end
 
@@ -642,7 +642,7 @@ module Babeltrace2
       end
 
       def count=(count)
-        Babeltrace2.bt_message_discarded_packets_set_count(@handle, count)
+        set_count(count)
         count
       end
 
@@ -668,7 +668,7 @@ module Babeltrace2
                   :bt_clock_snapshot_handle
 
   class BTMessage
-    class IteratorInactivity < BTMessage
+    class MessageIteratorInactivity < BTMessage
       def initialize(handle = nil, retain: true, auto_release: true,
                      self_message_iterator: nil, clock_class: nil,
                      clock_snapshot_value: nil)
@@ -689,6 +689,7 @@ module Babeltrace2
       alias clock_snapshot get_clock_snapshot
     end
   end
+  BTMessageMessageIteratorInactivity = BTMessage::MessageIteratorInactivity
 
   BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_OK = BT_FUNC_STATUS_OK
   BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_NO_MATCH = BT_FUNC_STATUS_NO_MATCH
