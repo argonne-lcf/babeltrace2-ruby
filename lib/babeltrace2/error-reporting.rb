@@ -222,12 +222,14 @@ module Babeltrace2
 
     def self.clear_error
       Babeltrace2.bt_current_thread_clear_error
+      self
     end
 
     def self.move_error(error)
       raise Error.new("Error already released") unless error.handle
       Babeltrace2.bt_current_thread_move_error(error.handle)
       error.instance_variable_set(:@handle, nil)
+      self
     end
 
     module Error

@@ -54,12 +54,16 @@ module Babeltrace2
       def add_descriptor(component_class, params: {}, initialize_method_data: nil)
         params = BTValue.from_value(params)
         raise "invalid value" unless params.kind_of?(BTValueMap)
-        res = Babeltrace2.bt_component_descriptor_set_add_descriptor_with_initialize_method_data(@handle, component_class, params, initialize_method_data)
+        res = if initialize_method_data
+            Babeltrace2.bt_component_descriptor_set_add_descriptor_with_initialize_method_data(@handle, component_class, params, initialize_method_data)
+          else
+            Babeltrace2.bt_component_descriptor_set_add_descriptor(@handle, component_class, params)
+          end
         raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_DESCRIPTOR_SET_ADD_DESCRIPTOR_STATUS_OK
         self
       end
 
-      def get_greatest_operative_mip_version(logging_level)
+      def get_greatest_operative_mip_version(logging_level = BTLogging.global_level)
         ptr = FFI::MemoryPointer.new(:uint64)
         res = Babeltrace2.bt_get_greatest_operative_mip_version(
                 @handle, logging_level, ptr)
