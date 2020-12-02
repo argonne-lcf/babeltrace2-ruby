@@ -68,10 +68,15 @@ class TestFilterMessageIterator < UserMessageIterator
   def init(self_message_iterator, configuration, port)
     @upstream_it = self_message_iterator.create_message_iterator(self_message_iterator.component.input_port(0))
     @fini = false
+    @mess = []
   end
 
   def next(self_message_iterator, capacity)
-    @upstream_it.next_messages
+    if @mess.empty?
+      @mess += @upstream_it.next_messages
+    end
+    return [] if capacity == 0
+    [@mess.shift]
   end
 
   def finalize(self_message_iterator)
