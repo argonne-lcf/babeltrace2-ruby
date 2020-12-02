@@ -41,6 +41,37 @@ module Babeltrace2
         Babeltrace2.bt_logging_get_minimal_level
       end
       alias minimal_level get_minimal_level
+
+      def get_default_level
+        if ENV["BABELTRACE_RUBY_BT2_LOG_LEVEL"]
+          get_level_from_string(ENV["BABELTRACE_RUBY_BT2_LOG_LEVEL"])
+        else
+          get_global_level
+        end
+      end
+      alias default_level get_default_level
+
+      private
+      def get_level_from_string(str)
+        case str
+        when "TRACE", "T"
+          :BT_LOGGING_LEVEL_TRACE
+        when "DEBUG", "D"
+          :BT_LOGGING_LEVEL_DEBUG
+        when "INFO", "I"
+          :BT_LOGGING_LEVEL_INFO
+        when "WARN", "WARNING", "W"
+          :BT_LOGGING_LEVEL_WARNING
+        when "ERROR", "E"
+          :BT_LOGGING_LEVEL_ERROR
+        when "FATAL", "F"
+          :BT_LOGGING_LEVEL_FATAL
+        when "NONE", "N"
+          :BT_LOGGING_LEVEL_NONE
+        else
+          -1
+        end
+      end
     end
   end
 end

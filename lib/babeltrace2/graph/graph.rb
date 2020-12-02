@@ -344,7 +344,7 @@ module Babeltrace2
     end
 
     def add_source_component(component_class, name, params: {},
-                             logging_level: BTLogging.global_level,
+                             logging_level: BTLogging.default_level,
                              initialize_method_data: nil)
       ptr = FFI::MemoryPointer.new(:pointer)
       res = if initialize_method_data
@@ -362,7 +362,7 @@ module Babeltrace2
     alias add_source add_source_component
 
     def add_filter_component(component_class, name, params: {},
-                             logging_level: BTLogging.global_level,
+                             logging_level: BTLogging.default_level,
                              initialize_method_data: nil)
       ptr = FFI::MemoryPointer.new(:pointer)
       res = if initialize_method_data
@@ -380,7 +380,7 @@ module Babeltrace2
     alias add_filter add_filter_component
 
     def add_sink_component(component_class, name, params: {},
-                           logging_level: BTLogging.global_level,
+                           logging_level: BTLogging.default_level,
                            initialize_method_data: nil)
       ptr = FFI::MemoryPointer.new(:pointer)
       res = if initialize_method_data
@@ -398,7 +398,7 @@ module Babeltrace2
     alias add_sink add_sink_component
 
     def add_component(component_class, name, params: {},
-                      logging_level: BTLogging.global_level,
+                      logging_level: BTLogging.default_level,
                       initialize_method_data: nil)
       case component_class.type
       when :BT_COMPONENT_CLASS_TYPE_SOURCE

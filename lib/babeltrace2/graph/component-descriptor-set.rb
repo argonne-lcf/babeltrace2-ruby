@@ -63,7 +63,7 @@ module Babeltrace2
         self
       end
 
-      def get_greatest_operative_mip_version(logging_level = BTLogging.global_level)
+      def get_greatest_operative_mip_version(logging_level = BTLogging.default_level)
         ptr = FFI::MemoryPointer.new(:uint64)
         res = Babeltrace2.bt_get_greatest_operative_mip_version(
                 @handle, logging_level, ptr)
