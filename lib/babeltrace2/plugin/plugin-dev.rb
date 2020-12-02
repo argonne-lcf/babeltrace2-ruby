@@ -13,15 +13,15 @@ module Babeltrace2
     attr_reader :version_extra
 
     def initialize(name:, author: "", description: "", license: "", path: nil,
-                   major: 1, minor: 0, patch: 0, version_extra: "")
+                   major: 1, minor: 0, patch: 0, version_extra: nil)
       @name = name
       @author = author
       @description = description
       @license = license
       @path = path
-      @major = major.to_s
-      @minor = minor.to_s
-      @patch = patch.to_s
+      @major = major
+      @minor = minor
+      @patch = patch
       @version_extra = version_extra
       @component_classes = []
       @user_component_classes = []
@@ -46,6 +46,13 @@ module Babeltrace2
       @component_classes
     end
     alias component_classes get_component_classes
+
+    def get_component_class_addresses
+      get_component_classes.collect { |c|
+        c.handle.to_ptr.to_i
+      }
+    end
+    alias component_class_addresses get_component_class_addresses
 
     def get_source_component_classes
       @component_classes.select { |c| c.source? }
@@ -317,21 +324,9 @@ module Babeltrace2
     return @@native_plugins[hash] if @@native_plugins.include?(hash)
     @@user_plugins = []
     str = ""
-    str << <<EOF
-  module Mod#{hash}
-    class << self
-      def register_user_plugin(plugin)
-        Babeltrace2.register_user_plugin(plugin)
-      end
-      alias register_plugin register_user_plugin
-      alias register register_user_plugin
-    end
-EOF
-    str << File.read(path)
-    str << <<EOF
-  end
-EOF
-    eval(str)
+    str << "module Mod#{hash}; class << self; def register_user_plugin(plugin); Babeltrace2.register_user_plugin(plugin); end; alias register_plugin register_user_plugin; alias register register_user_plugin; end; "
+    str << File.read(path) << "; end"
+    eval(str, nil, path)
     @@user_plugins.each { |p|
       p.path = path unless p.path
     }
