@@ -12,16 +12,16 @@ module Babeltrace2
     attr_reader :patch
     attr_reader :version_extra
 
-    def initialize(name:, author: "", description: "", license: "", path: nil,
-                   major: 1, minor: 0, patch: 0, version_extra: nil)
+    def initialize(name:, author: nil, description: nil, license: nil, path: nil,
+                   major: 0, minor: 0, patch: 0, version_extra: nil)
       @name = name
       @author = author
       @description = description
       @license = license
       @path = path
-      @major = major
-      @minor = minor
-      @patch = patch
+      @major = major.to_i
+      @minor = minor.to_i
+      @patch = patch.to_i
       @version_extra = version_extra
       @component_classes = []
       @user_component_classes = []
@@ -38,7 +38,7 @@ module Babeltrace2
     alias get_path path
 
     def get_version
-      BTVersion::Number.new(major.to_i, minor.to_i, patch.to_i, extra)
+      BTVersion::Number.new(major, minor, patch, extra)
     end
     alias version get_version
 
