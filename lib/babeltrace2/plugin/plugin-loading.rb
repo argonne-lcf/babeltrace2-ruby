@@ -328,13 +328,14 @@ module Babeltrace2
       end
     end
 
-    def source_component_classes
+    def get_source_component_classes
       source_component_class_count.times.collect { |index|
         handle = Babeltrace2.bt_plugin_borrow_source_component_class_by_index_const(
                    @handle, index)
         BTComponentClassSource.new(handle, retain: true)
       }
     end
+    alias source_component_classes get_source_component_classes
 
     def get_filter_component_class_by_index(index)
       count = get_filter_component_class_count
@@ -363,13 +364,14 @@ module Babeltrace2
       end
     end
 
-    def filter_component_classes
+    def get_filter_component_classes
       filter_component_class_count.times.collect { |index|
         handle = Babeltrace2.bt_plugin_borrow_filter_component_class_by_index_const(
                    @handle, index)
         BTComponentClassFilter.new(handle, retain: true)
       }
     end
+    alias filter_component_classes get_filter_component_classes
 
     def get_sink_component_class_by_index(index)
       count = get_sink_component_class_count
@@ -398,13 +400,14 @@ module Babeltrace2
       end
     end
 
-    def sink_component_classes
+    def get_sink_component_classes
       sink_component_class_count.times.collect { |index|
         handle = Babeltrace2.bt_plugin_borrow_sink_component_class_by_index_const(
                    @handle, index)
         BTComponentClassSink.new(handle, retain: true)
       }
     end
+    alias sink_component_classes get_sink_component_classes
   end
 
   attach_function :bt_plugin_set_get_plugin_count,
@@ -441,13 +444,15 @@ module Babeltrace2
         handle = Babeltrace2.bt_plugin_set_borrow_plugin_by_index_const(@handle, index)
         BTPlugin.new(handle, retain: true)
       end
+      alias [] get_plugin_by_index
 
-      def plugins
+      def get_plugins
         get_plugin_count.times.collect { |index|
           handle = Babeltrace2.bt_plugin_set_borrow_plugin_by_index_const(@handle, index)
           BTPlugin.new(handle, retain: true)
         }
       end
+      alias plugins get_plugins
     end
   end
   BTPluginSet = BTPlugin::Set

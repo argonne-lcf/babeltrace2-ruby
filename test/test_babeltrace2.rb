@@ -10,6 +10,7 @@ TRACE_UUID = "b8de1a6b-446c-4dcd-93ab-15ca896a29be"
 TRACE_STREAM_COUNT = 8
 RUN_GRAPH_PATH = File.join(__dir__, "run_graph.rb")
 EXPECTED_OUTPUT = `babeltrace2 #{TRACE_LOCATION}`
+PLUGIN_PATH = File.join(__dir__, "bt_plugin_test.rb")
 
 require_relative 'babeltrace2/func-status'
 require_relative 'babeltrace2/logging-defs'
@@ -38,6 +39,7 @@ require_relative 'babeltrace2/graph/query-executor'
 require_relative 'babeltrace2/graph/private-query-executor'
 require_relative 'babeltrace2/error-reporting'
 require_relative 'babeltrace2/plugin/plugin-loading'
+require_relative 'babeltrace2/plugin/plugin-dev'
 require_relative 'babeltrace2/trace-ir/clock-class'
 require_relative 'babeltrace2/trace-ir/clock-snapshot'
 require_relative 'babeltrace2/trace-ir/event'
