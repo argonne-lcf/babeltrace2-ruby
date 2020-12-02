@@ -26,11 +26,9 @@ class TestSourceMessageIterator < UserMessageIterator
     return [] if capacity == 0
     m = case @states[@index]
       when :BT_MESSAGE_TYPE_STREAM_BEGINNING
-        BTMessageStreamBeginning.new(self_message_iterator: self_message_iterator,
-                                     stream: stream)
+        self_message_iterator.create_stream_beginning(stream)
       when :BT_MESSAGE_TYPE_STREAM_END
-        BT2::BTMessage::StreamEnd.new(self_message_iterator: self_message_iterator,
-                                        stream: stream)
+        self_message_iterator.create_stream_end(stream)
       when nil
         raise StopIteration
       else
@@ -50,10 +48,10 @@ class TestSource < UserSource
 
   def init(self_component, configuration, params, data)
     self_component.add_output_port("p0")
-    trace_class = BT2::BTTraceClass.new(self_component: self_component)
-    stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
-    trace = BT2::BTTrace.new(trace_class: trace_class)
-    stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)
+    trace_class = self_component.create_trace_class
+    stream_class = trace_class.create_stream_class
+    trace = trace_class.create_trace
+    stream = stream_class.create_stream(trace)
     OBJECT_STORE[:stream] = stream
     @fini = false
   end
