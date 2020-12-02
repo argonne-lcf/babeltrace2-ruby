@@ -17,13 +17,6 @@ module Babeltrace2
       :BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR,
        BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR ]
 
-  class BTComponentClass
-    SinkConsumeMethodStatus = BTComponentClassSinkConsumeMethodStatus
-    class Sink
-      ConsumeMethodStatus = BTComponentClassSinkConsumeMethodStatus
-    end
-  end
-
   callback :bt_component_class_sink_consume_method,
            [:bt_self_component_sink_handle],
            :bt_component_class_sink_consume_method_status
@@ -81,11 +74,6 @@ module Babeltrace2
       :BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR,
        BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR ]
 
-  class BTComponentClass
-    GetSupportedMipVersionsMethodStatus =
-      BTComponentClassGetSupportedMipVersionsMethodStatus
-  end
-
   callback :bt_component_class_source_get_supported_mip_versions_method,
            [:bt_self_component_class_source_handle, :bt_value_handle, :pointer, :bt_logging_level, :bt_integer_range_set_unsigned_handle],
            :bt_component_class_get_supported_mip_versions_method_status
@@ -129,13 +117,6 @@ module Babeltrace2
        BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR,
       :BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR,
        BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR ]
-
-  class BTComponentClass
-    SinkGraphIsConfiguredMethodStatus = BTComponentClassSinkGraphIsConfiguredMethodStatus
-    class Sink
-      GraphIsConfiguredMethodStatus = BTComponentClassSinkGraphIsConfiguredMethodStatus
-    end
-  end
 
   callback :bt_component_class_sink_graph_is_configured_method,
            [:bt_self_component_sink_handle],
@@ -217,10 +198,6 @@ module Babeltrace2
        BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_MEMORY_ERROR,
       :BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_ERROR,
        BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_ERROR ]
-
-  class BTComponentClass
-    PortConnectedMethodStatus = BTComponentClassPortConnectedMethodStatus
-  end
 
   callback :bt_component_class_source_output_port_connected_method,
            [ :bt_self_component_source_handle,
@@ -310,10 +287,6 @@ module Babeltrace2
       :BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR,
        BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR ]
 
-  class BTComponentClass
-    QueryMethodStatus = BTComponentClassQueryMethodStatus
-  end
-
   def self._wrap_component_class_query_method(component_class_class, handle, method)
     id = handle.to_i
     method_wrapper = lambda { |self_component_class, query_executor, object_name, params, method_data, result|
@@ -363,63 +336,13 @@ module Babeltrace2
                   [ :string, :bt_message_iterator_class_handle ],
                   :bt_component_class_source_handle
 
-  class BTComponentClass::Source
-    def initialize(handle = nil, retain: true, auto_release: true,
-                   name: nil, message_iterator_class: nil)
-      if handle
-        super(handle, retain: retain, auto_release: auto_release)
-      else
-        raise ArgumentError, "invalid value for name" unless name
-        raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
-        handle = Babeltrace2.bt_component_class_source_create(
-          name, message_iterator_class)
-        raise Babeltrace2.process_error if handle.null?
-        super(handle, retain: false)
-      end
-    end
-  end
-
   attach_function :bt_component_class_filter_create,
                   [ :string, :bt_message_iterator_class_handle ],
                   :bt_component_class_filter_handle
 
-  class BTComponentClass::Filter
-    def initialize(handle = nil, retain: true, auto_release: true,
-                   name: nil, message_iterator_class: nil)
-      if handle
-        super(handle, retain: retain, auto_release: auto_release)
-      else
-        raise ArgumentError, "invalid value for name" unless name
-        raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
-        handle = Babeltrace2.bt_component_class_filter_create(
-          name, message_iterator_class)
-        raise Babeltrace2.process_error if handle.null?
-        super(handle, retain: false)
-      end
-    end
-  end
-
   attach_function :bt_component_class_sink_create,
                   [ :string, :bt_component_class_sink_consume_method ],
                   :bt_component_class_sink_handle
-
-  class BTComponentClass::Sink
-    def initialize(handle = nil, retain: true, auto_release: true,
-                   name: nil, consume_method: nil)
-      if handle
-        super(handle, retain: retain, auto_release: auto_release)
-      else
-        raise ArgumentError, "invalid value for name" unless name
-        raise ArgumentError, "invalid value for consume_method" unless consume_method
-        consume_method = Babeltrace2._wrap_component_class_sink_consume_method(consume_method)
-        handle = Babeltrace2.bt_component_class_sink_create(
-          name, consume_method)
-        raise Babeltrace2.process_error if handle.null?
-        Babeltrace2._callbacks[handle.to_i][:consume_method] = consume_method
-        super(handle, retain: false)
-      end
-    end
-  end
 
   BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
@@ -434,21 +357,6 @@ module Babeltrace2
                   [ :bt_component_class_handle, :string ],
                   :bt_component_class_set_description_status
 
-  class BTComponentClass
-    SetDescriptionStatus = BTComponentClassSetDescriptionStatus
-    def set_description(description)
-      raise ArgumentError, "description is nil" unless description
-      res = Babeltrace2.bt_component_class_set_description(@handle, description)
-      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_OK
-      self
-    end
-
-    def description=(description)
-      set_description(description)
-      description
-    end
-  end
-
   BT_COMPONENT_CLASS_SET_HELP_STATUS_OK = BT_FUNC_STATUS_OK
   BT_COMPONENT_CLASS_SET_HELP_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
   BTComponentClassSetHelpStatus =
@@ -462,8 +370,35 @@ module Babeltrace2
                   [ :bt_component_class_handle, :string ],
                   :bt_component_class_set_help_status
 
+  BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
+  BTComponentClassSetMethodStatus =
+    enum :bt_component_class_set_method_status,
+    [ :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK,
+       BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK ]
+
   class BTComponentClass
+    SinkConsumeMethodStatus = BTComponentClassSinkConsumeMethodStatus
+    GetSupportedMipVersionsMethodStatus =
+      BTComponentClassGetSupportedMipVersionsMethodStatus
+    SinkGraphIsConfiguredMethodStatus = BTComponentClassSinkGraphIsConfiguredMethodStatus
+    PortConnectedMethodStatus = BTComponentClassPortConnectedMethodStatus
+    QueryMethodStatus = BTComponentClassQueryMethodStatus
+    SetMethodStatus = BTComponentClassSetMethodStatus
+    SetDescriptionStatus = BTComponentClassSetDescriptionStatus
     SetHelpStatus = BTComponentClassSetHelpStatus
+
+    def set_description(description)
+      raise ArgumentError, "description is nil" unless description
+      res = Babeltrace2.bt_component_class_set_description(@handle, description)
+      raise Babeltrace2.process_error(res) if res != :BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_OK
+      self
+    end
+
+    def description=(description)
+      set_description(description)
+      description
+    end
+
     def set_help(help_text)
       raise ArgumentError, "help_text is nil" unless help_text
       res = Babeltrace2.bt_component_class_set_help(@handle, help_text)
@@ -475,15 +410,7 @@ module Babeltrace2
       set_help(help_text)
       help_text
     end
-  end
 
-  BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK = BT_FUNC_STATUS_OK
-  BTComponentClassSetMethodStatus =
-    enum :bt_component_class_set_method_status,
-    [ :BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK,
-       BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK ]
-
-  class BTComponentClass
     def set_finalize_method(method = nil, &block)
       if method.nil?
         raise ArgumentError, "method or block must be provided" unless block_given?
@@ -575,6 +502,21 @@ module Babeltrace2
                   :bt_component_class_set_method_status
 
   class BTComponentClass::Source
+
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   name: nil, message_iterator_class: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        raise ArgumentError, "invalid value for name" unless name
+        raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
+        handle = Babeltrace2.bt_component_class_source_create(
+          name, message_iterator_class)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle, retain: false)
+      end
+    end
+
     private
     def _wrap_finalize_method(method)
       Babeltrace2._wrap_component_class_finalize_method(BTSelfComponentSource, @handle, method)
@@ -658,6 +600,21 @@ module Babeltrace2
                   :bt_component_class_set_method_status
 
   class BTComponentClass::Filter
+
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   name: nil, message_iterator_class: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        raise ArgumentError, "invalid value for name" unless name
+        raise ArgumentError, "invalid value for message_iterator_class" unless message_iterator_class
+        handle = Babeltrace2.bt_component_class_filter_create(
+          name, message_iterator_class)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle, retain: false)
+      end
+    end
+
     private
     def _wrap_finalize_method(method)
       Babeltrace2._wrap_component_class_finalize_method(BTSelfComponentFilter, @handle, method)
@@ -756,6 +713,25 @@ module Babeltrace2
                   :bt_component_class_set_method_status
 
   class BTComponentClass::Sink
+    ConsumeMethodStatus = BTComponentClassSinkConsumeMethodStatus
+    GraphIsConfiguredMethodStatus = BTComponentClassSinkGraphIsConfiguredMethodStatus
+
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   name: nil, consume_method: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        raise ArgumentError, "invalid value for name" unless name
+        raise ArgumentError, "invalid value for consume_method" unless consume_method
+        consume_method = Babeltrace2._wrap_component_class_sink_consume_method(consume_method)
+        handle = Babeltrace2.bt_component_class_sink_create(
+          name, consume_method)
+        raise Babeltrace2.process_error if handle.null?
+        Babeltrace2._callbacks[handle.to_i][:consume_method] = consume_method
+        super(handle, retain: false)
+      end
+    end
+
     private
     def _wrap_finalize_method(method)
       Babeltrace2._wrap_component_class_finalize_method(BTSelfComponentSink, @handle, method)
