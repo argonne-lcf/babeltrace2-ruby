@@ -40,7 +40,7 @@ class TestSourceMessageIterator < UserMessageIterator
 end
 
 class TestSource < UserSource
-  @name = "test source"
+  @name = "test_source"
   @description = "Test source."
   @message_iterator_class = TestSourceMessageIterator
 

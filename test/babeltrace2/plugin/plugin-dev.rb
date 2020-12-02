@@ -1,7 +1,7 @@
 class BTUserPluginTest < Minitest::Test
   def test_user_plugin
     plugin = BT2.load_plugin_file(PLUGIN_PATH).first
-    source = plugin.get_source_component_class("test source")
+    source = plugin.get_source_component_class("test_source")
     filter = plugin.get_filter_component_class("TestFilter")
     sink = plugin.get_sink_component_class(0)
     graph = BT2::BTGraph.new
