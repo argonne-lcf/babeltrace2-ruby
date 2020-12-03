@@ -320,7 +320,7 @@ module Babeltrace2
 
   def self.load_plugin_file(path)
     return [] unless File.exist?(path)
-    hash = Digest::SHA256.file(path)
+    hash = Digest::SHA256.file(path).to_s
     return @@native_plugins[hash] if @@native_plugins.include?(hash)
     @@user_plugins = []
     str = ""
