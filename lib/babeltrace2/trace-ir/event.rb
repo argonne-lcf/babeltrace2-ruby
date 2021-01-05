@@ -86,6 +86,10 @@ module Babeltrace2
       BTField.from_handle(handle)
     end
     alias common_context_field get_common_context_field
+
+    def name
+      get_class.name
+    end
   end
 
 end
