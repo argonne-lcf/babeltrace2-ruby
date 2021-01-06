@@ -635,7 +635,7 @@ module Babeltrace2
     alias [] get_member_field
 
     def []=(member_field, value)
-      self.get_member_field(member_field).set_value(value)
+      get_member_field(member_field).set_value(value)
       value
     end
 
