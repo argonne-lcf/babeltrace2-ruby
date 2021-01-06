@@ -634,6 +634,11 @@ module Babeltrace2
     end
     alias [] get_member_field
 
+    def []=(member_field, value)
+      self.get_member_field(member_field).set_value(value)
+      value
+    end
+
     def each
       if block_given?
         get_member_count.times { |i|
