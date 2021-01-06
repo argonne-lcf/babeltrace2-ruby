@@ -159,7 +159,7 @@ module Babeltrace2
         mess = method.call(BTSelfMessageIterator.new(self_message_iterator,
                              retain: false, auto_release: false),
                            capacity)
-        if mess.size < capacity
+        if mess.size <= capacity
           mess.each { |m| bt_message_get_ref(m.handle) }
           messages.write_array_of_pointer(mess.collect(&:handle))
           count.write_uint64(mess.size)
