@@ -6,6 +6,16 @@ module Babeltrace2
       :BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS, 1 << 2,
       :BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR, 1 << 3]
 
+  def self.verbose?
+    !!@verbose
+  end
+
+  def self.verbose=(val)
+    @verbose = !!val
+  end
+
+  @verbose = ENV["VERBOSE"]
+
   class BTError < BTObject
   end
 
@@ -347,14 +357,14 @@ module Babeltrace2
       item = ""
       item << c.file_name << ":"
       item << c.line_number.to_s
-      item << (mess.match(/:in /) ? mess : ".")
+      item << (mess.match(/:in /) ? mess : Babeltrace2.verbose? ? " :: " << mess : ".")
       backtrace.push(item)
       cs[1..-1].each { |c|
         item = ""
         item << c.file_name << ":"
         item << c.line_number.to_s
         mess = c.message
-        item << (mess.match(/:in /) ? mess : ".")
+        item << (mess.match(/:in /) ? mess : Babeltrace2.verbose? ? " :: " << mess : ".")
         backtrace.push(item)
       }
       [klass, message, backtrace]
@@ -424,7 +434,7 @@ module Babeltrace2
       e = klass.new(message)
     else
       message = "#{code}" unless message
-      e = Error.new
+      e = Error.new(message)
     end
     e.set_backtrace(backtrace+caller_locations.collect(&:to_s))
     e
