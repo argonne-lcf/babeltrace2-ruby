@@ -421,7 +421,7 @@ module Babeltrace2
                   :bt_field_string_append_status
 
   attach_function :bt_field_string_append_with_length,
-                  [ :bt_field_string_handle, :string, :uint64 ],
+                  [ :bt_field_string_handle, :pointer, :uint64 ],
                   :bt_field_string_append_status
 
   attach_function :bt_field_string_clear,
@@ -460,7 +460,9 @@ module Babeltrace2
 
     def append(value, length: nil)
       res = if length
-          Babeltrace2.bt_field_string_append_with_length(@handle, value, length)
+          ptr = FFI::MemoryPointer.new(length)
+          ptr.write_bytes(value, 0, length)
+          Babeltrace2.bt_field_string_append_with_length(@handle, ptr, length)
         else
           Babeltrace2.bt_field_string_append(@handle, value)
         end
@@ -521,12 +523,29 @@ module Babeltrace2
     end
 
     def value
-      each.collect { |e| e.value }
+      each.collect(&:value)
+    end
+
+    def set_value(values)
+      raise "invalid value size" if values.size != length 
+      values.each_with_index { |e, i|
+        get_element_field_by_index(i).set_value(e)
+      }
+      self
+    end
+
+    def value=(values)
+      set_value(values)
+      values
+    end
+
+    def get_element_field_class_type
+      get_class.element_field_class.get_type
     end
 
     def to_s
       s = "["
-      s << each.collect { |e| e.to_s }.join(", ")
+      s << each.collect(&:to_s).join(", ")
       s << "]"
     end
   end
@@ -656,6 +675,11 @@ module Babeltrace2
         v[klass.get_member_by_index(i).name] = get_member_field_by_index(i).value
       }
       v
+    end
+
+    def field_names
+      klass = get_class
+      get_member_count.times.collect { |i| klass.get_member_by_index(i).name }
     end
 
     def to_s
