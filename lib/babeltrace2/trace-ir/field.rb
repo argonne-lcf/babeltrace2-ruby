@@ -539,10 +539,6 @@ module Babeltrace2
       values
     end
 
-    def get_element_field_class_type
-      get_class.element_field_class.get_type
-    end
-
     def to_s
       s = "["
       s << each.collect(&:to_s).join(", ")
