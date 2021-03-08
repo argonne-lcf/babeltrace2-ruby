@@ -52,7 +52,12 @@ class BTFieldTest < Minitest::Test
           assert_equal(19, f.member_count)
           assert_nil(f[19])
           assert_nil(f["bool"])
-
+          field_names = [:bool, "bit array", "unsigned", "signed", "single", 
+                         "double", "unsigned enum", "signed enum", "string", 
+                         "static array", "dynamic array wo length", "dynamic array w length", 
+                         "option wo select", "option w select bool", "option w select unsigned", "option w select signed", 
+                         "variant wo select", "variant w select unsigned", "variant w select signed"]
+          assert_equal(field_names, f.field_names)
           sf = f[0]
           assert_equal(sf, f[:bool])
           assert_equal(:BT_FIELD_CLASS_TYPE_BOOL, sf.class_type)
@@ -137,6 +142,10 @@ class BTFieldTest < Minitest::Test
           assert_equal("Hello", sf.value)
           sf.clear 
           assert_equal("", sf.value)
+          sf.clear
+          sf.append("Hello\0!", length: 7)
+          assert_equal("Hello\0!", sf.value)
+          sf.clear
           sf << "Hel"
           assert_equal("Hel", sf.value)
           sf.append("lo!", length: 2)
@@ -148,10 +157,19 @@ class BTFieldTest < Minitest::Test
           assert_equal(15, sf.length)
           assert_nil(sf[16])
           assert_nil(sf[-16])
+          sf_value = sf.length.times.collect { |indx| indx % 2 == 0 ? true : false }
           sf.length.times { |indx|
             ssf = sf[indx]
-            ssf.value = (indx % 2 == 0 ? true : false)
+            ssf.value = sf_value[indx]
           }
+          sf.each.each_cons(2) { |ssf1, ssf2|
+            refute_equal(ssf1.value, ssf2.value)
+          }
+          sf.length.times { |indx|
+            ssf = sf[indx]
+            ssf.value = 0
+          }
+          sf.value = sf_value
           sf.each.each_cons(2) { |ssf1, ssf2|
             refute_equal(ssf1.value, ssf2.value)
           }
@@ -164,10 +182,19 @@ class BTFieldTest < Minitest::Test
           assert_equal(5, sf.length)
           assert_nil(sf[16])
           assert_nil(sf[-16])
+          sf_value = sf.length.times.collect { |indx| indx % 2 == 0 ? true : false }
           sf.length.times { |indx|
             ssf = sf[indx]
-            ssf.value = (indx % 2 == 0 ? true : false)
+            ssf.value =  sf_value[indx]
           }
+          sf.each.each_cons(2) { |ssf1, ssf2|
+            refute_equal(ssf1.value, ssf2.value)
+          }
+          sf.length.times { |indx|
+            ssf = sf[indx]
+            ssf.value = 0
+          }
+          sf.value = sf_value
           sf.each.each_cons(2) { |ssf1, ssf2|
             refute_equal(ssf1.value, ssf2.value)
           }
@@ -180,13 +207,23 @@ class BTFieldTest < Minitest::Test
           assert_equal(f[2].value, sf.length)
           assert_nil(sf[16])
           assert_nil(sf[-16])
+          sf_value = sf.length.times.collect { |indx| indx % 2 == 0 ? true : false }
           sf.length.times { |indx|
             ssf = sf[indx]
-            ssf.value = (indx % 2 == 0 ? true : false)
+            ssf.value =  sf_value[indx]
           }
           sf.each.each_cons(2) { |ssf1, ssf2|
             refute_equal(ssf1.value, ssf2.value)
           }
+          sf.length.times { |indx|
+            ssf = sf[indx]
+            ssf.value = 0
+          }
+          sf.value = sf_value
+          sf.each.each_cons(2) { |ssf1, ssf2|
+            refute_equal(ssf1.value, ssf2.value)
+          }
+
           assert_equal("PACKET_CONTEXT[2]", sf.get_class.length_field_path.to_s)
 
           sf = f[12]
