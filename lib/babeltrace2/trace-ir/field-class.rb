@@ -260,7 +260,7 @@ module Babeltrace2
   class BTFieldClass::Integer < BTFieldClass
 
     def set_field_value_range(n)
-      raise "invalid range" if n < 0 || n > 63
+      raise "invalid range" if n < 0 || n > 64
       Babeltrace2.bt_field_class_integer_set_field_value_range(@handle, n)
       self
     end
