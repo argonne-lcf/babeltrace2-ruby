@@ -70,7 +70,7 @@ class BTPacketTest < Minitest::Test
       field_class = BT2::BTFieldClassStructure.new(trace_class: trace_class)
       stream_class.packet_context_field_class = field_class
       href = trace_class.to_h
-      h = trace_class.to_h
+      h = Marshal.load(Marshal.dump(href))
       assert_equal(href, BT2::BTTraceClass.from_h(self_component, h).to_h)
       trace = BT2::BTTrace.new(trace_class: trace_class)
       stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)

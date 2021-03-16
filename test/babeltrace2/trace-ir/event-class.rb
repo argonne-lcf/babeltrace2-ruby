@@ -65,7 +65,7 @@ class BTEventClassTest < Minitest::Test
       ecls.user_attributes = { "foo" => 15 }
       assert_equal({ "foo" => 15 }, ecls.user_attributes.value)
       href = trace_class.to_h
-      h = trace_class.to_h
+      h = Marshal.load(Marshal.dump(href))
       assert_equal(href, BT2::BTTraceClass.from_h(self_component, h).to_h)
       trace = BT2::BTTrace.new(trace_class: trace_class)
       stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)
