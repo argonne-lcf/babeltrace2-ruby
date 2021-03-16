@@ -414,6 +414,87 @@ module Babeltrace2
     end
     alias user_attributes get_user_attributes
 
+    def to_h
+      res = {
+        id: id,
+        supports_packets: supports_packets? }
+      if supports_packets?
+        res[:packets_have_beginning_default_clock_snapshot] =
+          packets_have_beginning_default_clock_snapshot?
+        res[:packets_have_end_default_clock_snapshot] =
+          packets_have_end_default_clock_snapshot?
+      end
+      res[:supports_discarded_events] = supports_discarded_events?
+      res[:discarded_events_have_default_clock_snapshots] =
+        discarded_events_have_default_clock_snapshots? if supports_discarded_events?
+      if supports_packets?
+        res[:supports_discarded_packets] = supports_discarded_packets?
+        if supports_discarded_packets?
+          res[:discarded_packets_have_default_clock_snapshots] = discarded_packets_have_default_clock_snapshots?
+        end
+      end
+      if default_clock_class
+        res[:default_clock_class] = default_clock_class.to_h
+      end
+      if supports_packets? && packet_context_field_class
+        res[:packet_context_field_class] = packet_context_field_class.to_h
+      end
+      if event_common_context_field_class
+        res[:event_common_context_field_class] = event_common_context_field_class.to_h
+      end
+      res[:assigns_automatic_event_class_id] = assigns_automatic_event_class_id?
+      res[:assigns_automatic_stream_id] = assigns_automatic_stream_id?
+      res[:event_classes] = event_class_count.times.collect { |i|
+        get_event_class_by_index(i).to_h
+      }
+      user_attributes_value = user_attributes.value
+      res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+      res
+    end
+
+    def self.from_h(self_component, trace_class, h)
+      id = trace_class.assigns_automatic_stream_class_id? ? nil : h[:id]
+      o = trace_class.create_stream_class(id: id)
+      o.default_clock_class = BTClockClass.from_h(self_component,
+        h[:default_clock_class]) if h[:default_clock_class]
+      o.set_supports_packets( h[:supports_packets],
+        with_beginning_default_clock_snapshot:
+          h[:packets_have_beginning_default_clock_snapshot],
+        with_end_default_clock_snapshot:
+          h[:packets_have_end_default_clock_snapshot])
+      o.set_supports_discarded_events(h[:supports_discarded_events],
+        with_default_clock_snapshots:
+          h[:discarded_events_have_default_clock_snapshots])
+      o.set_supports_discarded_packets(h[:supports_discarded_packets],
+        with_default_clock_snapshots:
+          h[:discarded_packets_have_default_clock_snapshots]) if h[:supports_packets]
+      o.packet_context_field_class = BTFieldClass.from_h(trace_class,
+        h[:packet_context_field_class], h) if h[:packet_context_field_class]
+      o.event_common_context_field_class = BTFieldClass.from_h(trace_class,
+        h[:event_common_context_field_class], h) if h[:event_common_context_field_class]
+      o.assigns_automatic_event_class_id = h[:assigns_automatic_event_class_id] unless h[:assigns_automatic_event_class_id].nil?
+      o.assigns_automatic_stream_id = h[:assigns_automatic_stream_id] unless h[:assigns_automatic_stream_id].nil?
+      h[:event_classes].each_with_index { |v, i|
+        h[:bt_current_event] = i;
+        BTEventClass.from_h(trace_class, o, v, h)
+      }
+      h.delete(:bt_current_event)
+      o.user_attributes = h[:user_attributes] if h[:user_attributes]
+      h[:bt_stream_class] = o
+      o
+    end
+
+    def self.locate_field_class(path, h)
+      case path[0]
+      when :event_payload_field_class
+        h[:event_classes][h[:bt_current_event]][:payload_field_class].dig(*path[1..-1])[:bt_field_class]
+      when :event_specific_context_field_class
+        h[:event_classes][h[:bt_current_event]][:specific_context_field_class].dig(*path[1..-1])[:bt_field_class]
+      else
+        h.dig(*path)[:bt_field_class]
+      end
+    end
+
     def create_stream(trace, id: nil)
       BTStream.new(stream_class: @handle, trace: trace, id: nil)
     end

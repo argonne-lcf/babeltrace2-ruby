@@ -357,6 +357,9 @@ class BTFieldTest < Minitest::Test
       v.append(:bar, trace_class.create_string, [6..7])
       field_class.append("variant w select signed", v)
       stream_class.packet_context_field_class = field_class
+      href = trace_class.to_h
+      h = trace_class.to_h
+      assert_equal(href, BT2::BTTraceClass.from_h(self_component, h).to_h)
       trace = trace_class.create_trace
       stream = stream_class.create_stream(trace)
     }

@@ -85,6 +85,30 @@ module Babeltrace2
       }
       path
     end
+
+    def self.path_from_s_to_h(str)
+      str_orig = str
+      m = str.match(/\A(PACKET_CONTEXT|EVENT_COMMON_CONTEXT|EVENT_SPECIFIC_CONTEXT|EVENT_PAYLOAD)/)
+      raise "invalid path #{str}" if !m
+      path = [(m[1].downcase << "_field_class").to_sym]
+      str = str.sub(m[1], "")
+      while !str.empty?
+        case str
+        when /\A\[(\d+)\]/
+          path.push :members, $1.to_i, :field_class
+          str = str.sub("[#{$1}]", "")
+        when /\A->/
+          path.push :element_field_class
+          str = str.sub("->", "")
+        when /\A=>/
+          path.push :field_class
+          str = str.sub("=>", "")
+        else
+          raise "invalid path #{str_orig}"
+        end
+      end
+      path
+    end
   end
 
   BT_FIELD_PATH_ITEM_TYPE_INDEX = 1 << 0

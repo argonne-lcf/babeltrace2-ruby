@@ -288,5 +288,32 @@ module Babeltrace2
       BTValueMap.new(Babeltrace2.bt_event_class_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
+
+    def to_h
+      res = { id: id }
+      res[:name] = name if name
+      res[:log_level] = log_level if log_level
+      res[:emf_uri] = emf_uri if emf_uri
+      res[:specific_context_field_class] = specific_context_field_class.to_h if specific_context_field_class
+      res[:payload_field_class] = payload_field_class.to_h if payload_field_class
+      user_attributes_value = user_attributes.value
+      res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+      res
+    end
+
+    def self.from_h(trace_class, stream_class, h, stream_class_h)
+      id = stream_class.assigns_automatic_event_class_id? ? nil : h[:id]
+      o = self.new(stream_class: stream_class, id: id)
+      o.name = h[:name] if h[:name]
+      o.log_level = h[:log_level] if h[:log_level]
+      o.emf_uri = h[:emf_uri] if h[:emf_uri]
+      o.specific_context_field_class = BTFieldClass.from_h(trace_class,
+        h[:specific_context_field_class], stream_class_h) if h[:specific_context_field_class]
+      o.payload_field_class = BTFieldClass.from_h(trace_class,
+        h[:payload_field_class], stream_class_h) if h[:payload_field_class]
+      o.user_attributes = h[:user_attributes] if h[:user_attributes]
+      h[:bt_event_class] = o
+      o
+    end
   end
 end

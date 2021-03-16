@@ -254,5 +254,33 @@ module Babeltrace2
       raise Babeltrace2.process_error(res) if res != :BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK
       ptr.read_int64
     end
+
+    def to_h
+      res = {}
+      res[:name] = name if name
+      res[:description] = description if description
+      res[:frequency] = frequency
+      res[:precision] = precision
+      res[:offset] = offset
+      res[:origin_is_unix_epoch] = origin_is_unix_epoch?
+      res[:uuid] = uuid.to_s if uuid
+      user_attributes_value = user_attributes.value
+      res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+      res
+    end
+
+    def self.from_h(self_component, h)
+      o = self_component.create_clock_class
+      o.name = h[:name] if h[:name]
+      o.description = h[:description] if h[:description]
+      o.frequency = h[:frequency] if h[:frequency]
+      o.precision = h[:precision] if h[:precision]
+      o.set_offset(*h[:offset]) if h[:offset]
+      o.origin_is_unix_epoch = h[:origin_is_unix_epoch]
+      o.uuid = BTUUID.from_string(h[:uuid]) if h[:uuid]
+      o.user_attributes = h[:user_attributes] if h[:user_attributes]
+      h[:bt_clock_class] = o
+      o
+    end
   end
 end

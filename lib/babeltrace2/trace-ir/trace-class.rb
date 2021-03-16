@@ -339,5 +339,24 @@ module Babeltrace2
     end
     alias create_variant_class create_field_class_variant
     alias create_variant create_field_class_variant
+
+    def to_h
+      res = {
+        assigns_automatic_stream_class_id: assigns_automatic_stream_class_id?,
+        stream_classes: stream_class_count.times.collect { |i| get_stream_class_by_index(i).to_h } }
+      user_attributes_value = user_attributes.value
+      res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+      res
+    end
+
+    def self.from_h(self_component, h)
+      o = self_component.create_trace_class
+      o.assigns_automatic_stream_class_id = h[:assigns_automatic_stream_class_id] unless h[:assigns_automatic_stream_class_id].nil?
+      h[:stream_classes].each { |v| BTStreamClass.from_h(self_component, o, v) }
+      o.user_attributes = h[:user_attributes] if h[:user_attributes]
+      h[:bt_trace_class] = o
+      o
+    end
+
   end
 end

@@ -350,6 +350,9 @@ class BTFieldClassTest < Minitest::Test
       f2 = nil
 
       stream_class = BT2::BTStreamClass.new(trace_class: trace_class)
+      href = trace_class.to_h
+      h = trace_class.to_h
+      assert_equal(href, BT2::BTTraceClass.from_h(self_component, h).to_h)
       trace = BT2::BTTrace.new(trace_class: trace_class)
       stream = BT2::BTStream.new(stream_class: stream_class, trace: trace)
     }

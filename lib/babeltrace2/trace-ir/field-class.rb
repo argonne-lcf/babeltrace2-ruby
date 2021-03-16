@@ -172,6 +172,36 @@ module Babeltrace2
       BTValueMap.new(Babeltrace2.bt_field_class_borrow_user_attributes(@handle), retain: true)
     end
     alias user_attributes get_user_attributes
+
+    def to_h
+      res = { type: class_snake_case_name }
+      user_attributes_value = user_attributes.value
+      res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      Babeltrace2.const_get(snake_case_to_class(h[:type])).from_h(
+        trace_class, h, stream_class_h)
+    end
+
+    def from_h(h)
+      self.user_attributes = h[:user_attributes] if h[:user_attributes]
+      self
+    end
+
+    private
+
+    def class_snake_case_name
+      str = self.class.name.gsub(/::/, '')
+      str.match(/BTFieldClass(.*)/)[1].
+        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+        gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
+    end
+
+    def self.snake_case_to_class(str)
+      "BTFieldClass" << str.split("_").collect(&:capitalize).join
+    end
   end
 
   attach_function :bt_field_class_bool_create,
@@ -188,6 +218,12 @@ module Babeltrace2
         raise Babeltrace2.process_error if handle.null?
         super(handle, retain: false)
       end
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
     end
   end
   BTFieldClassBool = BTFieldClass::Bool
@@ -219,6 +255,18 @@ module Babeltrace2
       Babeltrace2.bt_field_class_bit_array_get_length(@handle)
     end
     alias length get_length
+
+    def to_h
+      res = super
+      res[:length] = length
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class, length: h[:length]).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassBitArray = BTFieldClass::BitArray
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_BIT_ARRAY] = [
@@ -305,6 +353,20 @@ module Babeltrace2
         preferred_display_base
       end
     end
+
+    def to_h
+      res = super
+      res[:field_value_range] = field_value_range
+      res[:preferred_display_base] = preferred_display_base_integer
+      res
+    end
+
+    def from_h(h)
+      super
+      self.field_value_range = h[:field_value_range] if h[:field_value_range]
+      self.preferred_display_base = h[:preferred_display_base] if h[:preferred_display_base]
+      self
+    end
   end
   BTFieldClassInteger = BTFieldClass::Integer
 
@@ -322,6 +384,12 @@ module Babeltrace2
         raise Babeltrace2.process_error if handle.null?
         super(handle, retain: false)
       end
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
     end
   end
   BTFieldClass::IntegerUnsigned = BTFieldClass::Integer::Unsigned
@@ -344,6 +412,12 @@ module Babeltrace2
         raise Babeltrace2.process_error if handle.null?
         super(handle, retain: false)
       end
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
     end
   end
   BTFieldClass::IntegerSigned = BTFieldClass::Integer::Signed
@@ -371,6 +445,12 @@ module Babeltrace2
         super(handle, retain: false)
       end
     end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClass::RealSinglePrecision = BTFieldClass::Real::SinglePrecision
   BTFieldClassRealSinglePrecision = BTFieldClass::Real::SinglePrecision
@@ -392,6 +472,12 @@ module Babeltrace2
         raise Babeltrace2.process_error if handle.null?
         super(handle, retain: false)
       end
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
     end
   end
   BTFieldClass::RealDoublePrecision = BTFieldClass::Real::DoublePrecision
@@ -447,6 +533,25 @@ module Babeltrace2
       end
     end
     alias mapping get_mapping
+
+    def to_h
+      res = super
+      res[:mappings] = get_mapping_count.times.collect { |i|
+        mapping = get_mapping_by_index(i)
+        [mapping.label, mapping.ranges.each.collect { |r| [r.lower, r.upper] }]
+      }.to_h
+      res
+    end
+
+    def from_h(h)
+      super
+      if h[:mappings]
+        h[:mappings].each { |name, ranges|
+          add_mapping(name, ranges)
+        }
+      end
+      self
+    end
 
     class Mapping < BTObject
       def get_label
@@ -509,6 +614,12 @@ module Babeltrace2
         raise Babeltrace2.process_error if handle.null?
         super(handle, retain: false)
       end
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
     end
 
     def add_mapping(label, ranges)
@@ -608,6 +719,12 @@ module Babeltrace2
       end
     end
 
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
+
     def add_mapping(label, ranges)
       label = label.inspect if label.kind_of?(Symbol)
       ranges = BTIntegerRangeSetSigned.from_value(ranges)
@@ -672,6 +789,12 @@ module Babeltrace2
         super(handle, retain: false)
       end
     end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassString = BTFieldClass::String
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STRING] = [
@@ -692,6 +815,12 @@ module Babeltrace2
         Babeltrace2.bt_field_class_array_borrow_element_field_class(@handle))
     end
     alias element_field_class get_element_field_class
+
+    def to_h
+      res = super
+      res[:element_field_class] = element_field_class.to_h
+      res
+    end
   end
   BTFieldClassArray = BTFieldClass::Array
 
@@ -721,6 +850,22 @@ module Babeltrace2
     end
     alias length get_length
     alias size get_length
+
+    def to_h
+      res = super
+      res[:length] = length
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class,
+        element_field_class: BTFieldClass.from_h(trace_class,
+                                                 h[:element_field_class],
+                                                 stream_class_h),
+        length: h[:length]).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassArrayStatic = BTFieldClass::Array::Static
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_ARRAY] = [
@@ -744,6 +889,12 @@ module Babeltrace2
         BTFieldPath.new(handle, retain: true)
       end
       alias length_field_path get_length_field_path
+
+      def to_h
+        res = super
+        res[:length_field_path] = length_field_path.to_s
+        res
+      end
     end
     def initialize(handle = nil, retain: true, auto_release: true,
                    trace_class: nil, element_field_class: nil, length_field_class: nil)
@@ -758,6 +909,22 @@ module Babeltrace2
         self.extend(WithLengthField) if length_field_class
         super(handle, retain: false)
       end
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      if (stream_class_h && h[:length_field_path])
+        length_field_class = BTStreamClass.locate_field_class( 
+          BTFieldPath.path_from_s_to_h(h[:length_field_path]), stream_class_h)
+      else
+        length_field_class = nil
+      end
+      o = self.new(trace_class: trace_class,
+        element_field_class: BTFieldClass.from_h(trace_class,
+                                                 h[:element_field_class],
+                                                 stream_class_h),
+        length_field_class: length_field_class).from_h(h)
+      h[:bt_field_class] = o
+      o
     end
   end
   BTFieldClassArrayDynamic = BTFieldClass::Array::Dynamic
@@ -858,6 +1025,18 @@ module Babeltrace2
         BTValueMap.new(Babeltrace2.bt_field_class_structure_member_borrow_user_attributes(@handle), retain: true)
       end
       alias user_attributes get_user_attributes
+
+      def to_h
+        res = { name: name, field_class: field_class.to_h }
+        user_attributes_value = user_attributes.value
+        res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+        res
+      end
+
+      def from_h(h)
+        self.user_attributes = h[:user_attributes] if h[:user_attributes]
+        self
+      end
     end
 
     def initialize(handle = nil, retain: true, auto_release: true,
@@ -911,6 +1090,23 @@ module Babeltrace2
       end
     end
     alias [] get_member
+
+    def to_h
+      res = super
+      res[:members] = member_count.times.collect { |i| get_member_by_index(i).to_h }
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class).from_h(h)
+      h[:members].each_with_index { |v, i|
+        o.append_member(v[:name],
+          BTFieldClass.from_h(trace_class, v[:field_class], stream_class_h))
+        o.get_member_by_index(i).from_h(v)
+      }
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassStructure = BTFieldClass::Structure
   BTFieldClassStructureMember = BTFieldClass::Structure::Member
@@ -932,6 +1128,12 @@ module Babeltrace2
         Babeltrace2.bt_field_class_option_borrow_field_class(@handle))
     end
     alias field_class get_field_class
+
+    def to_h
+      res = super
+      res[:field_class] = field_class.to_h
+      res
+    end
   end
   BTFieldClassOption = BTFieldClass::Option
 
@@ -951,6 +1153,15 @@ module Babeltrace2
         super(handle, retain: false)
       end
     end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      o = self.new(trace_class: trace_class,
+        optional_field_class: BTFieldClass.from_h(trace_class,
+                                                  h[:field_class],
+                                                  stream_class_h)).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassOptionWithoutSelectorField = BTFieldClass::Option::WithoutSelectorField
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD] = [
@@ -968,6 +1179,12 @@ module Babeltrace2
       BTFieldPath.new(handle, retain: true)
     end
     alias selector_field_path get_selector_field_path
+
+    def to_h
+      res = super
+      res[:selector_field_path] = selector_field_path.to_s if selector_field_path
+      res
+    end
   end
   BTFieldClassOptionWithSelectorField = BTFieldClass::Option::WithSelectorField
 
@@ -1014,6 +1231,29 @@ module Babeltrace2
         @handle) != BT_FALSE
     end
     alias selector_is_reversed? selector_is_reversed
+
+    def to_h
+      res = super
+      res[:selector_is_reversed] = selector_is_reversed?
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      if (stream_class_h && h[:selector_field_path])
+        selector_field_class = BTStreamClass.locate_field_class( 
+          BTFieldPath.path_from_s_to_h(h[:selector_field_path]), stream_class_h)
+      else
+        selector_field_class = nil
+      end
+      o = self.new(trace_class: trace_class,
+        optional_field_class: BTFieldClass.from_h(trace_class,
+                                                  h[:field_class],
+                                                  stream_class_h),
+        selector_field_class: selector_field_class).from_h(h)
+      o.selector_is_reversed = h[:selector_is_reversed] if h[:selector_is_reversed]
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassOptionWithSelectorFieldBool = BTFieldClass::Option::WithSelectorField::Bool
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD] = [
@@ -1051,6 +1291,29 @@ module Babeltrace2
           @handle), retain: true)
     end
     alias selector_ranges get_selector_ranges
+
+    def to_h
+      res = super
+      res[:selector_ranges] = selector_ranges.each.collect { |r| [r.lower, r.upper] }
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      if (stream_class_h && h[:selector_field_path])
+        selector_field_class = BTStreamClass.locate_field_class( 
+          BTFieldPath.path_from_s_to_h(h[:selector_field_path]), stream_class_h)
+      else
+        selector_field_class = nil
+      end
+      o = self.new(trace_class: trace_class,
+        optional_field_class: BTFieldClass.from_h(trace_class,
+                                                  h[:field_class],
+                                                  stream_class_h),
+        selector_field_class: selector_field_class,
+        ranges: h[:selector_ranges]).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassOptionWithSelectorFieldIntegerUnsigned = BTFieldClass::Option::WithSelectorField::IntegerUnsigned
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD] = [
@@ -1088,6 +1351,29 @@ module Babeltrace2
           @handle), retain: true)
     end
     alias selector_ranges get_selector_ranges
+
+    def to_h
+      res = super
+      res[:selector_ranges] = selector_ranges.each.collect { |r| [r.lower, r.upper] }
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      if (stream_class_h && h[:selector_field_path])
+        selector_field_class = BTStreamClass.locate_field_class( 
+          BTFieldPath.path_from_s_to_h(h[:selector_field_path]), stream_class_h)
+      else
+        selector_field_class = nil
+      end
+      o = self.new(trace_class: trace_class,
+        optional_field_class: BTFieldClass.from_h(trace_class,
+                                                  h[:field_class],
+                                                  stream_class_h),
+        selector_field_class: selector_field_class,
+        ranges: h[:selector_ranges]).from_h(h)
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassOptionWithSelectorFieldIntegerSigned = BTFieldClass::Option::WithSelectorField::IntegerSigned
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD] = [
@@ -1174,6 +1460,13 @@ module Babeltrace2
             @handle), retain: true)
       end
       alias user_attributes get_user_attributes
+
+      def to_h
+        res = { name: name, field_class: field_class.to_h }
+        user_attributes_value = user_attributes.value
+        res[:user_attributes] = user_attributes_value if !user_attributes_value.empty?
+        res
+      end
     end
   end
   BTFieldClassVariantOption = BTFieldClass::Variant::Option
@@ -1259,6 +1552,13 @@ module Babeltrace2
         BTFieldPath.new(handle, retain: true)
       end
       alias selector_field_path get_selector_field_path
+
+      def to_h
+        res = super
+        res[:selector_field_path] = selector_field_path.to_s
+        res
+      end
+
       module IntegerUnsigned
         class Option < BTFieldClassVariantOption
          def get_ranges
@@ -1267,6 +1567,12 @@ module Babeltrace2
                 @handle), retain: true)
          end
          alias ranges get_ranges
+
+         def to_h
+           res = super
+           res[:ranges] = ranges.each.collect { |r| [r.lower, r.upper] }
+           res
+         end
         end
         include WithSelectorField
         def append_option(name, option_field_class, ranges)
@@ -1303,6 +1609,12 @@ module Babeltrace2
                 @handle), retain: true)
          end
          alias ranges get_ranges
+
+         def to_h
+           res = super
+           res[:ranges] = ranges.each.collect { |r| [r.lower, r.upper] }
+           res
+         end
         end
         include WithSelectorField
         def append_option(name, option_field_class, ranges)
@@ -1395,6 +1707,36 @@ module Babeltrace2
     end
     alias [] get_option
 
+    def to_h
+      res = super
+      res[:options] = option_count.times.collect { |i|
+        get_option_by_index(i).to_h
+      }
+      res
+    end
+
+    def self.from_h(trace_class, h, stream_class_h = nil)
+      if (stream_class_h && h[:selector_field_path])
+        selector_field_class = BTStreamClass.locate_field_class( 
+          BTFieldPath.path_from_s_to_h(h[:selector_field_path]), stream_class_h)
+      else
+        selector_field_class = nil
+      end
+      o = self.new(trace_class: trace_class,
+        selector_field_class: selector_field_class).from_h(h)
+      if selector_field_class
+        h[:options].each { |v|
+          o.append_option(v[:name],
+            BTFieldClass.from_h(trace_class, v[:field_class], stream_class_h),
+            v[:ranges]) }
+      else
+        h[:options].each { |v|
+          o.append_option(v[:name],
+            BTFieldClass.from_h(trace_class, v[:field_class], stream_class_h)) }
+      end
+      h[:bt_field_class] = o
+      o
+    end
   end
   BTFieldClassVariantWithoutSelectorField =
     BTFieldClass::Variant::WithoutSelectorField
