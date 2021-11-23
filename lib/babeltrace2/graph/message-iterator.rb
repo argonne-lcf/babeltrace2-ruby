@@ -190,7 +190,6 @@ module Babeltrace2
       ptr_messages = FFI::MemoryPointer.new(:pointer)
       ptr_count = FFI::MemoryPointer.new(:uint64)
       while ((res = Babeltrace2.bt_message_iterator_next(@handle, ptr_messages, ptr_count)) == :BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN)
-        puts "waiting"
         sleep BT_SLEEP_TIME
       end
       case res
