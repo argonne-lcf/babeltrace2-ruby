@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'babeltrace2'
-  s.version = "0.1.2"
+  s.version = "0.1.3"
   s.author = "Brice Videau"
   s.email = "bvideau@anl.gov"
   s.homepage = "https://github.com/alcf-perfengr/babeltrace2-ruby"
