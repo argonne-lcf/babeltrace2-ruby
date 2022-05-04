@@ -347,13 +347,14 @@ module Babeltrace2
                              logging_level: BTLogging.default_level,
                              initialize_method_data: nil)
       ptr = FFI::MemoryPointer.new(:pointer)
+      bt_params = BTValue.from_value(params)
       res = if initialize_method_data
           Babeltrace2.bt_graph_add_source_component_with_initialize_method_data(
-            @handle, component_class, name, BTValue.from_value(params),
+            @handle, component_class, name, bt_params,
             initialize_method_data, logging_level, ptr)
         else
           Babeltrace2.bt_graph_add_source_component(
-            @handle, component_class, name, BTValue.from_value(params),
+            @handle, component_class, name, bt_params,
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
@@ -365,13 +366,14 @@ module Babeltrace2
                              logging_level: BTLogging.default_level,
                              initialize_method_data: nil)
       ptr = FFI::MemoryPointer.new(:pointer)
+      bt_params = BTValue.from_value(params)
       res = if initialize_method_data
           Babeltrace2.bt_graph_add_filter_component_with_initialize_method_data(
-            @handle, component_class, name, BTValue.from_value(params),
+            @handle, component_class, name, bt_params,
             initialize_method_data, logging_level, ptr)
         else
           Babeltrace2.bt_graph_add_filter_component(
-            @handle, component_class, name, BTValue.from_value(params),
+            @handle, component_class, name, bt_params,
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK
@@ -383,13 +385,14 @@ module Babeltrace2
                            logging_level: BTLogging.default_level,
                            initialize_method_data: nil)
       ptr = FFI::MemoryPointer.new(:pointer)
+      bt_params = BTValue.from_value(params)
       res = if initialize_method_data
           Babeltrace2.bt_graph_add_sink_component_with_initialize_method_data(
-            @handle, component_class, name, BTValue.from_value(params),
+            @handle, component_class, name, bt_params,
             initialize_method_data, logging_level, ptr)
         else
           Babeltrace2.bt_graph_add_sink_component(
-            @handle, component_class, name, BTValue.from_value(params),
+            @handle, component_class, name, bt_params,
             logging_level, ptr)
         end
       raise Babeltrace2.process_error(res) if res != :BT_GRAPH_ADD_COMPONENT_STATUS_OK

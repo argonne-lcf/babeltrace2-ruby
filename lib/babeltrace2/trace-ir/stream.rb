@@ -116,7 +116,8 @@ module Babeltrace2
     alias name get_name
 
     def set_user_attributes(user_attributes)
-      Babeltrace2.bt_stream_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+      bt_user_attributes = BTValue.from_value(user_attributes)
+      Babeltrace2.bt_stream_set_user_attributes(@handle, bt_user_attributes)
       self
     end
 

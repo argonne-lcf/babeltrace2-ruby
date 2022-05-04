@@ -159,7 +159,8 @@ module Babeltrace2
     alias type? type_is
 
     def set_user_attributes(user_attributes)
-      Babeltrace2.bt_field_class_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+      bt_user_attributes = BTValue.from_value(user_attributes)
+      Babeltrace2.bt_field_class_set_user_attributes(@handle, bt_user_attributes)
       self
     end
 
@@ -1012,7 +1013,8 @@ module Babeltrace2
       alias field_class get_field_class
 
       def set_user_attributes(user_attributes)
-        Babeltrace2.bt_field_class_structure_member_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+        bt_user_attributes = BTValue.from_value(user_attributes)
+        Babeltrace2.bt_field_class_structure_member_set_user_attributes(@handle, bt_user_attributes)
         self
       end
 
@@ -1444,8 +1446,8 @@ module Babeltrace2
       alias field_class get_field_class
 
       def set_user_attributes(user_attributes)
-        Babeltrace2.bt_field_class_variant_option_set_user_attributes(@handle,
-          BTValue.from_value(user_attributes))
+        bt_user_attributes = BTValue.from_value(user_attributes)
+        Babeltrace2.bt_field_class_variant_option_set_user_attributes(@handle, bt_user_attributes)
         self
       end
 

@@ -87,8 +87,9 @@ module Babeltrace2
       if handle
         super(handle, retain: retain, auto_release: auto_release)
       else
+        bt_params = BTValue.from_value(params)
         handle = Babeltrace2.bt_query_executor_create_with_method_data(
-                   component_class, object_name, BTValue.from_value(params), method_data)
+                   component_class, object_name, bt_params, method_data)
         raise Babeltrace2.process_error if handle.null?
         super(handle)
       end

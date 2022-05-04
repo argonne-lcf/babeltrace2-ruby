@@ -233,7 +233,8 @@ module Babeltrace2
     alias uuid get_uuid
 
     def set_user_attributes(user_attributes)
-      Babeltrace2.bt_clock_class_set_user_attributes(@handle, BTValue.from_value(user_attributes))
+      bt_user_attributes = BTValue.from_value(user_attributes)
+      Babeltrace2.bt_clock_class_set_user_attributes(@handle, bt_user_attributes)
       self
     end
 
