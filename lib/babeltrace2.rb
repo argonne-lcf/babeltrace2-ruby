@@ -2,7 +2,11 @@ require 'ffi'
 
 module Babeltrace2
   extend FFI::Library
-  ffi_lib "babeltrace2"
+  if ENV["LIBBABELTRACE2_SO"]
+    ffi_lib ENV["LIBBABELTRACE2_SO"]
+  else
+    ffi_lib "babeltrace2"
+  end
 end
 
 require_relative 'babeltrace2/func-status'
