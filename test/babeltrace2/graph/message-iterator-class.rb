@@ -12,7 +12,7 @@ class BTMessageIteratorClassTest < Minitest::Test
           stream_end_count += 1
           iterator.seek_beginning if stream_end_count == 1
           begin
-            iterator.seek_ns_from_origin(1) if stream_end_count == 2
+            iterator.seek_ns_from_origin(0) if stream_end_count == 2
           rescue => e
             puts e
             puts e.backtrace
@@ -110,7 +110,7 @@ class BTMessageIteratorClassTest < Minitest::Test
     graph.connect_ports(op, ip)
     graph.run
     assert(ini_done)
-    assert_equal(2, stream_beginning_count)
+    assert_equal(3, stream_beginning_count)
     assert_equal(3, stream_end_count)
     graph = nil
     comp1 = nil
