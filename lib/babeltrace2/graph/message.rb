@@ -93,7 +93,7 @@ module Babeltrace2
                   :bt_stream_handle
 
   attach_function :bt_message_stream_beginning_set_default_clock_snapshot,
-                  [ :bt_message_handle, :uint64_t ],
+                  [ :bt_message_handle, :uint64 ],
                   :void
 
   attach_function :bt_message_stream_beginning_borrow_default_clock_snapshot_const,
@@ -166,7 +166,7 @@ module Babeltrace2
                   :bt_stream_handle
 
   attach_function :bt_message_stream_end_set_default_clock_snapshot,
-                  [ :bt_message_handle, :uint64_t ],
+                  [ :bt_message_handle, :uint64 ],
                   :void
 
   attach_function :bt_message_stream_end_borrow_default_clock_snapshot_const,

@@ -609,7 +609,7 @@ module Babeltrace2
   end
 
   class BTUUID < FFI::Struct
-    layout :id, [ :uint8_t, 16 ]
+    layout :id, [ :uint8, 16 ]
     def to_s
       a = self[:id].to_a
       s = ""
