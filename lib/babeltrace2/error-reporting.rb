@@ -33,7 +33,7 @@ module Babeltrace2
                   :string
   attach_function :bt_error_cause_get_line_number,
                   [:bt_error_cause_handle],
-                  :uint64_t
+                  :uint64
 
   class BTError
     class Cause < BTObject
