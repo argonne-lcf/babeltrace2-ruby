@@ -46,6 +46,13 @@ module Babeltrace2
     1 << 27 | BT_FIELD_CLASS_TYPE_VARIANT_WITH_INTEGER_SELECTOR_FIELD
   BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD =
     1 << 28 | BT_FIELD_CLASS_TYPE_VARIANT_WITH_INTEGER_SELECTOR_FIELD
+  BT_FIELD_CLASS_TYPE_BLOB = 1 << 29
+  BT_FIELD_CLASS_TYPE_STATIC_BLOB = 1 << 30 | BT_FIELD_CLASS_TYPE_BLOB
+  BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB = 1 << 31 | BT_FIELD_CLASS_TYPE_BLOB
+  BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD =
+    1 << 32 | BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB
+  BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD =
+    1 << 33 | BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB
   BTFieldClassType = enum FFI::Type::INT64, :bt_field_class_type,
     [ :BT_FIELD_CLASS_TYPE_BOOL,
        BT_FIELD_CLASS_TYPE_BOOL,
@@ -108,7 +115,17 @@ module Babeltrace2
       :BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
        BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
       :BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
-       BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD ]
+       BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
+      :BT_FIELD_CLASS_TYPE_BLOB,
+       BT_FIELD_CLASS_TYPE_BLOB,
+      :BT_FIELD_CLASS_TYPE_STATIC_BLOB,
+       BT_FIELD_CLASS_TYPE_STATIC_BLOB,
+      :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB,
+       BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB,
+      :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD,
+       BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD,
+      :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD,
+       BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD ]
 
   attach_function :bt_field_class_get_type,
                   [ :bt_field_class_handle ],
@@ -936,6 +953,124 @@ module Babeltrace2
   BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD] = [
     BTFieldClassArrayDynamicHandle,
     BTFieldClassArrayDynamic ]
+
+  BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
+  BTFieldClassBlobSetMediaTypeStatus =
+    enum :bt_field_class_blob_set_media_type_status,
+    [ :BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_OK,
+       BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_OK,
+      :BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_MEMORY_ERROR,
+       BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_MEMORY_ERROR ]
+
+  attach_function :bt_field_class_blob_set_media_type,
+                  [ :bt_field_class_blob_handle, :string ],
+                  :bt_field_class_blob_set_media_type_status
+
+  attach_function :bt_field_class_blob_get_media_type,
+                  [ :bt_field_class_blob_handle ],
+                  :string
+
+  class BTFieldClass::Blob < BTFieldClass
+    def set_media_type(media_type)
+      res = Babeltrace2.bt_field_class_blob_set_media_type(@handle, media_type)
+      raise Babeltrace2.process_error(res) if res != :BT_FIELD_CLASS_BLOB_SET_MEDIA_TYPE_STATUS_OK
+      self
+    end
+    alias media_type= set_media_type
+
+    def get_media_type
+      Babeltrace2.bt_field_class_blob_get_media_type(@handle)
+    end
+    alias media_type get_media_type
+  end
+  BTFieldClassBlob = BTFieldClass::Blob
+
+  attach_function :bt_field_class_blob_static_create,
+                  [ :bt_trace_class_handle, :uint64 ],
+                  :bt_field_class_blob_static_handle
+
+  attach_function :bt_field_class_blob_static_get_length,
+                  [ :bt_field_class_blob_static_handle ],
+                  :uint64
+
+  class BTFieldClass::Blob::Static < BTFieldClass::Blob
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   trace_class: nil, length: nil)
+      if handle
+        super(handle, retain: retain, auto_release: auto_release)
+      else
+        handle = Babeltrace2.bt_field_class_blob_static_create(trace_class, length)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle, retain: false)
+      end
+    end
+
+    def get_length
+      Babeltrace2.bt_field_class_blob_static_get_length(@handle)
+    end
+    alias length get_length
+    alias size get_length
+  end
+  BTFieldClassBlobStatic = BTFieldClass::Blob::Static
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_BLOB] = [
+    BTFieldClassBlobStaticHandle,
+    BTFieldClassBlobStatic ]
+
+  attach_function :bt_field_class_blob_dynamic_without_length_field_location_create,
+                  [ :bt_trace_class_handle ],
+                  :bt_field_class_blob_dynamic_handle
+
+  attach_function :bt_field_class_blob_dynamic_with_length_field_location_create,
+                  [ :bt_trace_class_handle, :bt_field_location_handle ],
+                  :bt_field_class_blob_dynamic_handle
+
+  attach_function :bt_field_class_blob_dynamic_with_length_field_borrow_length_field_location_const,
+                  [ :bt_field_class_blob_dynamic_handle ],
+                  :bt_field_location_handle
+
+  class BTFieldClass::Blob::Dynamic < BTFieldClass::Blob
+    module WithLengthField
+      def get_length_field_location
+        handle = Babeltrace2.bt_field_class_blob_dynamic_with_length_field_borrow_length_field_location_const(@handle)
+        return nil if handle.null?
+        BTFieldLocation.new(handle, retain: true)
+      end
+      alias length_field_location get_length_field_location
+
+      def to_h
+        res = super
+        res[:length_field_location] = length_field_location.to_h
+        res
+      end
+    end
+    def initialize(handle = nil, retain: true, auto_release: true,
+                   trace_class: nil, length_field_location: nil)
+      if handle
+        self.extend(WithLengthField) if Babeltrace2.bt_field_class_get_type(handle) ==
+          :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD
+        super(handle, retain: retain, auto_release: auto_release)
+      elsif length_field_location
+        handle = Babeltrace2.bt_field_class_blob_dynamic_with_length_field_location_create(
+                   trace_class, length_field_location)
+        raise Babeltrace2.process_error if handle.null?
+        self.extend(WithLengthField)
+        super(handle, retain: false)
+      else
+        handle = Babeltrace2.bt_field_class_blob_dynamic_without_length_field_location_create(trace_class)
+        raise Babeltrace2.process_error if handle.null?
+        super(handle, retain: false)
+      end
+    end
+  end
+  BTFieldClassBlobDynamic = BTFieldClass::Blob::Dynamic
+  BTFieldClassBlobDynamicWithLengthField = BTFieldClass::Blob::Dynamic::WithLengthField
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD] = [
+    BTFieldClassBlobDynamicHandle,
+    BTFieldClassBlobDynamic ]
+  BTFieldClass::TYPE_MAP[:BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD] = [
+    BTFieldClassBlobDynamicHandle,
+    BTFieldClassBlobDynamic ]
 
   attach_function :bt_field_class_structure_create,
                   [ :bt_trace_class_handle ],
