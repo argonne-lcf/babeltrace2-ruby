@@ -275,6 +275,10 @@ module Babeltrace2
     alias create_array_class create_field_class_array
     alias create_array create_field_class_array
 
+    def create_field_location(root_scope, items)
+      BTFieldLocation.new(trace_class: @handle, root_scope: root_scope, items: items)
+    end
+
     def create_field_class_structure
       BTFieldClassStructure.new(trace_class: @handle)
     end

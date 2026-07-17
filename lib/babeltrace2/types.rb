@@ -113,6 +113,9 @@ module Babeltrace2
   class BTFieldPathHandle < BTHandle; end
   typedef BTFieldPathHandle, :bt_field_path_handle
 
+  class BTFieldLocationHandle < BTHandle; end
+  typedef BTFieldLocationHandle, :bt_field_location_handle
+
   class BTFieldPathItemHandle < BTHandle; end
   typedef BTFieldPathItemHandle, :bt_field_path_item_handle
 
