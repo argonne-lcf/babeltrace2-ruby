@@ -478,6 +478,18 @@ module Babeltrace2
   class BTFieldStructureHandle < BTFieldHandle; end
   typedef BTFieldStructureHandle, :bt_field_structure_handle
 
+  class BTFieldClassBlobHandle < BTFieldClassHandle; end
+  typedef BTFieldClassBlobHandle, :bt_field_class_blob_handle
+
+  class BTFieldClassBlobStaticHandle < BTFieldClassBlobHandle; end
+  typedef BTFieldClassBlobStaticHandle, :bt_field_class_blob_static_handle
+
+  class BTFieldClassBlobDynamicHandle < BTFieldClassBlobHandle; end
+  typedef BTFieldClassBlobDynamicHandle, :bt_field_class_blob_dynamic_handle
+
+  class BTFieldBlobHandle < BTFieldHandle; end
+  typedef BTFieldBlobHandle, :bt_field_blob_handle
+
   class BTFieldClassOptionHandle < BTFieldClassHandle; end
   typedef BTFieldClassOptionHandle, :bt_field_class_option_handle
 
