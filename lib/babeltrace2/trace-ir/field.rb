@@ -499,8 +499,8 @@ module Babeltrace2
 
   BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK = BT_FUNC_STATUS_OK
   BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
-  BTFieldDynamicBlobSetLengthStatus =
-    enum :bt_field_dynamic_blob_set_length_status,
+  BTFieldBlobDynamicSetLengthStatus =
+    enum :bt_field_blob_dynamic_set_length_status,
     [ :BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK,
        BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK,
       :BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_MEMORY_ERROR,
@@ -508,7 +508,7 @@ module Babeltrace2
 
   attach_function :bt_field_blob_dynamic_set_length,
                   [ :bt_field_blob_handle, :uint64 ],
-                  :bt_field_dynamic_blob_set_length_status
+                  :bt_field_blob_dynamic_set_length_status
 
   # BLOB fields (CTF2 / babeltrace >= 2.1): raw uninterpreted bytes, returned as
   # a binary String.
@@ -526,6 +526,7 @@ module Babeltrace2
     alias to_s get_value
 
     def set_value(value)
+      raise "invalid value size" if value.bytesize != get_length
       Babeltrace2.bt_field_blob_get_data(@handle).write_bytes(value, 0, get_length)
       self
     end
@@ -536,11 +537,19 @@ module Babeltrace2
     end
   end
   BTFieldBlob = BTField::Blob
-  BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_BLOB] = [ BTFieldBlobHandle, BTFieldBlob ]
+
+  class BTField::Blob::Static < BTField::Blob
+    def get_length
+      @length ||= super
+    end
+  end
+  BTFieldBlobStatic = BTField::Blob::Static
+  BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_BLOB] = [ BTFieldBlobHandle, BTFieldBlobStatic ]
 
   class BTField::Blob::Dynamic < BTField::Blob
     module WithLengthField
     end
+    SetLengthStatus = BTFieldBlobDynamicSetLengthStatus
 
     def initialize(handle)
       super
@@ -552,7 +561,11 @@ module Babeltrace2
       raise Babeltrace2.process_error(res) if res != :BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK
       self
     end
-    alias length= set_length
+
+    def length=(length)
+      set_length(length)
+      length
+    end
   end
   BTFieldBlobDynamicWithLengthField = BTField::Blob::Dynamic::WithLengthField
   BTFieldBlobDynamic = BTField::Blob::Dynamic

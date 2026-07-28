@@ -1,9 +1,4 @@
 class BTFieldBlobTest < Minitest::Test
-  # Round-trip BLOB fields (CTF2 / babeltrace >= 2.1), mirroring the dynamic
-  # array test in field.rb. A packet context carries all three blob variants:
-  # a static blob, a dynamic blob without a length field, and a dynamic blob
-  # whose byte length is given by a linked length field-location. Each holds
-  # the pattern repeated a known number of times.
   MEDIA_TYPE = "application/octet-stream"
   STATIC_BLOB_ID = "static blob"
   DYNAMIC_BLOB_WO_LENGTH_ID = "dynamic blob wo length"
@@ -39,13 +34,13 @@ class BTFieldBlobTest < Minitest::Test
       field_class = trace_class.create_structure
 
       # Static blob field class.
-      static_blob = trace_class.create_static_blob(static_bytes.bytesize, media_type: MEDIA_TYPE)
+      static_blob = trace_class.create_blob(length: static_bytes.bytesize, media_type: MEDIA_TYPE)
       assert_equal(static_bytes.bytesize, static_blob.length)
       assert_equal(MEDIA_TYPE, static_blob.media_type)
       field_class.append(STATIC_BLOB_ID, static_blob)
 
       # Dynamic blob field class without a length field-location.
-      dynamic_blob_wo_length = trace_class.create_dynamic_blob(media_type: MEDIA_TYPE)
+      dynamic_blob_wo_length = trace_class.create_blob(media_type: MEDIA_TYPE)
       assert_equal(MEDIA_TYPE, dynamic_blob_wo_length.media_type)
       field_class.append(DYNAMIC_BLOB_WO_LENGTH_ID, dynamic_blob_wo_length)
 
@@ -56,16 +51,13 @@ class BTFieldBlobTest < Minitest::Test
       # Dynamic blob field class with a linked length field-location.
       loc = trace_class.create_field_location(
         :BT_FIELD_LOCATION_SCOPE_PACKET_CONTEXT, LENGTH_FIELD_ID)
-      dynamic_blob_w_length = trace_class.create_dynamic_blob(media_type: MEDIA_TYPE,
-                                                             length_field_location: loc)
+      dynamic_blob_w_length = trace_class.create_blob(length: loc, media_type: MEDIA_TYPE)
       assert_equal(MEDIA_TYPE, dynamic_blob_w_length.media_type)
       field_class.append(DYNAMIC_BLOB_W_LENGTH_ID, dynamic_blob_w_length)
 
       stream_class.packet_context_field_class = field_class
 
-      # Whole-trace-class to_h/from_h round-trip (mirrors the array test): this
-      # recurses through the structure into every blob field class's from_h,
-      # covering media_type, length, and the length field-location.
+      # Whole-trace-class to_h/from_h round-trip.
       href = trace_class.to_h
       h = Marshal.load(Marshal.dump(href))
       assert_equal(href, BT2::BTTraceClass.from_h(self_component, h).to_h)
@@ -88,7 +80,7 @@ class BTFieldBlobTest < Minitest::Test
             # Static blob: fixed length, set at field-class creation.
             static_blob = f[STATIC_BLOB_ID]
             assert_equal(:BT_FIELD_CLASS_TYPE_STATIC_BLOB, static_blob.class_type)
-            assert_instance_of(BT2::BTFieldBlob, static_blob)
+            assert_instance_of(BT2::BTFieldBlobStatic, static_blob)
             assert_equal(static_bytes.bytesize, static_blob.length)
             static_blob.value = static_bytes
 
@@ -101,11 +93,7 @@ class BTFieldBlobTest < Minitest::Test
             assert_equal(dynamic_wo_bytes.bytesize, dynamic_blob_wo_length.length)
             dynamic_blob_wo_length.value = dynamic_wo_bytes
 
-            # Dynamic blob with a length field (mirrors the dynamic-array-with-
-            # length convention in field.rb, `sf.length = f[2].value`): the
-            # linked length field is CTF-serialization metadata, so we derive
-            # the blob length from it — a single source of truth that cannot
-            # diverge.
+            # Dynamic blob with a length field: derive the blob length from it.
             length_field = f[LENGTH_FIELD_ID]
             length_field.value = dynamic_w_bytes.bytesize
             dynamic_blob_w_length = f[DYNAMIC_BLOB_W_LENGTH_ID]
@@ -115,6 +103,11 @@ class BTFieldBlobTest < Minitest::Test
             dynamic_blob_w_length.length = length_field.value
             assert_equal(length_field.value, dynamic_blob_w_length.length)
             dynamic_blob_w_length.value = dynamic_w_bytes
+
+            # The linked length field-location.
+            loc = dynamic_blob_w_length.get_class.length_field_location
+            assert_equal(:BT_FIELD_LOCATION_SCOPE_PACKET_CONTEXT, loc.root_scope)
+            assert_equal([ LENGTH_FIELD_ID ], loc.items)
 
             BT2::BTMessage::PacketBeginning.new(self_message_iterator: it, packet: packet)
           when :BT_MESSAGE_TYPE_PACKET_END

@@ -296,6 +296,19 @@ module Babeltrace2
     alias create_dynamic_blob_class create_field_class_blob_dynamic
     alias create_dynamic_blob create_field_class_blob_dynamic
 
+    def create_field_class_blob(length: nil, media_type: nil)
+      case length
+      when Integer
+        create_field_class_blob_static(length, media_type: media_type)
+      when nil, BTFieldLocation
+        create_field_class_blob_dynamic(media_type: media_type, length_field_location: length)
+      else
+        raise "invalid length type"
+      end
+    end
+    alias create_blob_class create_field_class_blob
+    alias create_blob create_field_class_blob
+
     def create_field_class_structure
       BTFieldClassStructure.new(trace_class: @handle)
     end
