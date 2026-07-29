@@ -485,6 +485,96 @@ module Babeltrace2
     BTFieldStringHandle,
     BTFieldString ]
 
+  attach_function :bt_field_blob_get_length,
+                  [ :bt_field_blob_handle ],
+                  :uint64
+
+  attach_function :bt_field_blob_get_data,
+                  [ :bt_field_blob_handle ],
+                  :pointer
+
+  attach_function :bt_field_blob_get_data_const,
+                  [ :bt_field_blob_handle ],
+                  :pointer
+
+  BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK = BT_FUNC_STATUS_OK
+  BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_MEMORY_ERROR = BT_FUNC_STATUS_MEMORY_ERROR
+  BTFieldBlobDynamicSetLengthStatus =
+    enum :bt_field_blob_dynamic_set_length_status,
+    [ :BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK,
+       BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK,
+      :BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_MEMORY_ERROR,
+       BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_MEMORY_ERROR ]
+
+  attach_function :bt_field_blob_dynamic_set_length,
+                  [ :bt_field_blob_handle, :uint64 ],
+                  :bt_field_blob_dynamic_set_length_status
+
+  # BLOB fields (CTF2 / babeltrace >= 2.1): raw uninterpreted bytes, returned as
+  # a binary String.
+  class BTField::Blob < BTField
+    def get_length
+      Babeltrace2.bt_field_blob_get_length(@handle)
+    end
+    alias length get_length
+
+    def get_value
+      len = get_length
+      Babeltrace2.bt_field_blob_get_data_const(@handle).slice(0, len).read_bytes(len)
+    end
+    alias value get_value
+    alias to_s get_value
+
+    def set_value(value)
+      raise "invalid value size" if value.bytesize != get_length
+      Babeltrace2.bt_field_blob_get_data(@handle).write_bytes(value, 0, get_length)
+      self
+    end
+
+    def value=(value)
+      set_value(value)
+      value
+    end
+  end
+  BTFieldBlob = BTField::Blob
+
+  class BTField::Blob::Static < BTField::Blob
+    def get_length
+      @length ||= super
+    end
+  end
+  BTFieldBlobStatic = BTField::Blob::Static
+  BTField::TYPE_MAP[:BT_FIELD_CLASS_TYPE_STATIC_BLOB] = [ BTFieldBlobHandle, BTFieldBlobStatic ]
+
+  class BTField::Blob::Dynamic < BTField::Blob
+    module WithLengthField
+    end
+    SetLengthStatus = BTFieldBlobDynamicSetLengthStatus
+
+    def initialize(handle)
+      super
+      extend(BTFieldBlobDynamicWithLengthField) if class_type == :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD
+    end
+
+    def set_length(length)
+      res = Babeltrace2.bt_field_blob_dynamic_set_length(@handle, length)
+      raise Babeltrace2.process_error(res) if res != :BT_FIELD_DYNAMIC_BLOB_SET_LENGTH_STATUS_OK
+      self
+    end
+
+    def length=(length)
+      set_length(length)
+      length
+    end
+  end
+  BTFieldBlobDynamicWithLengthField = BTField::Blob::Dynamic::WithLengthField
+  BTFieldBlobDynamic = BTField::Blob::Dynamic
+  [ :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB,
+    :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD,
+    :BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD ].each do |t|
+    BTField::TYPE_MAP[t] = [ BTFieldBlobHandle, BTFieldBlobDynamic ]
+  end
+
   attach_function :bt_field_array_get_length,
                   [ :bt_field_array_handle ],
                   :uint64

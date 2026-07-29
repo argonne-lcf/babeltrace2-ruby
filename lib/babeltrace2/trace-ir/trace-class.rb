@@ -275,6 +275,40 @@ module Babeltrace2
     alias create_array_class create_field_class_array
     alias create_array create_field_class_array
 
+    def create_field_location(root_scope, items)
+      BTFieldLocation.new(trace_class: @handle, root_scope: root_scope, items: items)
+    end
+
+    def create_field_class_blob_static(length, media_type: nil)
+      fc = BTFieldClassBlobStatic.new(trace_class: @handle, length: length)
+      fc.media_type = media_type if media_type
+      fc
+    end
+    alias create_static_blob_class create_field_class_blob_static
+    alias create_static_blob create_field_class_blob_static
+
+    def create_field_class_blob_dynamic(media_type: nil, length_field_location: nil)
+      fc = BTFieldClassBlobDynamic.new(trace_class: @handle,
+                                       length_field_location: length_field_location)
+      fc.media_type = media_type if media_type
+      fc
+    end
+    alias create_dynamic_blob_class create_field_class_blob_dynamic
+    alias create_dynamic_blob create_field_class_blob_dynamic
+
+    def create_field_class_blob(length: nil, media_type: nil)
+      case length
+      when Integer
+        create_field_class_blob_static(length, media_type: media_type)
+      when nil, BTFieldLocation
+        create_field_class_blob_dynamic(media_type: media_type, length_field_location: length)
+      else
+        raise "invalid length type"
+      end
+    end
+    alias create_blob_class create_field_class_blob
+    alias create_blob create_field_class_blob
+
     def create_field_class_structure
       BTFieldClassStructure.new(trace_class: @handle)
     end
