@@ -520,6 +520,9 @@ module Babeltrace2
 
     def get_value
       len = get_length
+      # For a 0-size blob, Babeltrace returns a NULL pointer.
+      # FFI performs a NULL check even when reading 0 bytes.
+      # As a low-overhead workaround, return an empty binary string when len is 0.
       return "".b if len.zero?
       Babeltrace2.bt_field_blob_get_data_const(@handle).read_bytes(len)
     end
