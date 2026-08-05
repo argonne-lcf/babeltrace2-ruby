@@ -520,14 +520,19 @@ module Babeltrace2
 
     def get_value
       len = get_length
-      Babeltrace2.bt_field_blob_get_data_const(@handle).slice(0, len).read_bytes(len)
+      # For a 0-size blob, Babeltrace returns a NULL pointer.
+      # FFI performs a NULL check even when reading 0 bytes.
+      # As a low-overhead workaround, return an empty binary string when len is 0.
+      return "".b if len.zero?
+      Babeltrace2.bt_field_blob_get_data_const(@handle).read_bytes(len)
     end
     alias value get_value
     alias to_s get_value
 
     def set_value(value)
-      raise "invalid value size" if value.bytesize != get_length
-      Babeltrace2.bt_field_blob_get_data(@handle).write_bytes(value, 0, get_length)
+      len = get_length
+      raise "invalid value size" if value.bytesize != len
+      Babeltrace2.bt_field_blob_get_data(@handle).write_bytes(value, 0, len) unless len.zero?
       self
     end
 
